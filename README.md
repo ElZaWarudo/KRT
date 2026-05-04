@@ -123,6 +123,20 @@ pointer to `skills/engineering-harness/` in the rule file they read. Do not past
 the entire skill into three different places unless you enjoy maintaining
 documentation with a shovel.
 
+Update installed skills with:
+
+```bash
+npx skills update engineering-harness
+```
+
+Use `npx skills update -g engineering-harness` for global installs, or
+`npx skills update -p engineering-harness` for project installs. If `npx`
+decides to cosplay as a package-manager puzzle, the explicit version is:
+
+```bash
+npm exec --yes --package skills -- skills update engineering-harness
+```
+
 ## Using It
 
 Point a compatible agent at the skill:
