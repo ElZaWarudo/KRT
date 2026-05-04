@@ -113,9 +113,7 @@ Or skip the guessing and point it at a specific agent:
 npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a codex
 npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a claude
 npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a cursor
-npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a windsurf
-npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a cline
-npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a continue
+npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a github-copilot
 npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a opencode
 npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a qwen-code
 ```
