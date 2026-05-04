@@ -1,4 +1,0 @@
-interface:
-  display_name: "Engineering Harness"
-  short_description: "Build focused coding harnesses before work"
-  default_prompt: "Use $engineering-harness to build a compact coding harness before implementing this change."

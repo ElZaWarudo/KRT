@@ -26,7 +26,7 @@ The goal is simple: before coding, build the right harness. A harness tells the 
 The canonical skill lives at:
 
 ```text
-skills/engineering-harness/
+skills/harness-wise/
 ```
 
 It includes:
@@ -98,43 +98,43 @@ No mystical rubric. Just enough structure to stop a bad harness from becoming a 
 The canonical source remains:
 
 ```text
-skills/engineering-harness/
+skills/harness-wise/
 ```
 
 Use the Agent Skills installer and let its TUI do the awkward small talk:
 
 ```bash
-npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness
+npx -y skills add ElZaWarudo/harness-wise --skill harness-wise
 ```
 
 Or skip the guessing and point it at a specific agent:
 
 ```bash
-npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a codex
-npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a claude
-npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a cursor
-npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a github-copilot
-npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a opencode
-npx -y skills add ElZaWarudo/harness-wise --skill engineering-harness -a qwen-code
+npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a codex
+npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a claude
+npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a cursor
+npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a github-copilot
+npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a opencode
+npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a qwen-code
 ```
 
 For agents that prefer repo instructions over skill packages, add a short
-pointer to `skills/engineering-harness/` in the rule file they read. Do not paste
+pointer to `skills/harness-wise/` in the rule file they read. Do not paste
 the entire skill into three different places unless you enjoy maintaining
 documentation with a shovel.
 
 Update installed skills with:
 
 ```bash
-npx skills update engineering-harness
+npx skills update harness-wise
 ```
 
-Use `npx skills update -g engineering-harness` for global installs, or
-`npx skills update -p engineering-harness` for project installs. If `npx`
+Use `npx skills update -g harness-wise` for global installs, or
+`npx skills update -p harness-wise` for project installs. If `npx`
 decides to cosplay as a package-manager puzzle, the explicit version is:
 
 ```bash
-npm exec --yes --package skills -- skills update engineering-harness
+npm exec --yes --package skills -- skills update harness-wise
 ```
 
 ## Using It
@@ -142,13 +142,13 @@ npm exec --yes --package skills -- skills update engineering-harness
 Point a compatible agent at the skill:
 
 ```text
-Use $engineering-harness before implementing CSV export for invoices.
+Use $harness-wise before implementing CSV export for invoices.
 ```
 
 Or review an existing harness:
 
 ```text
-Use $engineering-harness to review this harness before coding:
+Use $harness-wise to review this harness before coding:
 
 # Coding Harness
 Objective: Add invoice CSV export.
@@ -162,7 +162,7 @@ That second example should get flagged. "Read the entire repo and all docs" is n
 
 ```text
 skills/
-  engineering-harness/
+  harness-wise/
     SKILL.md
     agents/
       openai.yaml

@@ -6,7 +6,7 @@ Use these scenarios when changing the skill. The goal is to test whether the ski
 
 Prompt:
 
-> Use $engineering-harness for a bug where `orders total` is wrong when a discount is zero.
+> Use $harness-wise for a bug where `orders total` is wrong when a discount is zero.
 
 Expected qualities:
 
@@ -19,7 +19,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $engineering-harness before adding CSV export for invoices.
+> Use $harness-wise before adding CSV export for invoices.
 
 Expected qualities:
 
@@ -32,7 +32,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $engineering-harness docs-trim for this repo before implementing billing changes.
+> Use $harness-wise docs-trim for this repo before implementing billing changes.
 
 Expected qualities:
 
@@ -45,7 +45,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $engineering-harness to prepare a harness for improving the architecture.
+> Use $harness-wise to prepare a harness for improving the architecture.
 
 Expected qualities:
 
@@ -58,7 +58,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $engineering-harness skill-audit for a task involving database migrations and backward compatibility.
+> Use $harness-wise skill-audit for a task involving database migrations and backward compatibility.
 
 Expected qualities:
 
@@ -71,7 +71,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $engineering-harness to review this harness before coding:
+> Use $harness-wise to review this harness before coding:
 >
 > # Coding Harness
 > Objective: Add invoice CSV export.
@@ -90,7 +90,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $engineering-harness before creating the first feature in this empty repo.
+> Use $harness-wise before creating the first feature in this empty repo.
 
 Expected qualities:
 
