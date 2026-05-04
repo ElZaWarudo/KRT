@@ -48,6 +48,9 @@ Compare the harness against these required areas:
 ## Verdict
 [Ready to use | Revise before coding | Regenerate recommended]
 
+## Existing Harness Summary
+[Compact operational summary of what the current harness tells the next agent to do, after accounting for findings.]
+
 ## Strong Sections
 - [Keep] [section] - [why it works]
 
