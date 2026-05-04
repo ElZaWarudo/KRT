@@ -13,6 +13,10 @@ This skill prepares or reviews that harness. It does not implement application c
 
 Do not code while using this skill. If the user asks for implementation, first produce the harness or review the existing harness, then hand off to the appropriate planning or work flow.
 
+Do not claim or imply that this skill is included in the model's startup context, system prompt, default behavior, or always-on environment. Treat it as an explicitly invoked workflow only.
+
+Do not add this skill itself to any generated or reviewed harness. The harness may recommend other task-relevant skills, but it must not instruct the next agent to use `$engineering-harness`, mention that this skill generated the harness, or embed this skill as part of the handoff.
+
 ## Workflow
 
 1. Interpret the user's task and classify the task type.
