@@ -31,6 +31,8 @@ Lower confidence:
 - Include only decisions, constraints, contracts, patterns, and warnings relevant to the task.
 - Preserve contradictions explicitly.
 - If a doc is stale but historically useful, label it `STALE` and extract only the part that explains why old behavior exists.
+- If a doc is relevant but too long, broad, repetitive, or only partially useful, label it `SUMMARIZE` instead of forcing it into `KEEP` or dropping it from the harness.
+- If no docs need summarization, make that an intentional classification outcome rather than an accidental omission.
 
 ## Output Format
 

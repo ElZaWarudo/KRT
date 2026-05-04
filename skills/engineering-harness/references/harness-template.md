@@ -100,6 +100,7 @@ Before returning the harness, verify:
 - Product/scope ambiguity is blocked rather than guessed.
 - Technical uncertainty is labeled as an assumption or deferred verification.
 - Context sections explain why each file or doc matters.
+- Existing documents were checked for task-specific summary opportunities, or the harness states why none apply.
 - Guardrails are derived from observed patterns or clearly marked assumptions.
 - The harness does not ask the next agent to read broad directories without a reason.
 

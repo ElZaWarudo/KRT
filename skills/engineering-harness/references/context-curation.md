@@ -17,10 +17,13 @@ Curate context before reading deeply. The goal is to give the next agent enough 
 - **Inspect If Needed** - Useful only if implementation reveals a dependency.
 - **Ignore For Now** - Out of scope for this task; include the reason.
 
+When existing project documents are present and plausibly related, actively look for summarization opportunities. Do not emphasize summarization over code, tests, risks, or skills, but do not leave the `Summarize` bucket empty just because the documents are not worth reading in full.
+
 ## Anti-Bloat Rules
 
 - Do not ask the next agent to read directories without naming why.
 - Do not include entire docs because they are nearby; classify them first.
+- For relevant long, broad, or partially stale docs, prefer a task-specific summary over raw inclusion or silent omission.
 - Prefer symbols, interfaces, tests, and examples over unrelated implementation bodies.
 - If there are many similar files, pick representative examples and say why.
 - If a file is large, inspect headings, exports, or search hits before reading all of it.
