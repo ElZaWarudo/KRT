@@ -9,6 +9,7 @@ description: >
 argument-hint: >
   [initiative description or docs path]
   [mode:artifacts|mode:execute|mode:full|mode:resume]
+  [package:<work-package-path>]
   [pr-granularity:auto|roadmap-item|plan-unit]
   [jira-policy:required|optional|skip]
   [parallel:true|false]
@@ -52,6 +53,20 @@ Core pipeline:
 - Do not transition Jira automatically. `krt:jira-scribe` must fetch real transitions and require confirmation before `En Revisión` or any other state.
 - Never ask for Jira credentials. Missing Jira env vars are a configuration blocker or a user-approved no-Jira exception, depending on `jira-policy`.
 
+## Proactive stop discipline
+
+Whenever this skill intentionally stops, pauses for a gate, or cannot continue, it must return a visible closeout instead of ending silently.
+
+Every closeout must include:
+
+- Current phase and status.
+- Artifact/state paths written or updated.
+- What is ready now.
+- What is blocked, or "No blockers".
+- The recommended next action.
+- The exact next invocation or command when one exists.
+
+If the next step is obvious and safe, recommend one default path rather than listing a menu. If there are multiple safe paths, recommend the first one and briefly name the alternatives. Ask the user only for choices that affect scope, product behavior, destructive actions, external systems, or notification-causing work.
 
 ## Runtime adapter guidance
 
@@ -109,18 +124,20 @@ Resolution order:
 
 Blocking policy:
 
-- Missing `brainstorm`, `plan`, or `document_review`: stop immediately.
-- Missing `work` or `code_review`: complete artifact generation if possible, then stop before execution.
-- Missing `project_pr` or its component skills: stop before shipping.
-- Missing `jira_workflow` with `jira-policy:required`: stop before shipping.
+- Missing `brainstorm`, `plan`, or `document_review`: stop immediately with a blocker closeout that names the missing role, canonical skill, aliases checked, and install/action needed.
+- Missing `work` or `code_review`: complete artifact generation if possible, then stop before execution with an artifact closeout and exact missing execution roles.
+- Missing `project_pr` or its component skills: stop before shipping with the release-court install suggestion:
+  `npx -y skills add ElZaWarudo/krt --skill krt:release-marshal --skill krt:gitflow-knight --skill krt:rebase-smith --skill krt:jira-scribe -g`
+- Missing `jira_workflow` with `jira-policy:required`: stop before shipping with a Jira blocker closeout and suggest either installing `krt:jira-scribe` or rerunning with `jira-policy:optional|skip`.
 - `ce-commit-push-pr` is not equivalent to `krt:release-marshal`; use only if the user explicitly accepts no Jira/status orchestration.
 
 ## Argument semantics
 
 - `mode:artifacts` default: run steps 0-5 and stop.
-- `mode:execute`: load `compound-master-state.md` and execute ready work packages.
-- `mode:full`: generate artifacts, ask for an execution gate, then execute.
-- `mode:resume`: continue from the next incomplete state item.
+- `mode:execute`: load `compound-master-state.md` and execute ready work packages. If no `package:` is provided, choose the first unblocked package from the earliest safe dependency wave and state that choice before invoking the work role.
+- `mode:full`: generate artifacts, return the artifact closeout, ask for one execution gate, then execute the recommended first package or first safe wave according to `parallel`.
+- `mode:resume`: continue from the next incomplete state item. First summarize the detected next item and why it was selected.
+- `package:<work-package-path>`: execute or resume only that package when used with `mode:execute`, `mode:full`, or `mode:resume`.
 - `pr-granularity:auto` default: choose based on dependency, file overlap, risk, and reviewability.
 - `pr-granularity:roadmap-item`: one package per roadmap item unless too large.
 - `pr-granularity:plan-unit`: one package per U-ID only when independently mergeable/testable.
@@ -201,6 +218,12 @@ docs/orchestration/YYYY-MM-DD-context-readiness.md
 ```
 
 Include found docs, missing categories, why roadmap generation is unsafe, and minimum docs to create. Recommend concrete next docs such as `STRATEGY.md`, `docs/architecture.md`, `docs/api-contracts.md`, `docs/data-model.md`, and `docs/delivery-workflow.md`. Then stop.
+
+Context-blocked closeout must include the readiness document path, the minimum missing docs/decisions, and one recommended next prompt. Example:
+
+```text
+Use ce:brainstorm to draft docs/architecture.md for <initiative> from the context-readiness report.
+```
 
 ## Step 2 — Roadmap generation
 
@@ -395,7 +418,34 @@ jira_policy: [required|optional|skip]
 
 Run the resolved `document_review` role in headless mode on every work package. Fix document blockers before execution.
 
-If `mode:artifacts`, stop here and return artifact paths, waves, branch strategy, and blockers.
+If `mode:artifacts`, stop here only after returning an explicit artifact closeout. Do not end silently.
+
+Artifact closeout must include:
+
+- Roadmap path.
+- Brainstorm paths.
+- Plan paths.
+- Work-package paths.
+- State path.
+- Dependency waves and recommended first package.
+- Branch strategy summary.
+- Blockers, or "No blockers".
+- Exact next invocation to continue execution, for example:
+
+```text
+Use krt:compound-master mode:execute package:<work-package-path> jira-policy:<required|optional|skip> parallel:false
+```
+
+If no package is ready, say exactly why and what artifact or decision is missing. If packages are ready, say that artifact generation is complete and execution is intentionally waiting for an explicit user gate. The user should never have to ask "why did you stop?" to discover this.
+
+If `mode:full`, use the same artifact closeout, then ask one execution gate:
+
+```text
+Artifacts are ready. Recommended next package: <work-package-path>.
+Proceed with execution now?
+```
+
+If the user approves, continue to Step 6. If the user declines, stop with the exact `mode:execute package:<path>` invocation for later.
 
 ## Step 6 — Execution wave planning
 
@@ -414,6 +464,14 @@ Parallelism rules:
 - `parallel:false` forces serial execution.
 - `parallel:true` only permits parallel work when isolated worktrees/checkouts exist and package scopes do not overlap dangerously.
 - Parallel subagents require worktree isolation. If no isolation, subagents must not stage, commit, push, create PRs, transition Jira, or run broad mutation-prone flows.
+
+If execution was requested and no `package:` argument was provided:
+
+1. Select the first unblocked package from the earliest safe wave.
+2. State the selected package, why it is safe to start, and any packages intentionally deferred.
+3. Continue without asking unless the selection changes scope, requires a stacked branch decision, or conflicts with user-provided ordering.
+
+If no package can execute, stop with an execution-blocked closeout that lists each blocked package and the missing dependency, branch, PR, decision, or artifact.
 
 ## Step 7 — Execute package with the resolved work role
 
@@ -435,6 +493,12 @@ Completion gate:
 - No unresolved product decision remains.
 
 If the resolved `work` role cannot avoid its own PR/shipping flow, stop before duplicate shipping. If it already created or found an open PR, record it and ask whether to use/update that PR rather than invoking `krt:release-marshal` again.
+
+After each work invocation returns, continue proactively when gates are satisfied:
+
+- If implementation completed and verification passed, proceed to Step 8.
+- If implementation completed but verification was skipped or failed, return a package closeout with exact verification still needed.
+- If implementation stopped for a product or technical decision, write/update state and ask one blocking question.
 
 ## Step 8 — Code review and fix loop
 
@@ -464,6 +528,10 @@ Loop:
 6. Stop after three rounds if blockers remain. Do not open PR unless the user explicitly accepts residual risk.
 
 Passing gate: no actionable finding at or above the configured `review-threshold`, no unresolved security/data/contract finding, tests pass, advisory findings recorded.
+
+If review passes, proceed to Step 9 without asking unless shipping would mutate external systems before `krt:release-marshal` can present its own approval gate.
+
+If review blockers remain after three loops, stop with a review-blocked closeout that includes the latest findings path, unresolved findings grouped by severity, verification status, and the exact recommended resolver invocation.
 
 ## Step 9 — Handoff to krt:release-marshal
 
@@ -497,6 +565,8 @@ PR tree safety:
 
 After handoff, record Jira URL, PR URL, status, branch, base, reviewers, and blockers in state.
 
+If shipping cannot start because a release role is missing, Jira config is required but absent, an open PR already exists, or the target branch/base is ambiguous, return a shipping-blocked closeout with the exact missing input or command. Do not just record the blocker in state.
+
 ## Step 10 — Continue waves or finish
 
 After each wave:
@@ -513,6 +583,8 @@ docs/orchestration/YYYY-MM-DD-compound-master-summary.md
 ```
 
 Include roadmap, brainstorms, plans, packages, waves, branches, tests, review rounds, Jira tasks, PRs, blockers, residual advisory findings, and next actions.
+
+Final closeout must summarize completed packages, open PRs/Jira tasks, remaining packages by wave, and the next recommended invocation if work remains. If all work is complete, say so explicitly.
 
 ## Status model
 
