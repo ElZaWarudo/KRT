@@ -1,246 +1,100 @@
-# Harness Wise
+# KRT
 
-Harness Wise is a portable skill package for building coding harnesses before a coding agent starts changing files with the confidence of a junior developer after one successful grep.
+KRT means **Knights of the Round Table**: portable agent skills for keeping the whole Camelot of a codebase in order without asking one overcaffeinated linux squire to remember everything.
 
-The short version: it helps an agent pause, inspect the repo intelligently, choose relevant context, identify useful skills, flag stale docs, estimate risk, and produce a compact operational brief before implementation begins.
+## Philosophy
 
-It is not an app framework. It is not a scanner that pretends to understand your architecture because it saw a folder named `services`. It is a disciplined pre-work harness for agents that would otherwise improvise with a straight face.
+KRT exists because skills need a proper keep: one place for focused agent workflows that inspect, plan, review, and coordinate work before the diff starts making royal decrees.
 
-## Why This Exists
+Each skill should cover its part of Camelot cleanly:
 
-Modern coding agents are useful, but they can be weirdly eager. Given a feature request, they may:
+- small enough to load only when useful
+- explicit enough that another agent can follow it
+- portable across agent runtimes where possible
+- opinionated enough to stop bad context from becoming bad code
 
-- Read too much.
-- Read too little.
-- Trust old docs over current code.
-- Invent a pattern because the existing one was three directories away.
-- Recommend no specialized skills because nobody asked loudly enough.
-- Add tests only after the smoke clears.
+The bit is medieval. The contract is not.
 
-Harness Wise exists to make that less normal.
+## Skills
 
-The goal is simple: before coding, build the right harness. A harness tells the next agent what matters, what does not, what is known, what is assumed, what skills may help, and where the risks are hiding.
+| Skill | Purpose |
+|---|---|
+| `$harness-wise` | Build or review a compact coding harness before implementation. Good for repo reconnaissance, context curation, stale-doc checks, risk estimates, and skill recommendations. |
+| `$compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, document reviews, work packages, execution gates, code review, and PR/Jira handoff. |
 
-## What It Provides
+Skills can bring their own auxiliary files: references, templates, assets, adapter configs, or agent definitions. Keep the main `SKILL.md` readable; put the heavy armor in nearby files.
 
-The canonical skill lives at:
+## Quick Examples
 
-```text
-skills/harness-wise/
-```
-
-It includes:
-
-- `SKILL.md`: the main workflow and trigger description.
-- `agents/openai.yaml`: UI metadata for compatible agent runtimes.
-- `references/harness-template.md`: the Coding Harness output contract.
-- `references/task-classification.md`: feature, bugfix, refactor, migration, review, security, and related task typing.
-- `references/modes.md`: quick, deep, bugfix, feature, refactor, skill-audit, harness-review, and docs-trim behavior.
-- `references/context-curation.md`: anti-context-bloat rules and task-relevant project intelligence.
-- `references/document-classification.md`: KEEP, SUMMARIZE, IGNORE, STALE, and ASK/VERIFY labels.
-- `references/confidence-rubric.md`: high, medium, low, and unknown confidence labels.
-- `references/skill-selection.md`: available, missing, review-only, and unverified skill recommendations.
-- `references/impact-estimation.md`: impact matrix, risk surfaces, validation depth, and action boundaries.
-- `references/harness-review.md`: review mode for an existing harness.
-- `references/validation-scenarios.md`: prompts for forward-testing changes to the skill.
-
-## How It Works
-
-Harness Wise uses progressive disclosure:
+Prepare a coding harness before touching a repo:
 
 ```text
-task -> classify -> scan lightly -> curate context -> extract patterns
-     -> surface project intelligence -> recommend skills -> estimate impact
-     -> ask only blocking questions -> emit harness or review existing harness
+Use $harness-wise before adding invoice CSV export.
 ```
 
-The main skill file stays small. Detailed rubrics live in `references/` and are loaded only when relevant. This is intentional. A context-saving skill that starts by dumping every rule into context has already lost the plot.
-
-## Modes
-
-- `quick`: small local task, compact harness.
-- `deep`: cross-cutting, risky, or architecture-heavy task.
-- `bugfix`: prioritize reproduction, nearby code, and regression tests.
-- `feature`: prioritize existing patterns, contracts, docs, and tests.
-- `refactor`: preserve behavior and public interfaces.
-- `skill-audit`: check whether the available skill set is enough.
-- `harness-review`: review an existing harness before coding.
-- `docs-trim`: classify and summarize docs without making the context window carry furniture.
-
-## Existing Harness Review
-
-If you already have a harness, Harness Wise can review it instead of generating a duplicate.
-
-It checks for:
-
-- Objective and task interpretation.
-- Source-of-truth ranking.
-- Context plan.
-- Documentation freshness.
-- Project rules and guardrails.
-- Skill recommendations and gaps.
-- Risk and impact estimates.
-- Blocking questions vs technical assumptions.
-- Agent-ready instructions.
-
-The review labels are deliberately plain:
-
-- `Keep`
-- `Revise`
-- `Missing`
-- `Overloaded`
-- `Risk`
-- `Stale/Verify`
-
-No mystical rubric. Just enough structure to stop a bad harness from becoming a bad implementation with nicer formatting.
-
-## Installation
-
-The canonical source remains:
+Trim noisy docs before a feature:
 
 ```text
-skills/harness-wise/
+Use $harness-wise docs-trim before working on billing.
 ```
 
-Use the Agent Skills installer and let its TUI do the awkward small talk:
+Turn a documented initiative into delivery artifacts:
+
+```text
+Use $compound-master for docs/specs/reporting.md mode:artifacts
+```
+
+Resume execution from existing orchestration state:
+
+```text
+Use $compound-master mode:resume jira-policy:optional parallel:false
+```
+
+## Install
+
+Install a skill from KRT:
 
 ```bash
-npx -y skills add ElZaWarudo/harness-wise --skill harness-wise
+npx -y skills add ElZaWarudo/krt --skill harness-wise
+npx -y skills add ElZaWarudo/krt --skill compound-master
 ```
 
-Or skip the guessing and point it at a specific agent:
+Target a specific runtime:
 
 ```bash
-npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a codex
-npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a claude
-npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a cursor
-npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a github-copilot
-npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a opencode
-npx -y skills add ElZaWarudo/harness-wise --skill harness-wise -a qwen-code
+npx -y skills add ElZaWarudo/krt --skill harness-wise -a codex
+npx -y skills add ElZaWarudo/krt --skill compound-master -a codex
 ```
 
-For agents that prefer repo instructions over skill packages, add a short
-pointer to `skills/harness-wise/` in the rule file they read. Do not paste
-the entire skill into three different places unless you enjoy maintaining
-documentation with a shovel.
-
-Update installed skills with:
+Update installed skills:
 
 ```bash
 npx skills update harness-wise
+npx skills update compound-master
 ```
 
-Use `npx skills update -g harness-wise` for global installs, or
-`npx skills update -p harness-wise` for project installs. If `npx`
-decides to cosplay as a package-manager puzzle, the explicit version is:
+If `npx` wanders into the forest:
 
 ```bash
 npm exec --yes --package skills -- skills update harness-wise
 ```
 
-## Using It
-
-Point a compatible agent at the skill:
-
-```text
-Use $harness-wise before implementing CSV export for invoices.
-```
-
-## What You Can Ask It To Do
-
-Harness Wise can do more than fill a template. It can help the agent build enough project intelligence to work carefully without dragging the whole repo into context.
-
-Useful prompts:
-
-```text
-Use $harness-wise before fixing the failed invoice total calculation.
-```
-
-```text
-Use $harness-wise to map the project structure and conventions before adding billing reports.
-```
-
-```text
-Use $harness-wise docs-trim before working on billing so the next agent knows which docs matter.
-```
-
-```text
-Use $harness-wise skill-audit for a migration that needs backward compatibility.
-```
-
-```text
-Use $harness-wise to prepare a risk-aware handoff before touching deploy scripts.
-```
-
-It can surface:
-
-- Task-relevant project maps: entry points, modules, commands, tests, and docs that matter for the requested work.
-- Convention summaries: observed structure, naming, testing, dependency, and error-handling patterns the next agent should follow.
-- Documentation triage: docs to keep, summarize, ignore, verify, or treat as stale.
-- Skill coverage: relevant available skills, missing expertise, review-only skills, and unverified recommendations.
-- Risk and impact estimates: affected surfaces, validation needs, action boundaries, and blocking product questions.
-- Existing harness reviews: findings, compact operational summaries, and minimal patches or regeneration triggers.
-
-Most outputs are conversational harnesses or reviews. Persistent artifacts are opt-in: it may propose `docs/project-map.md`, `docs/conventions.md`, or a saved task harness when repeated future work would benefit, but actual file writing belongs in a follow-up planning or work step after you explicitly ask.
-
-Or review an existing harness:
-
-```text
-Use $harness-wise to review this harness before coding:
-
-# Coding Harness
-Objective: Add invoice CSV export.
-Context: Read the entire repo and all docs.
-Plan: Implement it.
-```
-
-That second example should get flagged. "Read the entire repo and all docs" is not a context strategy. It is a cry for help wearing a bullet point.
-
-## Project Layout
+## Components
 
 ```text
 skills/
   harness-wise/
     SKILL.md
     agents/
-      openai.yaml
     references/
-      confidence-rubric.md
-      context-curation.md
-      document-classification.md
-      harness-review.md
-      harness-template.md
-      impact-estimation.md
-      modes.md
-      skill-selection.md
-      task-classification.md
-      validation-scenarios.md
+  compound-master/
+    SKILL.md
+    assets/
+      codex-agents/
 ```
 
-## Validation
+## Local Development
 
-Validate it with whichever validator your target agent runtime uses for skill packages.
+Edit skills in `skills/<name>/`. Keep reusable detail in `references/` or `assets/` so the top-level skill stays compact.
 
-The package itself is intentionally stored under `skills/`, so agent-specific adapters can be added without making one tool the landlord.
-
-## Design Notes
-
-Harness Wise is intentionally conservative:
-
-- It does not code.
-- It does not pretend old docs are truth when current code disagrees.
-- It does not recommend every skill just because the names sound impressive.
-- It does not block on technical unknowns that can be verified later.
-- It does block when product or scope ambiguity would make the harness misleading.
-
-That may be less magical, but it is much less likely to send an agent into your codebase armed with vibes and a diff.
-
-## Status
-
-Early and useful. The skill package is portable, structured, and validated, and installation is intentionally just the standard `skills` command instead of a bespoke wrapper pretending to be infrastructure.
-
-Future work probably belongs around:
-
-- stronger forward-test automation,
-- example harness outputs,
-- and whatever unpleasant edge case appears the moment this meets a real repo with three old architectures stacked in a trench coat.
+Validate with whichever skill validator your target runtime uses. For manual checks, install the skill into a disposable agent profile and run the quick examples above. If the agent comes back with a quest, a map, and no accidental rewrite of the kingdom, the table is holding.
