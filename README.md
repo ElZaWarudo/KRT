@@ -56,34 +56,37 @@ Use $krt:compound-master mode:resume jira-policy:optional parallel:false
 
 ## Install
 
-Install one skill:
+Install globally so KRT follows you between projects:
 
 ```bash
-npx -y skills add ElZaWarudo/krt --skill krt:<skill-name>
+npx -y skills add ElZaWarudo/krt --skill krt:<skill-name> -g
 ```
 
-Install the whole table:
+Install the whole table globally:
 
 ```bash
-npx -y skills add ElZaWarudo/krt --all
+npx -y skills add ElZaWarudo/krt --all -g
 ```
 
-Install the release court:
+Install the release court globally:
 
 ```bash
 npx -y skills add ElZaWarudo/krt \
   --skill krt:release-marshal \
   --skill krt:gitflow-knight \
   --skill krt:rebase-smith \
-  --skill krt:jira-scribe
+  --skill krt:jira-scribe \
+  -g
 ```
 
 `krt:release-marshal` expects those three companions to be available. The skills CLI supports repeated `--skill` flags and `--all`; KRT does not currently rely on automatic dependency resolution in skill frontmatter. The Mariscal can read the room, but he still needs the room installed.
 
+Omit `-g` only when you want the skill installed into the current project. Without it, the skill may stay in this castle and fail to appear when you ride into the next repo.
+
 Target a specific runtime when needed:
 
 ```bash
-npx -y skills add ElZaWarudo/krt --skill krt:<skill-name> -a <agent>
+npx -y skills add ElZaWarudo/krt --skill krt:<skill-name> -g -a <agent>
 ```
 
 Use `-a <agent>` when you want the skill wired into a particular agent instead of trusting autodetection. Some agents read `.agents/skills/` directly; others need the CLI to place a symlink or copy in their own directory. Name the knight you expect to answer.
