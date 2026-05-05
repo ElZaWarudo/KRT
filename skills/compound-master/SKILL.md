@@ -13,6 +13,7 @@ argument-hint: >
   [pr-granularity:auto|roadmap-item|plan-unit]
   [jira-policy:required|optional|skip]
   [parallel:true|false]
+  [delegation:auto|ask|inline]
   [review-threshold:P0-P2|P0-P1|P0]
   [subagent-model:<runtime-specific-model>]
 ---
@@ -84,9 +85,22 @@ Portable delegated roles:
 Delegation policy:
 
 - Use delegated agents only when the host runtime supports them and the work can be isolated safely.
+- Some runtimes require explicit user approval before launching agents/subagents. Detect and record whether agent launch is `automatic`, `requires-approval`, or `unavailable` during preflight.
+- If agent launch requires approval and delegation would materially help, ask one explicit delegation gate before the first launch. Do not attempt to spawn agents while waiting for hidden/implicit permission.
+- If approval is denied, unavailable, or the runtime gives no clear launch mechanism, continue inline or artifact-only according to mode and explain the fallback in the closeout.
 - `subagent-model:<value>` is advisory and runtime-specific. It may guide model selection where the runtime supports it, but it never blocks the portable workflow.
 - Missing agent definitions, missing TOML files, or different model names are not blockers. Continue inline or artifact-only when delegation is unavailable.
 - Parallel or delegated mutation requires isolated worktrees/checkouts and non-overlapping scopes. Without isolation, reviewers must be read-only and workers must not stage, commit, push, create PRs, transition Jira, or run broad mutation-prone flows.
+
+Delegation gate prompt:
+
+```text
+This runtime requires explicit approval before launching agents.
+I can continue inline, or launch delegated agents for: <roles/reason>.
+Approve delegated agent launch for this run?
+```
+
+If approved, record the approval scope in state. If not approved, set delegation mode to `inline` for the run.
 
 Codex adapter examples are bundled in `assets/codex-agents/`. They currently recommend `gpt-5.3-codex`, but that is a Codex-specific default, not a universal contract.
 
@@ -146,6 +160,9 @@ Blocking policy:
 - `jira-policy:skip`: do not create or transition Jira artifacts.
 - `parallel:false` default: execute packages serially, even when they are independent.
 - `parallel:true`: allow parallel execution only when hard dependencies are clear, file scopes do not overlap dangerously, and isolated worktrees/checkouts are available.
+- `delegation:auto` default: use delegated agents when runtime support and approval policy allow it; otherwise continue inline.
+- `delegation:ask`: ask the delegation gate before any agent launch, even if the runtime might allow automatic launch.
+- `delegation:inline`: do not launch agents; execute/review inline or via normal skill calls only.
 - `review-threshold:P0-P2` default: P0, P1, and P2 findings block review passage.
 - `review-threshold:P0-P1`: P0 and P1 findings block review passage; P2 findings are logged as residual work unless the user marks them blocking.
 - `review-threshold:P0`: only P0 findings block review passage; P1/P2 findings are logged as residual work unless the user marks them blocking.
@@ -181,7 +198,7 @@ State must track: initiative, mode, date, resolved roles and aliases, runtime ad
 ## Step 0 — Preflight
 
 1. Resolve every required role from available skills, commands, or agents using the resolution order above.
-2. Record runtime adapter and delegation availability. Missing optional agents or model settings do not block the portable workflow.
+2. Record runtime adapter and delegation availability, including whether agent launch is automatic, requires explicit approval, or unavailable. Missing optional agents or model settings do not block the portable workflow.
 3. Confirm the current directory is a git repo unless artifact-only docs mode is explicitly intended.
 4. Identify integration base:
    - prefer explicit repo docs;
@@ -297,6 +314,8 @@ Review the roadmap with the resolved `document_review` role:
 Skill("<document_review>", "mode:headless <roadmap-path>")
 ```
 
+If `document_review` resolves to a delegated agent and the delegation gate has not been approved, ask or fall back inline before invoking it.
+
 Apply safe document fixes. If findings change scope, behavior, dependency order, or PR strategy, ask the user one blocking question at a time. Rerun until no blocking doc findings remain.
 
 ## Step 3 — Brainstorm per roadmap item
@@ -320,6 +339,8 @@ After each requirements doc:
 Skill("<document_review>", "mode:headless <requirements-doc-path>")
 ```
 
+If this review requires launching a delegated reviewer and no approval exists for the run, use the delegation gate first. If denied, continue with the best available inline/document-review path and note the reduced delegation in state.
+
 Loop safe fixes and user decisions until no blocking document findings remain.
 
 ## Step 4 — Plan per brainstorm
@@ -337,6 +358,8 @@ Run explicit plan review:
 ```text
 Skill("<document_review>", "mode:headless <plan-path>")
 ```
+
+Respect the delegation gate before launching any reviewer agents. Do not leave the run idle waiting for a runtime-specific agent approval that has not been requested.
 
 Loop until blocking findings are resolved. Do not invent product behavior to satisfy review. Route product gaps back to brainstorm or ask the user.
 
@@ -418,6 +441,8 @@ jira_policy: [required|optional|skip]
 
 Run the resolved `document_review` role in headless mode on every work package. Fix document blockers before execution.
 
+If work-package review would launch agents, ensure delegation is approved or use inline review. Record whichever path was used.
+
 If `mode:artifacts`, stop here only after returning an explicit artifact closeout. Do not end silently.
 
 Artifact closeout must include:
@@ -464,6 +489,7 @@ Parallelism rules:
 - `parallel:false` forces serial execution.
 - `parallel:true` only permits parallel work when isolated worktrees/checkouts exist and package scopes do not overlap dangerously.
 - Parallel subagents require worktree isolation. If no isolation, subagents must not stage, commit, push, create PRs, transition Jira, or run broad mutation-prone flows.
+- Parallel execution that launches agents also requires delegation approval when the runtime demands it. If approval is missing or denied, downgrade to serial inline execution and state the downgrade.
 
 If execution was requested and no `package:` argument was provided:
 
@@ -476,6 +502,8 @@ If no package can execute, stop with an execution-blocked closeout that lists ea
 ## Step 7 — Execute package with the resolved work role
 
 Before executing a package, verify the resolved `work` role or worker supports implementation-only/no-shipping mode. If that capability cannot be confirmed, stop before execution and continue artifact-only unless the user explicitly chooses a different workflow.
+
+If the resolved `work` role is a delegated worker, ensure the delegation gate has been approved for worker launch. If not approved, use the inline `work` skill/command when available or stop with a closeout that asks the user to rerun with `delegation:ask` or `delegation:inline`.
 
 For each package in safe order:
 
@@ -513,6 +541,8 @@ Use read-only review when mutation is unsafe:
 ```text
 Skill("<code_review>", "mode:report-only plan:<origin-plan-path> base:<base-branch>")
 ```
+
+If the resolved `code_review` role launches reviewer agents, ensure delegation approval exists before invoking it. If approval is not granted, use the runtime's inline/report-only review path where possible and record lower review parallelism in state.
 
 Loop:
 
