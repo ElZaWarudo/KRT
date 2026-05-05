@@ -21,6 +21,10 @@ The bit is medieval. The contract is not.
 |---|---|
 | `$harness-wise` | Build or review a compact coding harness before implementation. Good for repo reconnaissance, context curation, stale-doc checks, risk estimates, and skill recommendations. |
 | `$compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, document reviews, work packages, execution gates, code review, and PR/Jira handoff. |
+| `$release-marshal` | Direct the final delivery march: commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
+| `$gitflow-knight` | Keep branch hygiene and atomic commits in formation. |
+| `$rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
+| `$jira-scribe` | Manage Jira Server/Data Center issues, subtasks, sprints, and transitions in Spanish. |
 
 Skills can bring their own auxiliary files: references, templates, assets, adapter configs, or agent definitions. Keep the main `SKILL.md` readable; put the heavy armor in nearby files.
 
@@ -57,6 +61,10 @@ Install a skill from KRT:
 ```bash
 npx -y skills add ElZaWarudo/krt --skill harness-wise
 npx -y skills add ElZaWarudo/krt --skill compound-master
+npx -y skills add ElZaWarudo/krt --skill release-marshal
+npx -y skills add ElZaWarudo/krt --skill gitflow-knight
+npx -y skills add ElZaWarudo/krt --skill rebase-smith
+npx -y skills add ElZaWarudo/krt --skill jira-scribe
 ```
 
 Target a specific runtime:
@@ -71,6 +79,10 @@ Update installed skills:
 ```bash
 npx skills update harness-wise
 npx skills update compound-master
+npx skills update release-marshal
+npx skills update gitflow-knight
+npx skills update rebase-smith
+npx skills update jira-scribe
 ```
 
 If `npx` wanders into the forest:
@@ -91,6 +103,14 @@ skills/
     SKILL.md
     assets/
       codex-agents/
+  release-marshal/
+    SKILL.md
+  gitflow-knight/
+    SKILL.md
+  rebase-smith/
+    SKILL.md
+  jira-scribe/
+    SKILL.md
 ```
 
 ## Local Development
