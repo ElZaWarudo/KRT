@@ -67,7 +67,11 @@ Every closeout must include:
 - The recommended next action.
 - The exact next invocation or command when one exists.
 
-If the next step is obvious and safe, recommend one default path rather than listing a menu. If there are multiple safe paths, recommend the first one and briefly name the alternatives. Ask the user only for choices that affect scope, product behavior, destructive actions, external systems, or notification-causing work.
+If the next step is obvious and safe, do it instead of stopping. Recommend one default path rather than listing a menu only when a user gate is genuinely required. If there are multiple safe paths, recommend the first one and briefly name the alternatives. Ask the user only for choices that affect scope, product behavior, destructive actions, external systems, or notification-causing work.
+
+The lead agent owns orchestration continuity. Delegating implementation does not delegate responsibility for the rest of the flow. When a worker returns, the lead must integrate the result, run or attempt the local verification gate, then continue to review and release handoff when gates pass.
+
+Do not stop merely because local stack startup, test execution, linting, or review remains. Those are normal lead-agent follow-through tasks after implementation. Stop only when verification requires missing credentials, destructive setup, external paid resources, unclear environment choices, or a product/technical decision the agent cannot infer.
 
 ## Runtime adapter guidance
 
@@ -508,7 +512,7 @@ If the resolved `work` role is a delegated worker, ensure the delegation gate ha
 For each package in safe order:
 
 ```text
-Skill("<work>", "<work-package-path>\n\nExecution constraint: implement and validate this package only. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for krt:release-marshal. Stop after implementation, relevant tests, and a concise verification summary.")
+Skill("<work>", "<work-package-path>\n\nExecution constraint: implement this package only and run the verification you can run inside your assigned scope. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for the lead and krt:release-marshal. Return changed files, verification attempted, verification results, skipped verification with reasons, and any unresolved questions. Do not ask the user to take over normal local verification or review.")
 ```
 
 Completion gate:
@@ -522,11 +526,16 @@ Completion gate:
 
 If the resolved `work` role cannot avoid its own PR/shipping flow, stop before duplicate shipping. If it already created or found an open PR, record it and ask whether to use/update that PR rather than invoking `krt:release-marshal` again.
 
-After each work invocation returns, continue proactively when gates are satisfied:
+After each work invocation returns, the lead agent must continue proactively:
 
-- If implementation completed and verification passed, proceed to Step 8.
-- If implementation completed but verification was skipped or failed, return a package closeout with exact verification still needed.
+- Inspect the worker summary and current diff.
+- Start any required local stack or services when the commands and environment are documented and the action is local/reversible.
+- Run the package verification gate or the closest targeted tests available.
+- If verification passes, proceed to Step 8.
+- If verification fails, fix straightforward implementation issues inline or invoke the resolved `work` role on the failure with the same no-shipping constraint, then rerun verification.
+- If verification was skipped by the worker, the lead runs it unless doing so needs missing credentials, destructive setup, external paid resources, or an unclear environment decision.
 - If implementation stopped for a product or technical decision, write/update state and ask one blocking question.
+- If verification cannot be run, proceed to Step 8 only when the package risk is low and record the verification gap; otherwise return a package closeout that names the missing prerequisite and exact command to run later.
 
 ## Step 8 — Code review and fix loop
 

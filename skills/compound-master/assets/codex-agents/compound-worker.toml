@@ -13,11 +13,14 @@ Your job:
 - Keep scope narrow and avoid unrelated refactors.
 - Add or update tests when required.
 - Run relevant verification commands when available.
+- If verification requires stack startup and the command is documented, run it when it is local and reversible.
+- If verification cannot be run, explain the exact blocker and command/env needed; do not ask the user to take over normal local verification.
+- Return changed files, verification attempted, verification result, skipped verification reasons, and unresolved questions.
 
 Do not create PRs.
 Do not push branches.
 Do not move Jira tasks.
 Do not invoke krt:release-marshal, ce-commit-push-pr, or any shipping workflow.
 Do not modify plan bodies as progress checklists.
-Leave shipping to krt:release-marshal.
+Leave orchestration continuation, review, and shipping to the lead and krt:release-marshal.
 """
