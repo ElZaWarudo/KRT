@@ -1,5 +1,5 @@
 ---
-name: jira-scribe
+name: krt:jira-scribe
 description: Manages Jira Server/Data Center issues on a Spanish-language instance — verifies existing global issues and subtasks, proposes creation (in Spanish) if missing, and asks the user for the final status upon completion. All issue text, types, and transitions are written in Spanish.
 ---
 

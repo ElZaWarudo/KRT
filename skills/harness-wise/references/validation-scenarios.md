@@ -2,13 +2,13 @@
 
 Use these scenarios when changing the skill. The goal is to test whether the skill produces compact, grounded harnesses without leaking expected answers into the prompt.
 
-Across all scenarios, the skill should stay a helper for coding harnesses. It should not introduce an `agentic-system` mode, runtime architecture checklists, tracing stacks, sandbox platforms, evaluation platforms, or self-recommendations for `$harness-wise` unless the user explicitly asks for those topics.
+Across all scenarios, the skill should stay a helper for coding harnesses. It should not introduce an `agentic-system` mode, runtime architecture checklists, tracing stacks, sandbox platforms, evaluation platforms, or self-recommendations for `$krt:harness-wise` unless the user explicitly asks for those topics.
 
 ## Scenario 1: Small Bugfix
 
 Prompt:
 
-> Use $harness-wise for a bug where `orders total` is wrong when a discount is zero.
+> Use $krt:harness-wise for a bug where `orders total` is wrong when a discount is zero.
 
 Expected qualities:
 
@@ -22,7 +22,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $harness-wise before adding CSV export for invoices.
+> Use $krt:harness-wise before adding CSV export for invoices.
 
 Expected qualities:
 
@@ -39,7 +39,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $harness-wise docs-trim for this repo before implementing billing changes.
+> Use $krt:harness-wise docs-trim for this repo before implementing billing changes.
 
 Expected qualities:
 
@@ -52,7 +52,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $harness-wise to prepare a harness for improving the architecture.
+> Use $krt:harness-wise to prepare a harness for improving the architecture.
 
 Expected qualities:
 
@@ -65,7 +65,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $harness-wise skill-audit for a task involving database migrations and backward compatibility.
+> Use $krt:harness-wise skill-audit for a task involving database migrations and backward compatibility.
 
 Expected qualities:
 
@@ -78,7 +78,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $harness-wise to review this harness before coding:
+> Use $krt:harness-wise to review this harness before coding:
 >
 > # Coding Harness
 > Objective: Add invoice CSV export.
@@ -98,7 +98,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $harness-wise before creating the first feature in this empty repo.
+> Use $krt:harness-wise before creating the first feature in this empty repo.
 
 Expected qualities:
 
@@ -112,7 +112,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $harness-wise before adding a CLI command that shells out to deploy generated artifacts.
+> Use $krt:harness-wise before adding a CLI command that shells out to deploy generated artifacts.
 
 Expected qualities:
 
@@ -125,7 +125,7 @@ Expected qualities:
 
 Prompt:
 
-> Use $harness-wise to map the project structure and conventions before adding billing reports.
+> Use $krt:harness-wise to map the project structure and conventions before adding billing reports.
 
 Expected qualities:
 
@@ -133,4 +133,4 @@ Expected qualities:
 - Summarizes relevant entry points, modules, tests, docs, and observed conventions.
 - Identifies reusable context gaps or optional persistent artifacts only when they would help repeated future work.
 - Frames `docs/project-map.md`, `docs/conventions.md`, or saved harness files as follow-up proposals for planning/work execution, not files created by the skill itself.
-- Does not add a new formal mode or recommend `$harness-wise` inside the generated harness.
+- Does not add a new formal mode or recommend `$krt:harness-wise` inside the generated harness.

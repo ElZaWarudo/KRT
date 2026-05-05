@@ -1,5 +1,5 @@
 ---
-name: harness-wise
+name: krt:harness-wise
 description: Build or review a compact, architecture-aware coding harness before implementation. Use when a user asks to prepare a coding agent before work, map task-relevant project structure, summarize repository conventions, curate context, reduce token waste, select relevant skills, review an existing harness, audit skill coverage, trim documentation context, or avoid premature coding on feature, bugfix, refactor, migration, integration, testing, documentation, security, or architecture work.
 ---
 
@@ -15,7 +15,7 @@ Do not code while using this skill. If the user asks for implementation, first p
 
 Do not claim or imply that this skill is included in the model's startup context, system prompt, default behavior, or always-on environment. Treat it as an explicitly invoked workflow only.
 
-Do not add this skill itself to any generated or reviewed harness. The harness may recommend other task-relevant skills, but it must not instruct the next agent to use `$harness-wise`, mention that this skill generated the harness, or embed this skill as part of the handoff.
+Do not add this skill itself to any generated or reviewed harness. The harness may recommend other task-relevant skills, but it must not instruct the next agent to use `$krt:harness-wise`, mention that this skill generated the harness, or embed this skill as part of the handoff.
 
 ## Workflow
 

@@ -1,10 +1,10 @@
 ---
-name: compound-master
+name: krt:compound-master
 description: >
   Artifact-first orchestrator for compound-engineering product delivery. Validates project context,
   creates a dependency-aware roadmap, runs brainstorm/plan/document-review loops, derives
   mergeable work packages, and later executes each package through resolved work/code-review roles before
-  handing shipping to release-marshal. Use when turning an existing documented software project
+  handing shipping to krt:release-marshal. Use when turning an existing documented software project
   into a sequenced roadmap and PR/Jira delivery program.
 argument-hint: >
   [initiative description or docs path]
@@ -18,7 +18,7 @@ argument-hint: >
 
 # Compound Master
 
-Compound Master coordinates existing skills. It does **not** replace Compound Engineering and it does **not** duplicate `release-marshal`.
+Compound Master coordinates existing skills. It does **not** replace Compound Engineering and it does **not** duplicate `krt:release-marshal`.
 
 Default posture: **artifact-first**. Generate durable artifacts first, then execute later only when the user explicitly asks.
 
@@ -33,7 +33,7 @@ Core pipeline:
 7. Derive work packages that map to independently reviewable PR/Jira units.
 8. Later, execute each package with a work skill or worker that supports implementation-only/no-shipping mode.
 9. Review implementation with a code-review skill, looping fixes through the work skill until the configured threshold passes.
-10. Hand the finished package to `release-marshal`, which owns gitflow commits, clean rebase, Jira, GitHub PR, reviewer requests, and Jira review transition offer.
+10. Hand the finished package to `krt:release-marshal`, which owns gitflow commits, clean rebase, Jira, GitHub PR, reviewer requests, and Jira review transition offer.
 
 ## Non-negotiable rules
 
@@ -47,9 +47,9 @@ Core pipeline:
 - Use repo-relative paths in all generated documents.
 - Do not edit CE plan bodies as per-unit progress checklists. Progress lives in `compound-master-state.md`, work-package status, task tracking, commits, Jira, and PRs.
 - A PR unit is a **work package**, not every bullet in a plan. Avoid PR-per-microtask.
-- Do not let the work phase invoke its own PR/shipping flow in this orchestration. Shipping is delegated to `release-marshal`.
+- Do not let the work phase invoke its own PR/shipping flow in this orchestration. Shipping is delegated to `krt:release-marshal`.
 - Do not open PRs from protected branches: `main`, `master`, or `develop`.
-- Do not transition Jira automatically. `jira-scribe` must fetch real transitions and require confirmation before `En Revisión` or any other state.
+- Do not transition Jira automatically. `krt:jira-scribe` must fetch real transitions and require confirmation before `En Revisión` or any other state.
 - Never ask for Jira credentials. Missing Jira env vars are a configuration blocker or a user-approved no-Jira exception, depending on `jira-policy`.
 
 
@@ -93,10 +93,10 @@ Resolve these logical roles during preflight:
 | `document_review` | `document-review` | artifact generation | `/ce-doc-review`, `ce-doc-review`, `compound-engineering:document-review` |
 | `work` | `ce-work` | execution | `/ce-work`, `ce:work`, `compound-engineering:ce-work` |
 | `code_review` | `ce-review` | execution | `/ce-code-review`, `ce:review`, `ce-code-review`, `compound-engineering:ce-review` |
-| `project_pr` | `release-marshal` | shipping | runtime command/skill with equivalent release marshal capability |
-| `gitflow_commit` | `gitflow-knight` | shipping component | runtime command/skill with equivalent gitflow commit capability |
-| `clean_rebase` | `rebase-smith` | shipping component | runtime command/skill with equivalent clean rebase capability |
-| `jira_workflow` | `jira-scribe` | shipping with Jira | runtime command/skill with equivalent Jira workflow capability |
+| `project_pr` | `krt:release-marshal` | shipping | runtime command/skill with equivalent release marshal capability |
+| `gitflow_commit` | `krt:gitflow-knight` | shipping component | runtime command/skill with equivalent gitflow commit capability |
+| `clean_rebase` | `krt:rebase-smith` | shipping component | runtime command/skill with equivalent clean rebase capability |
+| `jira_workflow` | `krt:jira-scribe` | shipping with Jira | runtime command/skill with equivalent Jira workflow capability |
 | `strategy` | `ce-strategy` | optional product anchor | `/ce-strategy`, `ce:strategy` |
 | `worktree` | `ce-worktree` | optional isolated parallelism | `git-worktree`, runtime worktree/isolation tool |
 | `fallback_pr` | `ce-commit-push-pr` | optional, only with user-approved no-Jira fallback | `git-commit-push-pr`, runtime PR fallback |
@@ -113,7 +113,7 @@ Blocking policy:
 - Missing `work` or `code_review`: complete artifact generation if possible, then stop before execution.
 - Missing `project_pr` or its component skills: stop before shipping.
 - Missing `jira_workflow` with `jira-policy:required`: stop before shipping.
-- `ce-commit-push-pr` is not equivalent to `release-marshal`; use only if the user explicitly accepts no Jira/status orchestration.
+- `ce-commit-push-pr` is not equivalent to `krt:release-marshal`; use only if the user explicitly accepts no Jira/status orchestration.
 
 ## Argument semantics
 
@@ -422,7 +422,7 @@ Before executing a package, verify the resolved `work` role or worker supports i
 For each package in safe order:
 
 ```text
-Skill("<work>", "<work-package-path>\n\nExecution constraint: implement and validate this package only. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for release-marshal. Stop after implementation, relevant tests, and a concise verification summary.")
+Skill("<work>", "<work-package-path>\n\nExecution constraint: implement and validate this package only. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for krt:release-marshal. Stop after implementation, relevant tests, and a concise verification summary.")
 ```
 
 Completion gate:
@@ -431,10 +431,10 @@ Completion gate:
 - Relevant tests run or a no-test justification recorded.
 - Verification gate passes.
 - Task tracker shows implementation complete.
-- Pending changes/commits are coherent and ready for `release-marshal`.
+- Pending changes/commits are coherent and ready for `krt:release-marshal`.
 - No unresolved product decision remains.
 
-If the resolved `work` role cannot avoid its own PR/shipping flow, stop before duplicate shipping. If it already created or found an open PR, record it and ask whether to use/update that PR rather than invoking `release-marshal` again.
+If the resolved `work` role cannot avoid its own PR/shipping flow, stop before duplicate shipping. If it already created or found an open PR, record it and ask whether to use/update that PR rather than invoking `krt:release-marshal` again.
 
 ## Step 8 — Code review and fix loop
 
@@ -454,7 +454,7 @@ Loop:
 
 1. Run review.
 2. If safe autofixes were applied, rerun relevant tests.
-3. Leave review-fix changes for `release-marshal` commit planning unless project policy requires immediate commits.
+3. Leave review-fix changes for `krt:release-marshal` commit planning unless project policy requires immediate commits.
 4. For findings at or above the configured `review-threshold`, or any gated/manual correctness, security, data, contract, or test coverage finding:
    - write `docs/review-findings/<package-slug>-round-N.md`;
    - ask the user only for non-inferable decisions;
@@ -465,15 +465,15 @@ Loop:
 
 Passing gate: no actionable finding at or above the configured `review-threshold`, no unresolved security/data/contract finding, tests pass, advisory findings recorded.
 
-## Step 9 — Handoff to release-marshal
+## Step 9 — Handoff to krt:release-marshal
 
-When implementation and review gates pass, invoke `release-marshal`. Do not duplicate its internal procedures.
+When implementation and review gates pass, invoke `krt:release-marshal`. Do not duplicate its internal procedures.
 
-`release-marshal` owns:
+`krt:release-marshal` owns:
 
-- branch/commit hygiene via `gitflow-knight`;
-- clean rebase via `rebase-smith`;
-- Jira issue/subtask create-or-reuse via `jira-scribe`;
+- branch/commit hygiene via `krt:gitflow-knight`;
+- clean rebase via `krt:rebase-smith`;
+- Jira issue/subtask create-or-reuse via `krt:jira-scribe`;
 - PR body/title construction;
 - push and PR creation via `gh`;
 - reviewer proposal/request with confirmation;
@@ -482,7 +482,7 @@ When implementation and review gates pass, invoke `release-marshal`. Do not dupl
 Invocation shape:
 
 ```text
-Skill("<project_pr>", "Run the full release-marshal workflow for this completed work package.\n\nWork package: <work-package-path>\nRoadmap item: RDM-###\nOrigin plan: <origin-plan-path>\nCurrent branch: <branch-name>\nIntended base: <base-branch>\nJira policy: <required|optional|skip>\nSuggested Jira summary: <summary>\nSuggested Jira description: <description>\nSuggested PR title: <title>\nSuggested PR body bullets:\n- <change>\n- <change>\nVerification results:\n- <command/result>\n\nUse release-marshal exactly. Do not run tests unless the user explicitly asks; use the verification results above. Ask before external mutations or notifications according to release-marshal. After PR creation, offer Jira transition to En Revisión using jira-scribe and the real transition list.")
+Skill("<project_pr>", "Run the full krt:release-marshal workflow for this completed work package.\n\nWork package: <work-package-path>\nRoadmap item: RDM-###\nOrigin plan: <origin-plan-path>\nCurrent branch: <branch-name>\nIntended base: <base-branch>\nJira policy: <required|optional|skip>\nSuggested Jira summary: <summary>\nSuggested Jira description: <description>\nSuggested PR title: <title>\nSuggested PR body bullets:\n- <change>\n- <change>\nVerification results:\n- <command/result>\n\nUse krt:release-marshal exactly. Do not run tests unless the user explicitly asks; use the verification results above. Ask before external mutations or notifications according to krt:release-marshal. After PR creation, offer Jira transition to En Revisión using krt:jira-scribe and the real transition list.")
 ```
 
 PR tree safety:
@@ -493,7 +493,7 @@ PR tree safety:
 - Do not combine unrelated roadmap items unless grouped in one work package.
 - If an open PR exists for the branch, do not create a duplicate.
 - If Jira is required and Jira config is missing, stop with a configuration blocker.
-- If Jira is optional and config is missing, let `release-marshal` ask whether to continue without Jira.
+- If Jira is optional and config is missing, let `krt:release-marshal` ask whether to continue without Jira.
 
 After handoff, record Jira URL, PR URL, status, branch, base, reviewers, and blockers in state.
 
@@ -552,6 +552,6 @@ Stop and write the blocker into `compound-master-state.md` when:
 - branch base is ambiguous or would degrade the git tree;
 - Jira is required but configuration is missing;
 - PR handoff would duplicate a PR or target the wrong base;
-- the resolved `work` role already shipped and `release-marshal` would duplicate it.
+- the resolved `work` role already shipped and `krt:release-marshal` would duplicate it.
 
 Tell the user exactly what input or action is needed before continuing.

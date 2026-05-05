@@ -1,6 +1,6 @@
 ---
-name: release-marshal
-description: "Orchestrate the full delivery flow for the current project repository: direct gitflow-knight for clean commits, rebase-smith for clean branch history, jira-scribe for Jira Server/Data Center issue work, then open a GitHub pull request with a factual body and Jira link. Use when the user asks to create/open a PR, prepare a pull request, ship current work, publish branch changes for review, or run the full gitflow + rebase + Jira + PR workflow."
+name: krt:release-marshal
+description: "Orchestrate the full delivery flow for the current project repository: direct krt:gitflow-knight for clean commits, krt:rebase-smith for clean branch history, krt:jira-scribe for Jira Server/Data Center issue work, then open a GitHub pull request with a factual body and Jira link. Use when the user asks to create/open a PR, prepare a pull request, ship current work, publish branch changes for review, or run the full gitflow + rebase + Jira + PR workflow."
 ---
 
 # Release Marshal
@@ -17,9 +17,9 @@ Orchestrate the full delivery flow for the current project. Calling this skill i
 
 The marshal directs specialized skills instead of duplicating their detailed workflows:
 
-- `gitflow-knight` owns branch hygiene, staging, and commit planning.
-- `rebase-smith` owns clean branch history and safe rebase decisions.
-- `jira-scribe` owns Jira issue/subtask lookup, creation proposals, sprint handling, and transitions.
+- `krt:gitflow-knight` owns branch hygiene, staging, and commit planning.
+- `krt:rebase-smith` owns clean branch history and safe rebase decisions.
+- `krt:jira-scribe` owns Jira issue/subtask lookup, creation proposals, sprint handling, and transitions.
 - `gh` owns GitHub remote state, push/PR operations, and reviewer requests after confirmation.
 
 ## Mandatory rules
@@ -42,9 +42,9 @@ The marshal directs specialized skills instead of duplicating their detailed wor
 
 Use these skills as sub-workflows when their conditions apply:
 
-- `gitflow-knight`: when there are staged or unstaged changes, or the branch is protected/off-convention.
-- `rebase-smith`: before PR creation, to clean branch history onto `develop` or another confirmed base.
-- `jira-scribe`: when the PR should reference a Jira parent issue or subtask.
+- `krt:gitflow-knight`: when there are staged or unstaged changes, or the branch is protected/off-convention.
+- `krt:rebase-smith`: before PR creation, to clean branch history onto `develop` or another confirmed base.
+- `krt:jira-scribe`: when the PR should reference a Jira parent issue or subtask.
 
 Do not copy their full procedures here. Load and follow the component skill when that phase is needed.
 
@@ -94,8 +94,8 @@ Ask the user to accept the phase plan before changing local state. This is the m
 
 If there are staged or unstaged changes, or the current branch is protected/off-convention:
 
-- Load and follow `gitflow-knight`.
-- Let `gitflow-knight` use the accepted workflow plan or the commit plan as the single local acceptance gate. Do not add separate branch-name confirmations when the branch name is clear.
+- Load and follow `krt:gitflow-knight`.
+- Let `krt:gitflow-knight` use the accepted workflow plan or the commit plan as the single local acceptance gate. Do not add separate branch-name confirmations when the branch name is clear.
 - Return to this workflow after commits are complete.
 
 If there are no changes to commit, continue.
@@ -104,7 +104,7 @@ If there are no changes to commit, continue.
 
 Unless the user explicitly skips history cleanup:
 
-- Load and follow `rebase-smith`.
+- Load and follow `krt:rebase-smith`.
 - Resolve target branch and base branch from current context when unambiguous.
 - Use `rebase --onto` when the branch was derived from another feature branch whose commits should be dropped.
 - If the current branch was just created from another feature branch, prefer a clean history plan that replays only branch-owned commits onto `origin/develop`, for example `git rebase --onto origin/develop <parent-feature-branch> <current-branch>`.
@@ -118,7 +118,7 @@ If the user provided Jira context, keep it.
 
 If Jira context is missing and Jira should be included:
 
-- Load and follow `jira-scribe`.
+- Load and follow `krt:jira-scribe`.
 - Use Jira Server/Data Center only.
 - Create or reuse a parent issue and subtask only after user confirmation.
 - Capture the final Jira issue URL for the PR body. The PR body does not need to label whether the issue is a parent or subtask unless the user asks.
@@ -314,7 +314,7 @@ Return:
 - Jira link if included
 - Whether it is draft or ready
 
-After returning the PR, if Jira context was included, ask whether to move the associated Jira issue to review. Use `jira-scribe` to inspect real transitions and execute only after confirmation.
+After returning the PR, if Jira context was included, ask whether to move the associated Jira issue to review. Use `krt:jira-scribe` to inspect real transitions and execute only after confirmation.
 
 ## PR-only mode
 

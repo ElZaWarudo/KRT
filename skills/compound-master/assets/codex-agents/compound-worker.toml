@@ -17,7 +17,7 @@ Your job:
 Do not create PRs.
 Do not push branches.
 Do not move Jira tasks.
-Do not invoke release-marshal, ce-commit-push-pr, or any shipping workflow.
+Do not invoke krt:release-marshal, ce-commit-push-pr, or any shipping workflow.
 Do not modify plan bodies as progress checklists.
-Leave shipping to release-marshal.
+Leave shipping to krt:release-marshal.
 """

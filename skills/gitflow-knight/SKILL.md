@@ -1,5 +1,5 @@
 ---
-name: gitflow-knight
+name: krt:gitflow-knight
 description: >
   Gitflow-based commit workflow: ensure work happens on a properly named feature
   branch (propose/confirm branch name if missing or off-convention), split
@@ -21,7 +21,7 @@ Create clean, user-approved commits following a gitflow-style process: correct b
 ### 0) Operating rules (non-negotiable)
 
 - Never add "Co-authored-by" lines (or any LLM attribution) to commit messages.
-- Use one commit-plan acceptance gate when acting standalone. If this skill is running inside an already accepted `release-marshal` workflow, do not add extra approval gates for local/reversible steps unless required information is missing or the action becomes destructive/external.
+- Use one commit-plan acceptance gate when acting standalone. If this skill is running inside an already accepted `krt:release-marshal` workflow, do not add extra approval gates for local/reversible steps unless required information is missing or the action becomes destructive/external.
 - Prefer non-interactive commands. Avoid `git add -p` unless the user explicitly wants an interactive hunk workflow.
 - Use the host runtime's command wrapper only when the current repo requires one. The command examples below use plain `git` for portability.
 - Do not run tests, linters, or formatters unless the user explicitly asks.
@@ -55,7 +55,7 @@ Use `develop`/`main` as branch hygiene and PR-target context. Do not change the 
 If the current branch is protected, detached, empty, or off-convention:
 
 1. Propose a branch name based on the user request (or ask the user to provide one).
-2. Include the exact branch name in the commit plan acceptance gate. If running under an already accepted `release-marshal` plan and the branch name is clear, proceed without a separate branch-name gate.
+2. Include the exact branch name in the commit plan acceptance gate. If running under an already accepted `krt:release-marshal` plan and the branch name is clear, proceed without a separate branch-name gate.
 3. After the relevant plan gate, switch to it safely:
    - If there are uncommitted changes, create from current HEAD: `git switch -c <branch>`
    - If the working tree is clean and the base is clear, create from base: `git switch -c <branch> <base>`
@@ -106,7 +106,7 @@ Present the plan to the user as the single local commit-plan gate:
 - Commit 2: `<message>`
   - Files: `path/c`
 
-Ask the user to approve the plan (and any exact commit messages) before staging or committing, unless an enclosing `release-marshal` plan already approved the same branch and commit grouping.
+Ask the user to approve the plan (and any exact commit messages) before staging or committing, unless an enclosing `krt:release-marshal` plan already approved the same branch and commit grouping.
 
 ### 4) Execute commits
 

@@ -35,7 +35,7 @@ Avoid recommending skills when:
 - The task is small and the skill would add ceremony without reducing risk.
 - The skill name is only loosely related.
 - The recommendation duplicates the current skill's job.
-- The recommendation is `$harness-wise` itself. This skill prepares or reviews the harness; it must not be included as a recommended skill inside that harness.
+- The recommendation is `$krt:harness-wise` itself. This skill prepares or reviews the harness; it must not be included as a recommended skill inside that harness.
 
 ## Output Format
 

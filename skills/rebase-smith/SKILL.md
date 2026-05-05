@@ -1,5 +1,5 @@
 ---
-name: rebase-smith
+name: krt:rebase-smith
 description: >
   Safe workflow to keep history clean by rebasing a child branch onto develop
   before merging. Resolve which branch will be rebased, verify whether develop
@@ -33,7 +33,7 @@ the correct base branch.
 - Avoid destructive commands (`reset --hard`, `push --force`) unless explicitly requested.
 - Do not resolve conflicts silently. Present conflicted files and ask for direction unless the fix is obvious and the user asked for autonomous resolution.
 - Use the host runtime's command wrapper only when the current repo requires one. The command examples below use plain `git` for portability.
-- Use a single rebase-plan acceptance gate when acting standalone. If running inside an already accepted `release-marshal` workflow, and target/base/upstream are unambiguous, proceed with local rebase without a second approval gate. Still ask before `--force-with-lease`, conflict resolution choices, stash/drop operations, or any remote mutation.
+- Use a single rebase-plan acceptance gate when acting standalone. If running inside an already accepted `krt:release-marshal` workflow, and target/base/upstream are unambiguous, proceed with local rebase without a second approval gate. Still ask before `--force-with-lease`, conflict resolution choices, stash/drop operations, or any remote mutation.
 
 ## Workflow
 
@@ -114,7 +114,7 @@ git rebase --onto <base> <upstream-to-drop> <target>
 Use `--fork-point` only when normal merge-base detection would replay commits
 that are not owned by the target branch. Do not use it by default.
 
-Present the selected rebase command as the rebase plan. Ask for approval when this skill is acting standalone. If an enclosing `release-marshal` plan already accepted this exact rebase shape, proceed without a second approval gate.
+Present the selected rebase command as the rebase plan. Ask for approval when this skill is acting standalone. If an enclosing `krt:release-marshal` plan already accepted this exact rebase shape, proceed without a second approval gate.
 
 ### 5) Safe rebase
 

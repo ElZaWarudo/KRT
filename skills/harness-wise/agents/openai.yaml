@@ -1,4 +1,0 @@
-interface:
-  display_name: "Harness Wise"
-  short_description: "Build focused coding harnesses before work"
-  default_prompt: "Use $harness-wise to build a compact coding harness before implementing this change."
