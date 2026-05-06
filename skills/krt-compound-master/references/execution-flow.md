@@ -39,19 +39,55 @@ Invocation shape:
 ```text
 Skill("<work>", "<work-package-path>
 
-Execution constraint: implement this package only and run the verification you can run inside your assigned scope. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for the lead and krt-release-marshal. Return changed files, verification attempted, verification results, skipped verification with reasons, and any unresolved questions. Do not ask the user to take over normal local verification or review.")
+Execution constraint: implement this package only and run the verification you can run inside your assigned scope. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for the lead and krt-release-marshal. Return changed files, API/contract changes detected, verification attempted, verification results, skipped verification with reasons, and any unresolved questions. Do not ask the user to take over normal local verification or review.")
 ```
 
 Completion gate:
 
 - Expected files changed/created.
+- Impact Scan complete when API contracts, endpoints, bindings, shared helpers, schemas, payloads, auth/tenant/ownership behavior, or test fixture contracts changed.
 - Relevant tests run or a no-test justification recorded.
+- Consumer-derived tests from the Impact Scan run, or documented as skipped with concrete local blocker and CI coverage expectation.
 - Verification gate passes or a documented gap is acceptable under package risk.
 - Task tracker shows implementation complete.
 - Pending changes/commits are coherent and ready for `krt-release-marshal`.
 - No unresolved product decision remains.
 
 After worker return, the lead must inspect the summary/diff, start documented local services when safe, run the package verification gate or closest targeted tests, fix straightforward failures inline or through `work`, and continue to review. Stop only for missing credentials, destructive setup, paid external resources, unclear environment decisions, or non-inferable product/technical decisions.
+
+## Impact Scan Gate
+
+Run this gate after implementation and before code review whenever the diff changes an API contract, endpoint, binding, shared helper, schema, payload, auth/tenant/ownership behavior, or test fixture contract.
+
+Required output:
+
+- Changed contract: concise description such as `POST /api/v1/wallet now requires active tenant context`.
+- Consumer scan patterns: endpoint paths, exported names, helper names, bindings, schema names, and error codes likely to find callers.
+- Consumers found: source files, tests, fixtures, setup flows, docs, and generated clients affected by the changed contract.
+- Required consumer tests: all relevant tests discovered by the scan, not only tests in the package's primary area.
+- Run/skipped results: command/result for each required test, or explicit skip reason including missing local service/dependency and whether CI is expected to cover it.
+
+Example shape:
+
+```text
+Changed contract:
+- POST /api/v1/wallet now requires active tenant context.
+Consumer scan patterns:
+- CreateWallet
+- ApiWallet
+- /api/v1/wallet
+Consumers found:
+- web-application/backend/test/mocha/api-tests/tests-api-wallet.ts
+- web-application/backend/test/mocha/api-tests/tests-api-did.ts
+- web-application/backend/test/mocha/api-tests/tests-api-vc.ts
+- web-application/backend/test/mocha/api-tests/tests-api-anchor-registry.ts
+Required consumer tests:
+- Wallet, DID, VC, and Anchor Registry API tests.
+Run/skipped results:
+- <commands/results or local blocker with CI coverage expectation>
+```
+
+Do not mark `review-passed` until this gate is complete for every API/contract change. If the scan finds additional consumers, update legacy setup/fixtures as needed and rerun affected tests before review.
 
 ## Code Review Loop
 
@@ -82,7 +118,7 @@ Loop:
 5. Log P3/advisory findings unless the user marks them blocking.
 6. Stop after three rounds if blockers remain.
 
-Passing gate: no actionable finding at or above threshold, no unresolved security/data/contract finding, tests pass or an acceptable verification gap is recorded, advisory findings recorded.
+Passing gate: Impact Scan complete when required, no actionable finding at or above threshold, no unresolved security/data/contract finding, tests pass or an acceptable verification gap is recorded, advisory findings recorded.
 
 ## Release Marshal Handoff
 
@@ -107,6 +143,8 @@ Suggested PR body bullets:
 - <change>
 Verification results for release-readiness only, not PR body copy:
 - <command/result>
+Impact Scan for release-readiness only:
+- <changed contracts/consumer tests summary or Not required>
 
 Use krt-release-marshal exactly. Do not run tests unless the user explicitly asks; use the verification results above only to decide readiness. Do not include tests or verification summaries in the PR body unless the user, repo template, or project convention explicitly requires them. Include automatic reviewer handling in the release plan: use explicit reviewers if provided, otherwise infer a clear reviewer after PR creation and request review without asking a second time; skip reviewer assignment if no clear human reviewer exists. Include automatic post-PR Jira transition to En Revisión in the release plan when Jira context exists; after PR creation, use krt-jira-scribe and the real transition list to perform that approved transition without asking a second time.")
 ```

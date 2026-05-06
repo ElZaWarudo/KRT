@@ -112,6 +112,13 @@ jira_policy: [required|optional|skip]
 ## Files and Tests
 [Repo-relative files and expected tests]
 
+## Impact Scan
+- Changed API contracts/endpoints/bindings/helpers/schemas/payloads/auth/tenant/ownership/test fixtures: [None / list]
+- Consumer scan patterns: [None / rg/search patterns]
+- Consumers found: [None / repo-relative files and flows]
+- Required consumer tests: [None / commands or test files]
+- Consumer tests run/skipped: [commands/results, or skip reason and whether CI covers it]
+
 ## Verification Gate
 - [Commands/outcomes that must pass]
 
@@ -182,4 +189,4 @@ At the end, write:
 docs/orchestration/YYYY-MM-DD-compound-master-summary.md
 ```
 
-Include roadmap, brainstorms, plans, packages, waves, branches, tests, review rounds, Jira tasks, PRs, blockers, residual advisory findings, completed packages, remaining packages by wave, and the next recommended invocation if work remains.
+Include roadmap, brainstorms, plans, packages, waves, branches, Impact Scans, tests, review rounds, Jira tasks, PRs, blockers, residual advisory findings, completed packages, remaining packages by wave, and the next recommended invocation if work remains.

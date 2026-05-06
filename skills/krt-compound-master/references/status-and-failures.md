@@ -13,6 +13,7 @@ Track:
 - Roadmap, brainstorm, plan, and work-package paths.
 - Dependency waves.
 - Branch names and base branches.
+- Impact Scan status: required yes/no, changed contracts, scan patterns, consumers found, required consumer tests, run/skipped results.
 - Verification results and code-review status.
 - Jira URLs, PR URLs, reviewers.
 - Blockers and required user decisions.
@@ -51,6 +52,7 @@ Stop and write the blocker into `compound-master-state.md` when:
 - Context is insufficient.
 - Product decisions cannot be inferred.
 - Plans lack units/dependencies/tests after review.
+- A package changes an API contract, endpoint, binding, shared helper, schema, payload, auth/tenant/ownership behavior, or test fixture contract and lacks a complete Impact Scan.
 - Review blockers remain after three loops.
 - Branch base is ambiguous or would degrade the git tree.
 - Jira is required but configuration is missing.

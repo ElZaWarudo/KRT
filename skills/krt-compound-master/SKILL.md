@@ -62,6 +62,7 @@ Core pipeline:
 - Do not open PRs from protected branches: `main`, `master`, or `develop`.
 - Do not transition Jira outside an approved release plan. `krt-jira-scribe` must fetch real transitions and require confirmation before `En Revisión` or any other state; an accepted `krt-release-marshal` plan may count as confirmation for automatic post-PR transition to `En Revisión` when it names the issue, target status, and fallback behavior.
 - Treat verification results as release-readiness evidence, not public PR copy. Do not put test commands, test output, or verification summaries in suggested PR body bullets unless the user, repo template, or project convention explicitly requires it.
+- Require an Impact Scan before `review-passed` when a package changes an API contract, endpoint, binding, shared helper, schema, payload, auth/tenant/ownership behavior, or test fixture contract. The scan must identify consumers and expand required tests from those consumers.
 - Never ask for Jira credentials. Missing Jira env vars are a configuration blocker or a user-approved no-Jira exception, depending on `jira-policy`.
 
 ## Stop Discipline
@@ -180,7 +181,7 @@ docs/brainstorms/
 docs/plans/
 ```
 
-Maintain `docs/orchestration/compound-master-state.md`. State must track initiative, mode, date, resolved roles, runtime/delegation availability, source docs, context readiness, roadmap, brainstorms, plans, work packages, waves, branch/base choices, verification, review status, Jira/PR URLs, blockers, and required user decisions.
+Maintain `docs/orchestration/compound-master-state.md`. State must track initiative, mode, date, resolved roles, runtime/delegation availability, source docs, context readiness, roadmap, brainstorms, plans, work packages, waves, branch/base choices, Impact Scan status, verification, review status, Jira/PR URLs, blockers, and required user decisions.
 
 ## Workflow
 
