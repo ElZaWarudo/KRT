@@ -65,13 +65,22 @@ If the user wants to rename an existing local-only branch and the target name is
 
 ### 3) Build a commit plan
 
-Goal: split pending work into atomic commits with clear messages.
+Goal: split pending work into atomic, reviewable commits with clear messages. Do not default to a single commit just because the pending work belongs to one PR or one Compound Master package.
 
 - Collect changed files (staged + unstaged) and group them into commits using simple heuristics:
   - `docs/` -> `docs(<scope>): ...`
   - `test/`, `tests/`, `__tests__/` -> `test(<scope>): ...`
   - Build/CI files -> `ci(...)` / `build(...)` / `chore(...)`
   - Product code changes -> `feat(...)` / `fix(...)` / `refactor(...)` depending on intent
+- Honor suggested commit grouping from an enclosing `krt-release-marshal` or Compound Master handoff when it matches the actual changed files.
+- Prefer two to five commits when changes have clear natural boundaries. One commit is correct only for one coherent concern; more than five commits usually means the plan is too broad or should be recombined for review.
+- Natural boundaries include:
+  - data/model/schema/backfill changes;
+  - domain/service enforcement changes;
+  - API/controller/generated binding or public contract changes;
+  - focused tests/fixtures for a coherent behavior surface;
+  - docs/orchestration artifacts.
+- Keep each commit internally coherent. Do not split tests away from behavior if that would leave an intermediate commit obviously broken, unbuildable, or misleading to review.
 - If the user explicitly says to include all files or all changes, the plan must include every staged, unstaged, and untracked file. Do not exclude "unrelated" files by default; instead group them into separate atomic commits and call out their domain clearly.
 - If staged changes exist before planning, pause and classify them:
   - Keep staged changes as "Commit 0".
@@ -104,8 +113,10 @@ Present the plan to the user as the single local commit-plan gate:
 
 - Commit 1: `<message>`
   - Files: `path/a`, `path/b`
+  - Rationale: why these files form one logical change
 - Commit 2: `<message>`
   - Files: `path/c`
+  - Rationale: why this should be separate or why it remains bundled
 
 Ask the user to approve the plan (and any exact commit messages) before staging or committing, unless an enclosing `krt-release-marshal` plan already approved the same branch and commit grouping.
 

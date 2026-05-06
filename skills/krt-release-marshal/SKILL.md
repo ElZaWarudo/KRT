@@ -30,6 +30,8 @@ Load `references/github-pr-flow.md` for exact `git`/`gh` commands, PR body detai
 - Do not ask for Jira credentials. If required Jira env vars are missing, continue without Jira only if the user approves.
 - Use `--force-with-lease`, never plain `--force`, when a rewritten branch must be pushed.
 - Prefer concise PR bodies: change bullets first, Jira URL last, no section headings unless the repo template requires them.
+- Prefer reviewable logical commits over a single package-sized commit when the pending work has clear boundaries. A work package may be one PR with several commits.
+- Use one commit only when the change is truly one coherent concern or splitting would create noisy, non-buildable, or misleading history.
 
 ## Approval Policy
 
@@ -57,6 +59,7 @@ Use context already provided by the user or previous skills:
 - Draft vs ready preference.
 - Explicit reviewers, or "sin reviewers" / "no reviewers".
 - Verification results as internal readiness context only.
+- Suggested commit grouping from an enclosing workflow, when provided.
 
 If the user asks simply to create a PR and there are uncommitted changes or no Jira context, propose the full flow and ask before creating Jira artifacts.
 
@@ -77,11 +80,19 @@ Build and show a phase plan:
 
 When commit work is needed, include proposed branch and commit grouping when practical. If grouping needs more inspection, make that the next local step inside the same acceptance gate rather than adding another branch/commit confirmation.
 
+Commit grouping guidance for the phase plan:
+
+- Prefer two to five logical commits for broad packages with natural seams.
+- Natural commit boundaries include data/model/schema changes, domain/service enforcement, API/generated contract surfaces, focused tests/fixtures, and docs/orchestration artifacts.
+- Keep tests with the behavior commit when splitting them out would leave an intermediate commit obviously broken or hard to review. Use a separate `test(...)` commit only when the test change is a coherent review unit and earlier commits remain sensible.
+- Keep docs/orchestration state in a separate `docs(...)` commit when it does not need to be bundled with runtime behavior.
+- If more than five commits seem necessary, call out that the package may be too broad or that some commits should be combined.
+
 Ask the user to accept the phase plan before changing local state.
 
 ### 2. Commit Phase
 
-If there are staged/unstaged changes or the current branch is protected/off-convention, load and follow `krt-gitflow-knight`. Let it use the accepted release plan or commit plan as the single local gate. Return here after commits complete.
+If there are staged/unstaged changes or the current branch is protected/off-convention, load and follow `krt-gitflow-knight`. Pass along any suggested commit grouping from the accepted release plan. Let it use the accepted release plan or commit plan as the single local gate. Return here after commits complete.
 
 ### 3. Rebase Phase
 

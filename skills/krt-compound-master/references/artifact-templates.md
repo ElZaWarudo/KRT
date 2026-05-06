@@ -129,6 +129,8 @@ jira_policy: [required|optional|skip]
 ## Branch and PR Handoff Inputs
 - Branch name: [feat/package-slug-without-plan-number]
 - PR base: [develop/main/parent branch]
+- Suggested commit grouping:
+  - [type(scope): summary] - [repo-relative files or surfaces] - [why this is one logical review unit]
 - PR title:
 - PR body bullets:
 - Verification results location:
