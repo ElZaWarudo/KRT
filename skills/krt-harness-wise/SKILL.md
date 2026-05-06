@@ -1,6 +1,6 @@
 ---
-name: krt:harness-wise
-description: Build or review a compact, architecture-aware coding harness before implementation. Use when a user asks to prepare a coding agent before work, map task-relevant project structure, summarize repository conventions, curate context, reduce token waste, select relevant skills, review an existing harness, audit skill coverage, trim documentation context, or avoid premature coding on feature, bugfix, refactor, migration, integration, testing, documentation, security, or architecture work.
+name: krt-harness-wise
+description: Build or review a compact, architecture-aware coding harness before implementation. Use when a user asks to prepare a coding agent before work, map task-relevant project structure, summarize repository conventions, curate context, reduce token waste, select relevant skills, review an existing harness, audit skill coverage, trim documentation context, or avoid premature coding on feature, bugfix, refactor, migration, integration, testing, documentation, security, or architecture work. Runtime aliases may expose this as krt:harness-wise.
 ---
 
 # Harness Wise

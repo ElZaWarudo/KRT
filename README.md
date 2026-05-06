@@ -17,14 +17,16 @@ The bit is medieval. The contract is not.
 
 ## Skills
 
-| Skill | Purpose |
-|---|---|
-| `$krt:harness-wise` | Build or review a compact coding harness before implementation. Good for repo reconnaissance, context curation, stale-doc checks, risk estimates, and skill recommendations. |
-| `$krt:compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, document reviews, work packages, execution gates, code review, and PR/Jira handoff. |
-| `$krt:release-marshal` | Direct the final delivery march: commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
-| `$krt:gitflow-knight` | Keep branch hygiene and atomic commits in formation. |
-| `$krt:rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
-| `$krt:jira-scribe` | Manage Jira Server/Data Center issues, subtasks, sprints, and transitions in Spanish. |
+Formal skill IDs use the Every-style hyphen form (`krt-*`). Some runtimes may expose the friendlier `$krt:*` alias used below.
+
+| Alias | Formal skill ID | Purpose |
+|---|---|---|
+| `$krt:harness-wise` | `krt-harness-wise` | Build or review a compact coding harness before implementation. Good for repo reconnaissance, context curation, stale-doc checks, risk estimates, and skill recommendations. |
+| `$krt:compound-master` | `krt-compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, document reviews, work packages, execution gates, code review, and PR/Jira handoff. |
+| `$krt:release-marshal` | `krt-release-marshal` | Direct the final delivery march: commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
+| `$krt:gitflow-knight` | `krt-gitflow-knight` | Keep branch hygiene and atomic commits in formation. |
+| `$krt:rebase-smith` | `krt-rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
+| `$krt:jira-scribe` | `krt-jira-scribe` | Manage Jira Server/Data Center issues, subtasks, sprints, and transitions in Spanish. |
 
 Skills can bring their own auxiliary files: references, templates, assets, adapter configs, or agent definitions. Keep the main `SKILL.md` readable; put the heavy armor in nearby files.
 
@@ -65,7 +67,7 @@ Use $krt:compound-master mode:resume jira-policy:optional parallel:false
 Install globally so KRT follows you between projects:
 
 ```bash
-npx -y skills add ElZaWarudo/krt --skill krt:<skill-name> -g
+npx -y skills add ElZaWarudo/krt --skill krt-<skill-name> -g
 ```
 
 Install the whole table globally:
@@ -78,21 +80,21 @@ Install the release court globally:
 
 ```bash
 npx -y skills add ElZaWarudo/krt \
-  --skill krt:release-marshal \
-  --skill krt:gitflow-knight \
-  --skill krt:rebase-smith \
-  --skill krt:jira-scribe \
+  --skill krt-release-marshal \
+  --skill krt-gitflow-knight \
+  --skill krt-rebase-smith \
+  --skill krt-jira-scribe \
   -g
 ```
 
-`krt:release-marshal` expects those three companions to be available. The skills CLI supports repeated `--skill` flags and `--all`; KRT does not currently rely on automatic dependency resolution in skill frontmatter. The Mariscal can read the room, but he still needs the room installed.
+`krt-release-marshal` expects those three companions to be available. The skills CLI supports repeated `--skill` flags and `--all`; KRT does not currently rely on automatic dependency resolution in skill frontmatter. The Mariscal can read the room, but he still needs the room installed.
 
 Omit `-g` only when you want the skill installed into the current project. Without it, the skill may stay in this castle and fail to appear when you ride into the next repo.
 
 Target a specific runtime when needed:
 
 ```bash
-npx -y skills add ElZaWarudo/krt --skill krt:<skill-name> -g -a <agent>
+npx -y skills add ElZaWarudo/krt --skill krt-<skill-name> -g -a <agent>
 ```
 
 Use `-a <agent>` when you want the skill wired into a particular agent instead of trusting autodetection. Some agents read `.agents/skills/` directly; others need the CLI to place a symlink or copy in their own directory. Name the knight you expect to answer.
@@ -113,21 +115,24 @@ npm exec --yes --package skills -- skills update
 
 ```text
 skills/
-  harness-wise/
+  krt-harness-wise/
     SKILL.md
     references/
-  compound-master/
+  krt-compound-master/
     SKILL.md
+    references/
     assets/
       codex-agents/
-  release-marshal/
+  krt-release-marshal/
     SKILL.md
-  gitflow-knight/
+    references/
+  krt-gitflow-knight/
     SKILL.md
-  rebase-smith/
+  krt-rebase-smith/
     SKILL.md
-  jira-scribe/
+  krt-jira-scribe/
     SKILL.md
+    references/
 ```
 
 ## Local Development
