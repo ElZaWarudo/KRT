@@ -90,17 +90,18 @@ Delegation policy:
 - Use delegated agents only when the host supports them and the work can be isolated safely.
 - During preflight, record whether direct KRT-owned agent launch is `automatic`, `requires-approval`, or `unavailable`.
 - Distinguish direct KRT-owned agent launch from invoking another resolved skill. Do not preemptively downgrade `document_review`, `work`, or `code_review` just because that skill may internally launch agents.
-- If direct KRT-owned launch requires approval and would materially help, ask one explicit delegation gate before the first direct launch.
-- If approval is denied, unavailable, or unclear, continue inline or artifact-only according to mode and record the fallback.
+- At the start of any execution phase (`mode:execute`, `mode:resume` when resuming execution/review/release, or `mode:full` after the artifact execution gate), ask one explicit execution delegation gate before deciding whether KRT itself will launch subagents. Do this even when the runtime might support automatic launch, unless the user already included `delegation:inline`, `delegation:ask`, `parallel:true`, "con subagentes", or "sin subagentes" in the current invocation.
+- If the user approves subagents, record the approval scope in state and use KRT-owned delegated agents only for isolated, useful roles.
+- If the user declines, direct launch is unavailable, or the answer is unclear, set delegation mode to `inline` for this run, continue inline, and record the fallback.
 - `subagent-model:<value>` is advisory and runtime-specific.
 - Parallel/delegated mutation requires isolated worktrees/checkouts and non-overlapping scopes. Without isolation, reviewers must be read-only and workers must not stage, commit, push, create PRs, transition Jira, or run broad mutation-prone flows.
 
-Delegation gate prompt:
+Execution delegation gate prompt:
 
 ```text
-This runtime requires explicit approval before KRT launches its own agents.
-I can continue inline, or launch delegated KRT agents for: <roles/reason>.
-Approve direct KRT agent launch for this run?
+KRT can run this package inline or with delegated subagents.
+Recommended delegated roles for this execution: <roles/reason>.
+Should KRT launch subagents for this execution run, or continue inline?
 ```
 
 Codex adapter examples are bundled in `assets/codex-agents/`. Suggested installation:
@@ -154,7 +155,7 @@ Blocking policy:
 - `pr-granularity:auto|roadmap-item|plan-unit`: default `auto`, based on dependency, file overlap, risk, and reviewability.
 - `jira-policy:required|optional|skip`: default `required`; `optional` allows user-approved PR without Jira if config is missing.
 - `parallel:false|true`: default `false`; `true` requires safe dependencies, no dangerous overlap, and isolated worktrees/checkouts.
-- `delegation:auto|ask|inline`: default `auto`; `inline` disables KRT-owned agent launches but not normal resolved skill behavior.
+- `delegation:auto|ask|inline`: default `auto`; during execution, `auto` asks the execution delegation gate once before KRT-owned launches, `ask` always asks even if prior state recorded approval, and `inline` disables KRT-owned agent launches. Resolved skills still own their internal behavior.
 - `review-threshold:P0-P2|P0-P1|P0`: default `P0-P2`.
 - `subagent-model:<value>`: runtime-specific advisory only.
 - Invalid values fall back to defaults and should be recorded in state.
@@ -207,7 +208,7 @@ Load `references/artifact-templates.md`. Create independently reviewable package
 
 ### Step 6 - Execution Wave Planning
 
-Load `references/execution-flow.md`. Classify packages as independent, dependent, overlapping, or high-risk. Execute serially unless `parallel:true` and isolation make parallel work safe.
+Load `references/execution-flow.md`. Ask/resolve the execution delegation gate before planning KRT-owned subagents. Classify packages as independent, dependent, overlapping, or high-risk. Execute serially unless `parallel:true` and isolation make parallel work safe.
 
 ### Step 7 - Execute Package
 

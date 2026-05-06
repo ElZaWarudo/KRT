@@ -4,6 +4,14 @@ Use this reference for Compound Master Steps 6-9.
 
 ## Wave Planning
 
+Before selecting workers or reviewer subagents, resolve the execution delegation gate from `SKILL.md`.
+
+- If the current invocation explicitly says `delegation:inline` or "sin subagentes", do not launch KRT-owned subagents.
+- If it says `parallel:true`, `delegation:ask`, or "con subagentes", treat that as intent to discuss/approve subagents and ask the gate before launching.
+- If it says `delegation:auto` or omits delegation, ask the gate once at the start of execution.
+- Record the answer in `compound-master-state.md` with scope, selected mode, and any runtime limitation.
+- If subagents are denied or unavailable, continue inline rather than stopping.
+
 Classify packages:
 
 - Independent: no hard dependency and no dangerous file overlap.
