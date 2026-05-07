@@ -67,6 +67,7 @@ jira_policy: [required|optional|skip]
 - PR base: [develop/main/parent branch]
 - Suggested commit grouping:
   - [type(scope): summary] - [repo-relative files or surfaces] - [why this is one logical review unit]
+  - [Split broad packages by changed surface: persistence/schema/model state; domain service/integration behavior; API/controller/generated contracts; config/deployment wiring; focused tests/fixtures; docs/orchestration. Omit surfaces that did not change.]
 - PR title:
 - PR body bullets:
 - Verification results location:

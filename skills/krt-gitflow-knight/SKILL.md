@@ -72,14 +72,24 @@ Goal: split pending work into atomic, reviewable commits with clear messages. Do
   - `test/`, `tests/`, `__tests__/` -> `test(<scope>): ...`
   - Build/CI files -> `ci(...)` / `build(...)` / `chore(...)`
   - Product code changes -> `feat(...)` / `fix(...)` / `refactor(...)` depending on intent
-- Honor suggested commit grouping from an enclosing `krt-release-marshal` or Compound Master handoff when it matches the actual changed files.
-- Prefer two to five commits when changes have clear natural boundaries. One commit is correct only for one coherent concern; more than five commits usually means the plan is too broad or should be recombined for review.
+- Treat suggested commit grouping from an enclosing `krt-release-marshal` or Compound Master handoff as a starting point, not an override. Refine it when the actual changed files reveal clearer atomic boundaries.
+- Prefer three to six commits for broad multi-surface packages when the changes have clear natural boundaries. One or two commits are correct only when the diff truly has one or two coherent concerns; do not use "implementation" and "docs" as the default split for a package that touches persistence, services, API contracts, tests, and deployment/config docs.
 - Natural boundaries include:
   - data/model/schema/backfill changes;
   - domain/service enforcement changes;
   - API/controller/generated binding or public contract changes;
+  - configuration/deployment surfaces that change runtime behavior;
   - focused tests/fixtures for a coherent behavior surface;
   - docs/orchestration artifacts.
+- For multi-surface feature work, actively check whether separate commits are warranted for:
+  - persistence/schema/model state;
+  - domain service or integration behavior;
+  - API/controller/generated client surfaces;
+  - configuration/deployment wiring;
+  - focused tests/fixtures;
+  - docs/orchestration and delivery artifacts.
+- Do not collapse distinct runtime surfaces into one broad `feat(...)` commit merely because they all belong to one work package or PR. A commit should be small enough that a reviewer can understand the intent and blast radius without mentally separating unrelated concerns.
+- If a proposed grouping has fewer commits than the number of major changed surfaces, either split it further or explicitly explain why bundling preserves buildability/reviewability.
 - Keep each commit internally coherent. Do not split tests away from behavior if that would leave an intermediate commit obviously broken, unbuildable, or misleading to review.
 - If the user explicitly says to include all files or all changes, the plan must include every staged, unstaged, and untracked file. Do not exclude "unrelated" files by default; instead group them into separate atomic commits and call out their domain clearly.
 - If staged changes exist before planning, pause and classify them:

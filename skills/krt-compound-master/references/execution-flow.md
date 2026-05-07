@@ -196,6 +196,7 @@ Suggested PR body bullets:
 Suggested commit grouping:
 - <type(scope): summary> -- <files/surfaces> -- <why this is one logical review unit>
 - <type(scope): summary> -- <files/surfaces> -- <why this is separate or bundled>
+- Split broad packages by changed surface when applicable: persistence/schema/model state; domain service/integration behavior; API/controller/generated contracts; config/deployment wiring; focused tests/fixtures; docs/orchestration. Do not default to one implementation commit plus one docs commit for multi-surface feature work.
 Verification results for release-readiness only, not PR body copy:
 - <command/result>
 Impact Scan for release-readiness only:

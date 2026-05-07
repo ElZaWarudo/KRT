@@ -30,8 +30,8 @@ Load `references/github-pr-flow.md` for exact `git`/`gh` commands, PR body detai
 - Do not ask for Jira credentials. If required Jira env vars are missing, continue without Jira only if the user approves.
 - Use `--force-with-lease`, never plain `--force`, when a rewritten branch must be pushed.
 - Prefer concise PR bodies: change bullets first, Jira URL last, no section headings unless the repo template requires them.
-- Prefer reviewable logical commits over a single package-sized commit when the pending work has clear boundaries. A work package may be one PR with several commits.
-- Use one commit only when the change is truly one coherent concern or splitting would create noisy, non-buildable, or misleading history.
+- Prefer reviewable logical commits over package-sized commits when the pending work has clear boundaries. A work package may be one PR with several commits.
+- Use one or two commits only when the change truly has one or two coherent concerns. Do not compress broad feature work into "implementation" plus "docs" when the diff spans persistence, services, API contracts, generated surfaces, tests, and configuration.
 
 ## Approval Policy
 
@@ -82,11 +82,14 @@ When commit work is needed, include proposed branch and commit grouping when pra
 
 Commit grouping guidance for the phase plan:
 
-- Prefer two to five logical commits for broad packages with natural seams.
-- Natural commit boundaries include data/model/schema changes, domain/service enforcement, API/generated contract surfaces, focused tests/fixtures, and docs/orchestration artifacts.
+- Inspect the changed file list before proposing grouping. If the enclosing workflow supplied grouping, validate it against the actual changed surfaces and refine it when it is too coarse.
+- Prefer three to six logical commits for broad packages with natural seams.
+- Natural commit boundaries include data/model/schema changes, domain/service or integration behavior, API/controller/generated contract surfaces, configuration/deployment surfaces, focused tests/fixtures, and docs/orchestration artifacts.
+- For multi-surface feature work, explicitly consider separate commits for persistence, service/integration behavior, API/generated contract surfaces, config/deployment wiring, focused tests, and docs.
+- Avoid broad catch-all messages such as `feat(epcis): add bridge foundation` when the files naturally split into narrower review units like model state, bridge service, API endpoint, tests, and docs.
 - Keep tests with the behavior commit when splitting them out would leave an intermediate commit obviously broken or hard to review. Use a separate `test(...)` commit only when the test change is a coherent review unit and earlier commits remain sensible.
 - Keep docs/orchestration state in a separate `docs(...)` commit when it does not need to be bundled with runtime behavior.
-- If more than five commits seem necessary, call out that the package may be too broad or that some commits should be combined.
+- If more than six commits seem necessary, call out that the package may be too broad or that some commits should be combined.
 
 Ask the user to accept the phase plan before changing local state.
 

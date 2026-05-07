@@ -66,7 +66,7 @@ Core pipeline:
 - Do not transition Jira outside an approved release plan. `krt-jira-scribe` must fetch real transitions and require confirmation before `En Revisión` or any other state; an accepted `krt-release-marshal` plan may count as confirmation for automatic post-PR transition to `En Revisión` when it names the issue, target status, and fallback behavior.
 - Treat verification results as release-readiness evidence, not public PR copy. Do not put test commands, test output, or verification summaries in suggested PR body bullets unless the user, repo template, or project convention explicitly requires it.
 - Require an Impact Scan before `review-passed` when a package changes an API contract, endpoint, binding, shared helper, schema, payload, auth/tenant/ownership behavior, or test fixture contract. The scan must identify consumers and expand required tests from those consumers.
-- For broad packages, provide suggested logical commit grouping to `krt-release-marshal`. Prefer reviewable commits by natural boundary, while keeping each commit internally coherent.
+- For broad packages, provide suggested logical commit grouping to `krt-release-marshal`. Prefer reviewable commits by natural boundary, while keeping each commit internally coherent. Do not collapse persistence/schema, service/integration behavior, API/generated contracts, config/deployment wiring, focused tests, and docs into one or two package-sized commits when those surfaces changed separately.
 - Never ask for Jira credentials. Missing Jira env vars are a configuration blocker or a user-approved no-Jira exception, depending on `jira-policy`.
 
 ## Stop Discipline
