@@ -60,6 +60,7 @@ Core pipeline:
 - Use repo-relative paths in generated documents.
 - Do not edit CE plan bodies as progress checklists. Progress lives in `compound-master-state.md`, work-package status, task tracking, commits, Jira, and PRs.
 - A PR unit is a **work package**, not every plan bullet. Avoid PR-per-microtask.
+- A work package may contain multiple plan implementation units. Executing one package in one run must not erase that structure: preserve the U-ID/unit sequence in prompts, progress state, verification, review, release handoff, and summary. If the plan defines three units, the execution should report those three unit outcomes even when one worker implements them in a single pass.
 - Keep planning IDs out of human-facing release text. `RDM-001`, `U1`, date sequences, and package numbers may appear in metadata, paths, dependency tables, and state, but not in suggested Jira summaries/descriptions, commit messages, PR titles, PR body bullets, or branch names unless the user or repo convention explicitly requires them.
 - Do not let the work phase invoke its own PR/shipping flow. Shipping is delegated to `krt-release-marshal`.
 - Do not open PRs from protected branches: `main`, `master`, or `develop`.

@@ -64,17 +64,28 @@ Delegation telemetry to record in `compound-master-state.md`:
 
 Before executing, verify that the resolved `work` role supports implementation-only/no-shipping mode. Stop before duplicate shipping if it cannot.
 
+Preserve plan-unit granularity during execution. A work package is the PR/Jira unit, not a license to flatten the origin plan. Before invoking `work`, extract the package's implementation units from the work package and origin plan. Track each unit's status in `compound-master-state.md` as pending, in-progress, implemented, verified, skipped, or blocked.
+
+When a package contains multiple units, choose one of these execution shapes and record why:
+
+- **Sequential unit loop:** invoke `work` one unit at a time when units have different risk surfaces, separate verification gates, unclear boundaries, or likely review/fix loops.
+- **Single worker, explicit unit checklist:** invoke one worker for the whole package only when the units are tightly coupled and one pass is more coherent. The prompt must still list each U-ID/unit separately and require a per-unit result.
+- **Parallel workers:** only when `parallel:true`, isolation exists, dependencies allow it, and write scopes do not overlap.
+
+Do not mark the package `implementation-complete` merely because a worker returned once. Mark it complete only after every included unit has an explicit implemented/verified/skipped/blocked disposition, with skipped verification justified.
+
 Invocation shape:
 
 ```text
 Skill("<work>", "<work-package-path>
 
-Execution constraint: implement this package only and run the verification you can run inside your assigned scope. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for the lead and krt-release-marshal. Return changed files, API/contract changes detected, verification attempted, verification results, skipped verification with reasons, and any unresolved questions. Do not ask the user to take over normal local verification or review.")
+Execution constraint: implement this package only and run the verification you can run inside your assigned scope. Preserve the origin plan's implementation units: for each included U-ID/unit, report status, changed files, verification attempted/results/skips, and blockers. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for the lead and krt-release-marshal. Return changed files, API/contract changes detected, verification attempted, verification results, skipped verification with reasons, and any unresolved questions. Do not ask the user to take over normal local verification or review.")
 ```
 
 Completion gate:
 
 - Expected files changed/created.
+- Every implementation unit included in the package has an explicit disposition: implemented, verified, skipped with reason, or blocked.
 - Impact Scan complete when API contracts, endpoints, bindings, shared helpers, schemas, payloads, auth/tenant/ownership behavior, or test fixture contracts changed.
 - Relevant tests run or a no-test justification recorded.
 - Consumer-derived tests from the Impact Scan run, or documented as skipped with concrete local blocker and CI coverage expectation.
@@ -83,7 +94,7 @@ Completion gate:
 - Pending changes/commits are coherent and ready for `krt-release-marshal`.
 - No unresolved product decision remains.
 
-After worker return, the lead must inspect the summary/diff, start documented local services when safe, run the package verification gate or closest targeted tests, fix straightforward failures inline or through `work`, and continue to review. Stop only for missing credentials, destructive setup, paid external resources, unclear environment decisions, or non-inferable product/technical decisions.
+After worker return, the lead must inspect the summary/diff by unit, update unit statuses, start documented local services when safe, run the package verification gate or closest targeted tests, fix straightforward failures inline or through `work`, and continue to review only when all units have a non-pending disposition. Stop only for missing credentials, destructive setup, paid external resources, unclear environment decisions, or non-inferable product/technical decisions.
 
 ## Impact Scan Gate
 

@@ -12,6 +12,7 @@ Track:
 - Delegation decisions and telemetry: selected mode, reason, roles used, read-only/mutating classification, outcome, confidence, approximate duration, and loop effect.
 - Source docs and context readiness result.
 - Roadmap, brainstorm, plan, and work-package paths.
+- Plan implementation units included in the selected package, with per-unit status: pending, in-progress, implemented, verified, skipped, or blocked.
 - Dependency waves.
 - Branch names and base branches.
 - Impact Scan status: required yes/no, changed contracts, scan patterns, consumers found, required consumer tests, run/skipped results.

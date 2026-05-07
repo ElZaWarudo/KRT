@@ -54,7 +54,7 @@ Before proposing a new global issue, decide whether the requested work should be
 1. Search for possible parents first using project, type, and meaningful summary/context terms.
 2. Inspect plausible parents by key, including summary, status, description, and existing subtasks.
 3. Prefer reuse when scope fits: if an open parent clearly covers the work, propose creating or reusing a subtask under that parent instead of creating a standalone `Tarea`.
-4. If no parent fits and the work is a pull request/work package that may have sibling tasks, prefer proposing a new parent `Tarea` plus a `Subtarea` for the immediate PR/work package. This is the default shape for Compound Master work packages and multi-PR delivery.
+4. If no parent fits and the work is a pull request/work package that may have sibling tasks, prefer proposing a new parent `Tarea` plus a `Subtarea` for the immediate PR/work package. This is the default shape for Compound Master work packages and multi-PR delivery. The new parent should be added to the active sprint unless the user explicitly says `sin sprint`, `no sprint`, `fuera del sprint`, or equivalent.
 5. Ask when ambiguous: show candidate parents and ask which one to use, whether to create a new parent plus subtask, or whether the work is truly standalone.
 6. Create a standalone global issue only after ruling out parent fit and sibling-task likelihood. Do not propose a standalone task just because no exact summary match exists.
 
@@ -76,6 +76,8 @@ For new global issues/parent tasks:
 Do not create issues based solely on fuzzy `summary ~` search.
 
 When creating both a parent and subtask, confirm both summaries/descriptions together. Create the parent first, then create the subtask under it. Return the subtask as the immediately relevant issue for PR bodies and commit references; keep the parent for context and future sibling tasks.
+
+For parent-plus-subtask creation, include the active sprint plan in the same confirmation. After creating the parent, add the parent to the active sprint before or after creating the subtask without asking a second time when that sprint placement was confirmed. Do not add the subtask directly to the sprint unless the user explicitly asks; the subtask inherits the parent's sprint context.
 
 ### 4. Verify Or Create Subtask
 

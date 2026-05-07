@@ -75,7 +75,7 @@ jira_policy: [required|optional|skip]
 ## Jira Handoff Inputs
 - Jira policy: [required|optional|skip]
 - Suggested issue type: Tarea
-- Suggested subtask behavior: create/reuse subtask when parent is provided; if no parent fits and this package may have sibling PRs/work packages, prefer creating a parent task plus a subtask for this package
+- Suggested subtask behavior: create/reuse subtask when parent is provided; if no parent fits and this package may have sibling PRs/work packages, prefer creating a parent task plus a subtask for this package, with the parent added to the active sprint unless explicitly skipped
 - Jira summary: [semantic title without roadmap/package numbers]
 - Jira description: [concise scope/reason without roadmap/package numbers]
 ```
