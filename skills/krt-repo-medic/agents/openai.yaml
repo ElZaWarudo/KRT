@@ -1,0 +1,4 @@
+interface:
+  display_name: "Repo Medic"
+  short_description: "Diagnose repository health and maintenance risks"
+  default_prompt: "Use krt-repo-medic to inspect repository health and recommend focused maintenance."
