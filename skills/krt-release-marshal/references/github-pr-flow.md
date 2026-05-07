@@ -102,6 +102,7 @@ Rules:
 - Put changes first and Jira URL last.
 - Omit headings by default.
 - Do not distinguish parent vs subtask unless the user asks.
+- Include only the immediately relevant Jira URL, usually the subtask/work-package issue for this PR. Do not include both parent and child links unless the user or repo template asks.
 - Omit Jira URL if Jira context is missing.
 - Include verification only if the user asks, the repo requires it, or the PR template requires it.
 - Treat upstream test results as readiness context, not body content.

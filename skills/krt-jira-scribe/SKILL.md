@@ -49,13 +49,14 @@ Load `references/jira-api.md`. Normalize host, verify required env vars, test cr
 
 ### 2. Resolve Issue Shape Before Creating Anything
 
-Before proposing a new global issue, decide whether the requested work should be a subtask under an existing issue.
+Before proposing a new global issue, decide whether the requested work should be a subtask under an existing issue or under a new parent issue.
 
 1. Search for possible parents first using project, type, and meaningful summary/context terms.
 2. Inspect plausible parents by key, including summary, status, description, and existing subtasks.
 3. Prefer reuse when scope fits: if an open parent clearly covers the work, propose creating or reusing a subtask under that parent instead of creating a standalone `Tarea`.
-4. Ask when ambiguous: show candidate parents and ask which one to use, or whether the work deserves a new global issue.
-5. Create a global issue only after ruling out parent fit. Do not propose a standalone task just because no exact summary match exists.
+4. If no parent fits and the work is a pull request/work package that may have sibling tasks, prefer proposing a new parent `Tarea` plus a `Subtarea` for the immediate PR/work package. This is the default shape for Compound Master work packages and multi-PR delivery.
+5. Ask when ambiguous: show candidate parents and ask which one to use, whether to create a new parent plus subtask, or whether the work is truly standalone.
+6. Create a standalone global issue only after ruling out parent fit and sibling-task likelihood. Do not propose a standalone task just because no exact summary match exists.
 
 ### 3. Verify Or Create Global Issue
 
@@ -73,6 +74,8 @@ For new global issues/parent tasks:
 - Do not apply sprint placement to subtasks unless explicitly requested; subtasks inherit the parent's context.
 
 Do not create issues based solely on fuzzy `summary ~` search.
+
+When creating both a parent and subtask, confirm both summaries/descriptions together. Create the parent first, then create the subtask under it. Return the subtask as the immediately relevant issue for PR bodies and commit references; keep the parent for context and future sibling tasks.
 
 ### 4. Verify Or Create Subtask
 

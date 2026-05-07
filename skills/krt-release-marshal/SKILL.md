@@ -24,6 +24,7 @@ Load `references/github-pr-flow.md` for exact `git`/`gh` commands, PR body detai
 - Prefer `develop` as PR base when it exists; otherwise use the repository default branch unless the user or enclosing workflow provided a base.
 - Never include LLM attribution in PR title/body or commit messages.
 - Never include Compound Master planning IDs or package numbers in PR titles, PR body bullets, branch names, or commit messages unless the user or repo convention explicitly requires them.
+- Never put both parent and child Jira references in commit messages. If repo convention requires a Jira reference or link in a commit, use only the immediately relevant issue: usually the subtask/work-package issue; use the parent only when no child issue exists.
 - Never include secrets, tokens, credentials, or internal environment dumps in the PR body.
 - Treat verification results from upstream workflows as readiness evidence only. Do not include test commands, test output, or verification summaries in the PR body unless the user, repo template, or project convention explicitly requires it.
 - Do not run tests, linters, or formatters unless the user explicitly asks; use verification results supplied by the user or upstream workflow.
@@ -105,7 +106,7 @@ Unless the user explicitly skips history cleanup, load and follow `krt-rebase-sm
 
 If Jira context was provided, keep it.
 
-If Jira context is missing and Jira should be included, load and follow `krt-jira-scribe`. Use Jira Server/Data Center only. Create or reuse a parent issue and subtask only after confirmation. Capture the final Jira URL for the PR body.
+If Jira context is missing and Jira should be included, load and follow `krt-jira-scribe`. Use Jira Server/Data Center only. For PRs that look like a work package or one item in a larger delivery sequence, prefer finding or creating a parent task plus a subtask for the PR. Create a standalone task only when the work is clearly standalone or the user requests it. Create or reuse Jira issues only after confirmation. Capture the immediately relevant Jira URL for the PR body, usually the subtask for this PR.
 
 If required Jira env vars are missing, stop the Jira phase and ask whether to continue PR creation without Jira links.
 

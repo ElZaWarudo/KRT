@@ -75,7 +75,7 @@ jira_policy: [required|optional|skip]
 ## Jira Handoff Inputs
 - Jira policy: [required|optional|skip]
 - Suggested issue type: Tarea
-- Suggested subtask behavior: create/reuse subtask when parent is provided
+- Suggested subtask behavior: create/reuse subtask when parent is provided; if no parent fits and this package may have sibling PRs/work packages, prefer creating a parent task plus a subtask for this package
 - Jira summary: [semantic title without roadmap/package numbers]
 - Jira description: [concise scope/reason without roadmap/package numbers]
 ```
@@ -91,6 +91,7 @@ Keep internal planning identifiers out of public/reviewer-facing text:
 - Jira summaries should read like work items a teammate would understand without the orchestration plan.
 - Jira descriptions should explain scope and reason in concise prose, not restate roadmap IDs or package numbers.
 - PR titles and commit messages should be value-oriented and conventional; put traceability in artifact metadata, PR dependency notes, or Jira links instead of the title.
+- When commit messages or PR bodies include Jira traceability, include only the immediately relevant issue link/key, usually the subtask for this PR/work package. Do not include both parent and child unless the user or repo convention explicitly asks.
 - Keep IDs only in internal fields such as `roadmap_item`, `units`, origin paths, dependency tables, and state.
 
 ## Artifact Closeout

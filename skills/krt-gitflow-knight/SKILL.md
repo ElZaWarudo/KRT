@@ -112,6 +112,7 @@ Rules:
 - Keep the summary under ~72 characters when practical.
 - Describe user-visible or maintenance value, not implementation mechanics.
 - Do not include orchestration IDs such as `RDM-001`, `U1`, package numbers, or date sequences unless the user or repo convention explicitly requires them.
+- Do not include both parent and child Jira references in commit messages. If repo convention requires a Jira reference or link in commits, include only the immediately relevant issue for the commit: usually the subtask/work-package issue; use the parent only when there is no more specific child issue.
 
 Examples:
 
