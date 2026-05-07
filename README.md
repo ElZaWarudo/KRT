@@ -26,6 +26,7 @@ Formal skill IDs use the Every-style hyphen form (`krt-*`). Some runtimes may ex
 | `$krt:compound-master` | `krt-compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, document reviews, work packages, execution gates, code review, and PR/Jira handoff. |
 | `$krt:release-marshal` | `krt-release-marshal` | Direct the final delivery march: commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
 | `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, plan fixes, and draft clear reviewer replies. |
+| `$krt:ci-questor` | `krt-ci-questor` | Investigate failing CI runs and produce concise cause reports. |
 | `$krt:gitflow-knight` | `krt-gitflow-knight` | Keep branch hygiene and atomic commits in formation. |
 | `$krt:rebase-smith` | `krt-rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
 | `$krt:jira-scribe` | `krt-jira-scribe` | Manage Jira Server/Data Center issues, subtasks, sprints, and transitions in Spanish. |
@@ -52,6 +53,9 @@ krt-release-marshal
 
 krt-review-herald
   -> triage review feedback and prepare fixes/replies
+
+krt-ci-questor
+  -> investigate CI failures and report likely cause
 
 krt-repo-medic
   -> diagnose repo health and prescribe focused maintenance
@@ -115,6 +119,12 @@ Triage PR feedback:
 
 ```text
 Use $krt:review-herald to classify review comments and draft replies for PR #42.
+```
+
+Investigate a failed pipeline:
+
+```text
+Use $krt:ci-questor to explain why the latest GitHub Actions run failed and what to do next.
 ```
 
 ## Install
@@ -200,6 +210,9 @@ skills/
     SKILL.md
     references/
   krt-review-herald/
+    SKILL.md
+    references/
+  krt-ci-questor/
     SKILL.md
     references/
   krt-gitflow-knight/
