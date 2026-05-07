@@ -31,6 +31,38 @@ Formal skill IDs use the Every-style hyphen form (`krt-*`). Some runtimes may ex
 
 Skills can bring their own auxiliary files: references, templates, assets, adapter configs, or agent definitions. Keep the main `SKILL.md` readable; put the heavy armor in nearby files.
 
+## How They Fit Together
+
+KRT skills are meant to compose without turning one skill into the whole system:
+
+```text
+krt-harness-wise
+  -> prepare compact context before coding
+
+krt-roadmap-cartographer
+  -> produce one roadmap or readiness report
+
+krt-compound-master
+  -> consume roadmap, run brainstorm/plan/review/package/execution gates
+
+krt-release-marshal
+  -> commit, rebase, Jira, push, PR, reviewers, Jira review transition
+```
+
+`krt-compound-master` treats a **work package** as the PR/Jira unit, but preserves the plan's implementation units inside that package. A package can ship as one PR while still reporting per-unit execution, verification, review, and commit grouping.
+
+## Skill Dependencies
+
+Some skills are useful standalone; others expect companions.
+
+| Skill | Expected companions | Why |
+|---|---|---|
+| `krt-compound-master` | `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal` | Full artifact and execution pipeline. |
+| `krt-release-marshal` | `krt-gitflow-knight`, `krt-rebase-smith`, `krt-jira-scribe` | Clean commits, clean branch history, Jira, and PR handoff. |
+| `krt-jira-scribe` | Jira env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
+
+For Jira flows, configure `JIRA_HOST`, `JIRA_API_TOKEN`, and `JIRA_PROJECT_KEY`. When checking those variables, prefer direct shell presence checks over filtered environment searches; wrappers such as `rtk` can summarize output and make existing variables look absent. Never print `JIRA_API_TOKEN`.
+
 ## Quick Examples
 
 Prepare a coding harness before touching a repo:
@@ -78,6 +110,21 @@ Install the whole table globally:
 ```bash
 npx -y skills add ElZaWarudo/krt --all -g
 ```
+
+Install the Compound Master pipeline globally:
+
+```bash
+npx -y skills add ElZaWarudo/krt \
+  --skill krt-roadmap-cartographer \
+  --skill krt-compound-master \
+  --skill krt-release-marshal \
+  --skill krt-gitflow-knight \
+  --skill krt-rebase-smith \
+  --skill krt-jira-scribe \
+  -g
+```
+
+This installs the KRT side of the artifact and release pipeline. `krt-compound-master` also expects the Compound Engineering skills it resolves at runtime, such as `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, and `ce-review`.
 
 Install the release court globally:
 
