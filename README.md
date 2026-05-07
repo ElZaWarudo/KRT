@@ -27,6 +27,7 @@ Formal skill IDs use the Every-style hyphen form (`krt-*`). Some runtimes may ex
 | `$krt:release-marshal` | `krt-release-marshal` | Direct the final delivery march: commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
 | `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, plan fixes, and draft clear reviewer replies. |
 | `$krt:ci-questor` | `krt-ci-questor` | Investigate failing CI runs and produce concise cause reports. |
+| `$krt:docs-chronicler` | `krt-docs-chronicler` | Keep durable docs, ADRs, changelogs, runbooks, and learnings current. |
 | `$krt:gitflow-knight` | `krt-gitflow-knight` | Keep branch hygiene and atomic commits in formation. |
 | `$krt:rebase-smith` | `krt-rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
 | `$krt:jira-scribe` | `krt-jira-scribe` | Manage Jira Server/Data Center issues, subtasks, sprints, and transitions in Spanish. |
@@ -56,6 +57,9 @@ krt-review-herald
 
 krt-ci-questor
   -> investigate CI failures and report likely cause
+
+krt-docs-chronicler
+  -> capture durable docs, decisions, runbooks, changelogs, and learnings
 
 krt-repo-medic
   -> diagnose repo health and prescribe focused maintenance
@@ -125,6 +129,12 @@ Investigate a failed pipeline:
 
 ```text
 Use $krt:ci-questor to explain why the latest GitHub Actions run failed and what to do next.
+```
+
+Capture durable knowledge:
+
+```text
+Use $krt:docs-chronicler to update docs and ADRs after this incident fix.
 ```
 
 ## Install
@@ -213,6 +223,9 @@ skills/
     SKILL.md
     references/
   krt-ci-questor/
+    SKILL.md
+    references/
+  krt-docs-chronicler/
     SKILL.md
     references/
   krt-gitflow-knight/

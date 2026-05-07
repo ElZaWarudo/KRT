@@ -1,0 +1,4 @@
+interface:
+  display_name: "Docs Chronicler"
+  short_description: "Keep project documentation current and useful"
+  default_prompt: "Use krt-docs-chronicler to update durable project documentation, ADRs, changelogs, and post-work learnings."
