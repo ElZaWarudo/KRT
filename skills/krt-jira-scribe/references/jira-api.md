@@ -24,6 +24,8 @@ if [[ -z "$JIRA_API_TOKEN" || -z "$JIRA_HOST" || -z "$JIRA_PROJECT_KEY" ]]; then
 fi
 ```
 
+Avoid filtered environment searches for this check. Command wrappers such as `rtk` may summarize or filter `env` output and can make Jira variables look missing. Prefer the direct presence check above, or check individual non-secret values with `printenv JIRA_HOST` and `printenv JIRA_PROJECT_KEY`. Never print `JIRA_API_TOKEN`.
+
 ## Authentication And Project
 
 Test credentials:
