@@ -69,7 +69,7 @@ Some skills are useful standalone; others expect companions.
 
 | Skill | Expected companions | Why |
 |---|---|---|
-| `krt-compound-master` | `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal` | Full artifact and execution pipeline. |
+| `krt-compound-master` | Required: `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal`. Optional: `krt-ci-questor` | Full artifact, execution, and release pipeline. `krt-ci-questor` handles CI incident escalation when available; otherwise Compound Master resolves another CI investigator or triages inline. |
 | `krt-release-marshal` | `krt-gitflow-knight`, `krt-rebase-smith`, `krt-jira-scribe` | Clean commits, clean branch history, Jira, and PR handoff. |
 | `krt-jira-scribe` | Jira env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
 
@@ -154,7 +154,7 @@ npx -y skills add ElZaWarudo/krt \
   -g
 ```
 
-This installs the KRT side of the artifact and release pipeline. `krt-compound-master` also expects the Compound Engineering skills it resolves at runtime, such as `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, and `ce-review`.
+This installs the KRT side of the artifact and release pipeline. `krt-compound-master` also expects the Compound Engineering skills it resolves at runtime, such as `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, and `ce-review`. Add `--skill krt-ci-questor` when you want the optional CI incident specialist installed too.
 
 Install the release court globally:
 

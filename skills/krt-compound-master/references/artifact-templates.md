@@ -63,15 +63,23 @@ Grouping rationale:
 - Changed API contracts/endpoints/bindings/helpers/schemas/payloads/auth/tenant/ownership/test fixtures: [None / list]
 - Consumer scan patterns: [None / rg/search patterns]
 - Consumers found: [None / repo-relative files and flows]
+- Contract-drift tests searched: [None / exact-list expectations, snapshots, allowlists, role/permission bundle tests, normalization tests, seeded fixtures]
 - Required consumer tests: [None / commands or test files]
 - Consumer tests run/skipped: [commands/results, or skip reason and whether CI covers it]
 
 ## Verification Gate
 - [Commands/outcomes that must pass]
+- Surface-aware evidence: [changed surfaces and the test/inspection evidence for each]
 
 ## Review Gate
 - Code review threshold: [configured `review-threshold`; default P0-P2]
 - Findings below threshold: log unless user marks blocking
+
+## CI Break-Prevention And Escalation
+- CI risk surfaces: [build/typecheck/lint/tests/generated artifacts/migrations/permissions/config/etc.]
+- Preventive evidence: [local verification or explicit CI-only gap for each changed surface]
+- If CI breaks: [invoke krt-ci-questor with PR/run/check context; do not poll checks in Compound Master]
+- Escalation rule: [record release-follow-up blocker until the CI incident has cause, owner, and next action]
 
 ## Branch and PR Handoff Inputs
 - Branch name: [feat/package-slug-without-plan-number]
@@ -140,4 +148,4 @@ At the end, write:
 docs/orchestration/YYYY-MM-DD-compound-master-summary.md
 ```
 
-Include roadmap, brainstorms, plans, packages, waves, branches, Impact Scans, tests, review rounds, Jira tasks, PRs, blockers, residual advisory findings, completed packages, remaining packages by wave, and the next recommended invocation if work remains.
+Include roadmap, brainstorms, plans, packages, waves, branches, Impact Scans, CI break-prevention evidence, surface-aware verification, review rounds, Jira tasks, PRs, surfaced CI incidents/escalations, blockers, residual advisory findings, completed packages, remaining packages by wave, and the next recommended invocation if work remains.

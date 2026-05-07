@@ -4,7 +4,7 @@ description: >
   Discovery-gated artifact-first orchestrator for compound-engineering product delivery. Resolves roadmap/readiness generation,
   runs brainstorm/plan/document-review loops, derives
   mergeable work packages, and later executes each package through resolved work/code-review roles before
-  handing shipping to krt-release-marshal. Use when turning an existing documented software project
+  handing shipping to krt-release-marshal with CI break-prevention evidence. Use when turning an existing documented software project
   into a sequenced roadmap and PR/Jira delivery program. Runtime aliases may expose this as
   krt:compound-master.
 argument-hint: >
@@ -37,6 +37,7 @@ Core pipeline:
 8. Execute each ready package with the resolved work role in implementation-only/no-shipping mode.
 9. Review implementation with the resolved code-review role, looping fixes until the configured threshold passes.
 10. Hand the finished package to `krt-release-marshal`, which owns commits, clean rebase, Jira, GitHub PR, reviewer requests, and approved post-PR Jira transition to `En Revisión`.
+11. Record CI break-prevention evidence before handoff; if CI later breaks, escalate to the dedicated CI investigation workflow.
 
 ## Load References
 
@@ -67,7 +68,10 @@ Core pipeline:
 - Do not transition Jira outside an approved release plan. `krt-jira-scribe` must fetch real transitions and require confirmation before `En Revisión` or any other state; an accepted `krt-release-marshal` plan may count as confirmation for automatic post-PR transition to `En Revisión` when it names the issue, target status, and fallback behavior.
 - Treat verification results as release-readiness evidence, not public PR copy. Do not put test commands, test output, or verification summaries in suggested PR body bullets unless the user, repo template, or project convention explicitly requires it.
 - Require an Impact Scan before `review-passed` when a package changes an API contract, endpoint, binding, shared helper, schema, payload, auth/tenant/ownership behavior, or test fixture contract. The scan must identify consumers and expand required tests from those consumers.
+- When the Impact Scan touches auth, permissions, roles, scopes, tenant ownership/isolation, endpoint gates, payload contracts, or fixtures, explicitly search for contract-drift tests before release. Look for exact-list expectations, snapshots, allowlists, `deepStrictEqual`/`toEqual`, role bundles, permission normalization, generated bindings, seeded tenants/users, and fixture setup that may encode the old contract.
+- Verification evidence must be surface-aware for broad packages. Do not record only "tests pass"; record the changed surfaces and the evidence for each relevant surface, such as permissions/role-bundle checks, normalization checks, endpoint gates, tenant isolation, generated client contracts, migrations, config, and docs.
 - For broad packages, provide suggested logical commit grouping to `krt-release-marshal`. Prefer reviewable commits by natural boundary, while keeping each commit internally coherent. Do not collapse persistence/schema, service/integration behavior, API/generated contracts, config/deployment wiring, focused tests, and docs into one or two package-sized commits when those surfaces changed separately.
+- Treat PR creation as a handoff milestone, not proof that CI is healthy. Compound Master should prevent predictable CI breaks before handoff by expanding contract tests, verification evidence, and release notes. If CI later fails, do not spin in an observation loop; invoke or recommend the dedicated CI investigation workflow and keep the package marked as release-follow-up until the incident has an owner.
 - Never ask for Jira credentials. Missing Jira env vars are a configuration blocker or a user-approved no-Jira exception, depending on `jira-policy`.
 
 ## Stop Discipline
@@ -137,6 +141,7 @@ Resolve these logical roles during preflight:
 | `work` | `ce-work` | execution | `/ce-work`, `ce:work`, `compound-engineering:ce-work` |
 | `code_review` | `ce-review` | execution | `/ce-code-review`, `ce:review`, `ce-code-review`, `compound-engineering:ce-review` |
 | `project_pr` | `krt-release-marshal` | shipping | `krt:release-marshal`, runtime release marshal equivalent |
+| `ci_investigator` | `krt-ci-questor` | optional escalation when CI breaks | `krt:ci-questor`, runtime CI investigator equivalent |
 | `gitflow_commit` | `krt-gitflow-knight` | shipping component | `krt:gitflow-knight`, runtime gitflow commit equivalent |
 | `clean_rebase` | `krt-rebase-smith` | shipping component | `krt:rebase-smith`, runtime clean rebase equivalent |
 | `jira_workflow` | `krt-jira-scribe` | shipping with Jira | `krt:jira-scribe`, runtime Jira workflow equivalent |
@@ -156,6 +161,7 @@ Blocking policy:
 - Missing `work` or `code_review`: complete artifact generation if possible, then stop before execution.
 - Missing `project_pr` or component skills: stop before shipping and suggest:
   `npx -y skills add ElZaWarudo/krt --skill krt-release-marshal --skill krt-gitflow-knight --skill krt-rebase-smith --skill krt-jira-scribe -g`
+- Missing `ci_investigator`: do not block release handoff or CI incident handling. If CI breaks later, search for another available CI/log/check investigation skill first. If none is available, Compound Master performs direct evidence-first triage itself using the same report shape.
 - Missing `jira_workflow` with `jira-policy:required`: stop before shipping and suggest installing `krt-jira-scribe` or rerunning with `jira-policy:optional|skip`.
 - `ce-commit-push-pr` is not equivalent to `krt-release-marshal`; use only if the user explicitly accepts no Jira/status orchestration.
 
@@ -192,7 +198,7 @@ docs/brainstorms/
 docs/plans/
 ```
 
-Maintain `docs/orchestration/compound-master-state.md`. State must track initiative, mode, date, resolved roles, runtime/delegation availability, delegation decisions and telemetry, source docs, context readiness, roadmap, brainstorms, plans, work packages, waves, branch/base choices, Impact Scan status, verification, review status, Jira/PR URLs, blockers, and required user decisions.
+Maintain `docs/orchestration/compound-master-state.md`. State must track initiative, mode, date, resolved roles, runtime/delegation availability, delegation decisions and telemetry, source docs, context readiness, roadmap, brainstorms, plans, work packages, waves, branch/base choices, Impact Scan status, CI break-prevention checks, surface-aware verification, review status, Jira/PR URLs, release-follow-up blockers, and required user decisions.
 
 ## Workflow
 
@@ -259,7 +265,11 @@ Invoke the resolved `code_review` role normally. Prefer autofix when safe; retry
 
 When implementation and review gates pass, invoke `krt-release-marshal`. Do not stop after saying it is the next step. Include work package path, roadmap item, origin plan, current branch, intended base, Jira policy, suggested Jira summary/description, PR title/body bullets, suggested commit grouping when natural boundaries exist, verification results as internal release-readiness context, and instruction to include automatic reviewer handling and automatic post-PR Jira transition to `En Revisión` in the release plan when Jira context exists.
 
-### Step 10 - Continue Waves Or Finish
+### Step 10 - CI Break-Prevention And Escalation
+
+Load `references/execution-flow.md`. Before and during release handoff, record the CI break-prevention evidence that should keep predictable checks green: contract-drift scan, consumer tests, surface-aware verification, and known CI-only gaps. Do not poll CI in a loop. If the user reports a broken check or the release workflow surfaces one, use `krt-ci-questor` when available, resolve another CI investigator if possible, or perform direct evidence-first triage inline. Record a release-follow-up blocker until the CI incident has a cause, owner, and next action.
+
+### Step 11 - Continue Waves Or Finish
 
 Refresh state and dependencies after each PR handoff. Dependent packages wait for merge or branch from the parent PR branch. At the end, write `docs/orchestration/YYYY-MM-DD-compound-master-summary.md`.
 

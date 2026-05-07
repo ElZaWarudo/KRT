@@ -1,6 +1,6 @@
 # Execution Flow
 
-Use this reference for Compound Master Steps 6-9.
+Use this reference for Compound Master Steps 6-10.
 
 ## Wave Planning
 
@@ -106,6 +106,7 @@ Required output:
 - Consumer scan patterns: endpoint paths, exported names, helper names, bindings, schema names, and error codes likely to find callers.
 - Consumers found: source files, tests, fixtures, setup flows, docs, and generated clients affected by the changed contract.
 - Required consumer tests: all relevant tests discovered by the scan, not only tests in the package's primary area.
+- Contract-drift test scan: when auth, permissions, roles, scopes, tenant ownership/isolation, endpoint gates, payload contracts, or fixtures changed, search for tests that encode old exact expectations. Include exact arrays, snapshots, allowlists, seeded fixtures, permission bundle tests, normalization tests, and generated-contract assertions.
 - Run/skipped results: command/result for each required test, or explicit skip reason including missing local service/dependency and whether CI is expected to cover it.
 
 Example shape:
@@ -124,11 +125,30 @@ Consumers found:
 - web-application/backend/test/mocha/api-tests/tests-api-anchor-registry.ts
 Required consumer tests:
 - Wallet, DID, VC, and Anchor Registry API tests.
+Contract-drift test scan:
+- rg "deepStrictEqual|toEqual|permissions|role.*bundle|tenant.*permission" web-application/backend/test
+- web-application/backend/test/mocha/function-tests/test-tenant-permissions.ts
 Run/skipped results:
 - <commands/results or local blocker with CI coverage expectation>
 ```
 
 Do not mark `review-passed` until this gate is complete for every API/contract change. If the scan finds additional consumers, update legacy setup/fixtures as needed and rerun affected tests before review.
+
+## Surface Verification Evidence
+
+For broad packages, record verification by changed surface instead of only by command. Use this shape in state, work-package updates, and release handoff context:
+
+```text
+Changed surfaces:
+- Permissions/roles: verified by <test/inspection> or skipped because <reason>
+- Tenant isolation/ownership: verified by <test/inspection> or skipped because <reason>
+- API/generated contract: verified by <test/inspection> or skipped because <reason>
+- Persistence/schema: verified by <test/inspection> or skipped because <reason>
+- Config/deployment: verified by <test/inspection> or skipped because <reason>
+- Docs/orchestration: verified by <review/inspection> or skipped because <reason>
+```
+
+Omit unchanged surfaces. If a surface changed and no evidence exists, keep the package out of `review-passed` unless the gap is explicitly acceptable for the package risk and CI is expected to cover it.
 
 ## Code Review Loop
 
@@ -228,4 +248,50 @@ PR tree safety:
 - If Jira is required and config is missing, stop with a configuration blocker.
 - If Jira is optional and config is missing, let `krt-release-marshal` ask whether to continue without Jira.
 
-After handoff, record Jira URL, PR URL, status, branch, base, reviewers, and blockers in state.
+After handoff, record Jira URL, PR URL, status, branch, base, reviewers, CI break-prevention evidence, and blockers in state. Do not start a CI polling loop from Compound Master.
+
+## CI Break-Prevention And Escalation
+
+Compound Master's CI responsibility is prevention first, escalation second.
+
+Prevention rules:
+
+- Before handoff, name the CI surfaces most likely to fail because of the package: build/typecheck/lint, unit/function/API tests, generated artifacts, migrations, permissions/auth/tenant tests, snapshots, and deployment/config checks.
+- For each changed surface, record local verification or a concrete reason it is CI-only.
+- For auth/permission/tenant/contract changes, run the contract-drift test scan before release rather than waiting for CI to discover stale expectations.
+- Pass CI risk notes to `krt-release-marshal` as internal release-readiness context, not PR-body noise.
+- Do not poll PR checks repeatedly from Compound Master. The release workflow or user can surface broken checks.
+
+Escalation rules:
+
+- If the user reports a broken check, or the release workflow returns a failed check during its own process, invoke `krt-ci-questor` when available with the PR/run/check context.
+- If `krt-ci-questor` is unavailable, search the host for another CI/log/check investigation skill or tool before falling back.
+- If no specialist is available, Compound Master performs direct evidence-first triage itself using the same report shape. Do not stop just because the optional specialist is missing.
+- The selected investigator, whether Questor, another skill, or Compound Master inline, owns the investigation report: cause, evidence, flake assessment, ownership, and next action.
+- If the failure is package-owned, route the fix through a focused follow-up change on the PR branch using the normal release/gitflow context.
+- If the failure is flaky, external, infra, or unknown, record a release-follow-up blocker instead of silently rerunning or bypassing.
+- Do not disable checks, widen retries, bypass red CI, or mark Jira done without explicit user approval.
+
+CI escalation report shape:
+
+```text
+CI incident: reported | investigating | fix-needed | external | unknown
+Provider/run:
+Workflow/job/step:
+Likely reason:
+Evidence:
+- <log/check/artifact/history signal>
+Ownership:
+- package-owned | pre-existing | flaky/transient | external/infra | unknown
+Recommended next action:
+Verification:
+Confidence:
+```
+
+State updates:
+
+- `ci-prevention-ready`: predictable CI risk surfaces have evidence or explicit CI-only gaps.
+- `ci-incident-reported`: a broken check was surfaced by the user or release workflow.
+- `ci-incident-escalated`: `krt-ci-questor`, another resolved CI investigator, or Compound Master inline triage owns investigation.
+- `ci-blocked`: failure is unknown, external, or needs user/project decision.
+- `completed`: release handoff completed and no release-follow-up blocker is recorded by Compound Master.

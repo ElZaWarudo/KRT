@@ -15,9 +15,9 @@ Track:
 - Plan implementation units included in the selected package, with per-unit status: pending, in-progress, implemented, verified, skipped, or blocked.
 - Dependency waves.
 - Branch names and base branches.
-- Impact Scan status: required yes/no, changed contracts, scan patterns, consumers found, required consumer tests, run/skipped results.
-- Verification results, code-review status, review fan-out roles, deduplicated findings, and advisory findings.
-- Jira URLs, PR URLs, reviewers.
+- Impact Scan status: required yes/no, changed contracts, scan patterns, consumers found, contract-drift tests searched, required consumer tests, run/skipped results.
+- Surface-aware verification results, code-review status, review fan-out roles, deduplicated findings, and advisory findings.
+- Jira URLs, PR URLs, reviewers, CI break-prevention evidence, and CI incident/escalation reports when a failure is surfaced.
 - Blockers and required user decisions.
 
 ## Status Values
@@ -37,6 +37,10 @@ review-fix-needed
 review-passed
 pr-handoff-started
 pr-opened
+ci-prevention-ready
+ci-incident-reported
+ci-incident-escalated
+ci-blocked
 blocked
 completed
 ```
@@ -60,6 +64,7 @@ Stop and write the blocker into `compound-master-state.md` when:
 - Jira is required but configuration is missing.
 - PR handoff would duplicate a PR or target the wrong base.
 - The resolved `work` role already shipped and `krt-release-marshal` would duplicate it.
+- A CI failure is surfaced by the user or release workflow and remains untriaged, package-owned without a fix plan, external/unknown without evidence, or requires a user-approved bypass.
 
 Tell the user exactly what input or action is needed before continuing.
 
@@ -77,3 +82,5 @@ Every closeout must include:
 For review-blocked closeouts, also include latest findings path, unresolved findings grouped by severity, verification status, and the recommended resolver invocation.
 
 For shipping-blocked closeouts, include the exact missing input, missing role, Jira config issue, duplicate PR, or base/branch ambiguity.
+
+For CI-blocked closeouts, include PR URL, failing check/run, likely reason if known, ownership classification, evidence, current confidence, and the exact next action: invoke `krt-ci-questor`, provide missing run/log context, or approve a focused fix/bypass decision.
