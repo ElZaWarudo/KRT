@@ -29,6 +29,7 @@ Formal skill IDs use the Every-style hyphen form (`krt-*`). Some runtimes may ex
 | `$krt:gitflow-knight` | `krt-gitflow-knight` | Keep branch hygiene and atomic commits in formation. |
 | `$krt:rebase-smith` | `krt-rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
 | `$krt:jira-scribe` | `krt-jira-scribe` | Manage Jira Server/Data Center issues, subtasks, sprints, and transitions in Spanish. |
+| `$krt:repo-medic` | `krt-repo-medic` | Diagnose repository health, stale docs, broken workflows, and maintenance risks. |
 
 Skills can bring their own auxiliary files: references, templates, assets, adapter configs, or agent definitions. Keep the main `SKILL.md` readable; put the heavy armor in nearby files.
 
@@ -51,6 +52,9 @@ krt-release-marshal
 
 krt-review-herald
   -> triage review feedback and prepare fixes/replies
+
+krt-repo-medic
+  -> diagnose repo health and prescribe focused maintenance
 ```
 
 `krt-compound-master` treats a **work package** as the PR/Jira unit, but preserves the plan's implementation units inside that package. A package can ship as one PR while still reporting per-unit execution, verification, review, and commit grouping.
@@ -85,6 +89,12 @@ Trim noisy docs before a feature:
 
 ```text
 Use $krt:harness-wise docs-trim before working on billing.
+```
+
+Audit repository health:
+
+```text
+Use $krt:repo-medic for a standard health check before planning the next maintenance sprint.
 ```
 
 Turn a documented initiative into delivery artifacts:
@@ -197,6 +207,9 @@ skills/
   krt-rebase-smith/
     SKILL.md
   krt-jira-scribe/
+    SKILL.md
+    references/
+  krt-repo-medic/
     SKILL.md
     references/
 ```
