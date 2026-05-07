@@ -25,6 +25,7 @@ Formal skill IDs use the Every-style hyphen form (`krt-*`). Some runtimes may ex
 | `$krt:roadmap-cartographer` | `krt-roadmap-cartographer` | Generate exactly one roadmap or readiness report from existing project context before compound delivery. |
 | `$krt:compound-master` | `krt-compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, document reviews, work packages, execution gates, code review, and PR/Jira handoff. |
 | `$krt:release-marshal` | `krt-release-marshal` | Direct the final delivery march: commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
+| `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, plan fixes, and draft clear reviewer replies. |
 | `$krt:gitflow-knight` | `krt-gitflow-knight` | Keep branch hygiene and atomic commits in formation. |
 | `$krt:rebase-smith` | `krt-rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
 | `$krt:jira-scribe` | `krt-jira-scribe` | Manage Jira Server/Data Center issues, subtasks, sprints, and transitions in Spanish. |
@@ -47,6 +48,9 @@ krt-compound-master
 
 krt-release-marshal
   -> commit, rebase, Jira, push, PR, reviewers, Jira review transition
+
+krt-review-herald
+  -> triage review feedback and prepare fixes/replies
 ```
 
 `krt-compound-master` treats a **work package** as the PR/Jira unit, but preserves the plan's implementation units inside that package. A package can ship as one PR while still reporting per-unit execution, verification, review, and commit grouping.
@@ -95,6 +99,12 @@ Resume execution from existing orchestration state:
 
 ```text
 Use $krt:compound-master mode:resume jira-policy:optional parallel:false
+```
+
+Triage PR feedback:
+
+```text
+Use $krt:review-herald to classify review comments and draft replies for PR #42.
 ```
 
 ## Install
@@ -177,6 +187,9 @@ skills/
     assets/
       codex-agents/
   krt-release-marshal/
+    SKILL.md
+    references/
+  krt-review-herald/
     SKILL.md
     references/
   krt-gitflow-knight/
