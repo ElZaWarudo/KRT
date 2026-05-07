@@ -1,7 +1,7 @@
 ---
 name: krt-compound-master
 description: >
-  Artifact-first orchestrator for compound-engineering product delivery. Validates project context,
+  Discovery-gated artifact-first orchestrator for compound-engineering product delivery. Validates project context,
   creates a dependency-aware roadmap, runs brainstorm/plan/document-review loops, derives
   mergeable work packages, and later executes each package through resolved work/code-review roles before
   handing shipping to krt-release-marshal. Use when turning an existing documented software project
@@ -23,14 +23,14 @@ argument-hint: >
 
 Compound Master coordinates existing skills. It does **not** replace Compound Engineering and it does **not** duplicate `krt-release-marshal` (`krt:release-marshal` in alias-friendly runtimes).
 
-Default posture: **artifact-first**. Generate durable artifacts first; execute later only when the user explicitly asks or `mode:full` reaches its execution gate.
+Default posture: **artifact-first after discovery**. Generate durable artifacts from explicit context and user decisions; execute later only when the user explicitly asks or `mode:full` reaches its execution gate. The brainstorm step is the main product-discovery gate, not a paperwork shortcut.
 
 Core pipeline:
 
 1. Preflight skills, repo, branch, delegation, Jira readiness, and context.
 2. Block if project documentation is insufficient.
 3. Create a dependency-aware roadmap.
-4. Run one interactive brainstorm per roadmap item.
+4. Run one interactive brainstorm per roadmap item before writing or finalizing that item's requirements.
 5. Run one plan per reviewed brainstorm document.
 6. Review roadmap, brainstorms, plans, and work packages with the resolved document-review role.
 7. Derive work packages that map to independently reviewable PR/Jira units.
@@ -53,6 +53,9 @@ Core pipeline:
 - Use document-review roles for documents and code-review roles for implementation/diffs.
 - Do not implement before a written and reviewed plan exists.
 - Do not generate a roadmap when context is insufficient. Context insufficiency is blocking.
+- Do not skip the interactive brainstorm for a roadmap item merely because the roadmap, existing docs, or prior references look detailed. Existing context can seed the questions, but the user owns product and architecture decisions.
+- Treat "continue", "resume", "next step", or "siguiente paso" as permission to advance to the next required gate, not as permission to bypass the brainstorm conversation.
+- Skip or compress brainstorm only when the current invocation explicitly asks to skip discovery, run non-interactively, or use existing decisions as final. Record that override in state and list the risks.
 - Do not invent product behavior, authorization rules, data contracts, Jira transitions, release constraints, branch bases, or dependency edges. Ask one blocking question at a time.
 - Use repo-relative paths in generated documents.
 - Do not edit CE plan bodies as progress checklists. Progress lives in `compound-master-state.md`, work-package status, task tracking, commits, Jira, and PRs.
@@ -70,7 +73,7 @@ Core pipeline:
 
 Whenever this skill intentionally stops, pauses for a gate, or cannot continue, return a visible closeout. Include current phase/status, written or updated paths, ready work, blockers or "No blockers", recommended next action, and the exact next invocation when one exists.
 
-If the next step is obvious and safe, do it instead of stopping. Ask only for choices that affect scope, product behavior, destructive actions, external systems, notifications, or decisions the agent cannot infer.
+If the next operational step is obvious and safe, do it instead of stopping. The brainstorm gate is different: ask even when there is enough context to draft, because its purpose is to surface and confirm product and architecture choices before artifacts harden.
 
 The lead owns orchestration continuity. When a worker returns, the lead must integrate the result, run or attempt local verification, continue to review, and hand off to release when gates pass. Do not stop merely because local stack startup, test execution, linting, or review remains.
 
@@ -205,7 +208,21 @@ Load `references/artifact-templates.md`. Create the next `docs/roadmaps/YYYY-MM-
 
 ### Step 3 - Brainstorm Per Roadmap Item
 
-For each roadmap item in dependency order, invoke the resolved `brainstorm` role for that item only. User product decisions remain with existing docs or the user. Review each requirements doc with `document_review` and loop safe fixes.
+For each roadmap item in dependency order, invoke the resolved `brainstorm` role for that item only. The brainstorm must be interactive unless the user explicitly requested non-interactive discovery in the current invocation.
+
+Use existing docs, roadmap details, and references to prepare a focused mini-discovery, then ask the highest-leverage question first. Continue through enough questions to settle the decisions that would otherwise be invented in the requirements document. For non-trivial items, expect at least one product question and one architecture/integration question before writing or finalizing requirements.
+
+When the user asks to resume or continue into the next roadmap item, start the brainstorm gate instead of drafting requirements directly. A good response shape is:
+
+```text
+Next required gate is the brainstorm for <roadmap item>. Existing context suggests <brief summary>, but these decisions still need confirmation:
+- <decision 1>
+- <decision 2>
+
+First question: <single focused question>
+```
+
+If the user explicitly skips brainstorm, record the override and assumptions in `compound-master-state.md`, mark the generated requirements as assumption-backed, and include follow-up decisions in the document. User product decisions remain with existing docs or the user. Review each requirements doc with `document_review` and loop safe fixes.
 
 ### Step 4 - Plan Per Brainstorm
 
