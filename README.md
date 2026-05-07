@@ -27,6 +27,7 @@ Formal skill IDs use the Every-style hyphen form (`krt-*`). Some runtimes may ex
 | `$krt:release-marshal` | `krt-release-marshal` | Direct the final delivery march: commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
 | `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, plan fixes, and draft clear reviewer replies. |
 | `$krt:ci-questor` | `krt-ci-questor` | Investigate failing CI runs and produce concise cause reports. |
+| `$krt:deploy-summoner` | `krt-deploy-summoner` | Prepare and diagnose Docker, Helm, and Kubernetes deployments. |
 | `$krt:docs-chronicler` | `krt-docs-chronicler` | Keep durable docs, ADRs, changelogs, runbooks, and learnings current. |
 | `$krt:gitflow-knight` | `krt-gitflow-knight` | Keep branch hygiene and atomic commits in formation. |
 | `$krt:rebase-smith` | `krt-rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
@@ -57,6 +58,9 @@ krt-review-herald
 
 krt-ci-questor
   -> investigate CI failures and report likely cause
+
+krt-deploy-summoner
+  -> inspect deployment manifests and prepare safe deploy/rollback plans
 
 krt-docs-chronicler
   -> capture durable docs, decisions, runbooks, changelogs, and learnings
@@ -129,6 +133,12 @@ Investigate a failed pipeline:
 
 ```text
 Use $krt:ci-questor to explain why the latest GitHub Actions run failed and what to do next.
+```
+
+Prepare a deployment:
+
+```text
+Use $krt:deploy-summoner to review Helm values and produce a safe rollout and rollback plan.
 ```
 
 Capture durable knowledge:
@@ -223,6 +233,9 @@ skills/
     SKILL.md
     references/
   krt-ci-questor/
+    SKILL.md
+    references/
+  krt-deploy-summoner/
     SKILL.md
     references/
   krt-docs-chronicler/
