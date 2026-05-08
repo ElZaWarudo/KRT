@@ -1,0 +1,4 @@
+interface:
+  display_name: "Security Sentinel"
+  short_description: "Review slices and diagnose systems for cybersecurity risk"
+  default_prompt: "Use krt-security-sentinel to review security-sensitive work packages or diagnose a repository/system for cybersecurity risks."

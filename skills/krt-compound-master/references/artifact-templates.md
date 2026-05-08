@@ -75,6 +75,14 @@ Grouping rationale:
 - Code review threshold: [configured `review-threshold`; default P0-P2]
 - Findings below threshold: log unless user marks blocking
 
+## Security Gate
+- Run after work-review loop: [not required / required because auth, secrets, PII, public API, deployment, dependency, or other high-risk surface changed]
+- Security Watch during work: [enabled/disabled and why]
+- Security Watch notes: [None / early concerns, suggested verification, gate inputs]
+- Security reviewer: [krt-security-sentinel / fallback security reviewer / inline]
+- Security review result: [pending / pass / fixes needed / blocked / advisory only]
+- Required security verification: [tests/checks/manual inspection]
+
 ## CI Break-Prevention And Escalation
 - CI risk surfaces: [build/typecheck/lint/tests/generated artifacts/migrations/permissions/config/etc.]
 - Preventive evidence: [local verification or explicit CI-only gap for each changed surface]
@@ -148,4 +156,4 @@ At the end, write:
 docs/orchestration/YYYY-MM-DD-compound-master-summary.md
 ```
 
-Include roadmap, brainstorms, plans, packages, waves, branches, Impact Scans, CI break-prevention evidence, surface-aware verification, review rounds, Jira tasks, PRs, surfaced CI incidents/escalations, blockers, residual advisory findings, completed packages, remaining packages by wave, and the next recommended invocation if work remains.
+Include roadmap, brainstorms, plans, packages, waves, branches, Impact Scans, security reviews, CI break-prevention evidence, surface-aware verification, review rounds, Jira tasks, PRs, surfaced CI incidents/escalations, blockers, residual advisory findings, completed packages, remaining packages by wave, and the next recommended invocation if work remains.

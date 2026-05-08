@@ -1,6 +1,6 @@
 # Execution Flow
 
-Use this reference for Compound Master Steps 6-10.
+Use this reference for Compound Master Steps 6-11.
 
 ## Wave Planning
 
@@ -72,6 +72,41 @@ When a package contains multiple units, choose one of these execution shapes and
 - **Single worker, explicit unit checklist:** invoke one worker for the whole package only when the units are tightly coupled and one pass is more coherent. The prompt must still list each U-ID/unit separately and require a per-unit result.
 - **Parallel workers:** only when `parallel:true`, isolation exists, dependencies allow it, and write scopes do not overlap.
 
+## Security Watch During Work
+
+Security Watch is enabled by default for high-risk packages during Step 7 execution. It is read-only and incremental. Its job is to notice risk while work is still moving, then provide structured input to the final Security Sentinel Gate.
+
+Enable watch when the package touches:
+
+- auth, authorization, tenant isolation, ownership, permissions, roles, or scopes;
+- secrets, credentials, tokens, env vars, CI/CD permissions, or deploy credentials;
+- PII, regulated data, audit logs, retention, encryption, exports, or destructive actions;
+- public API contracts, webhooks, callbacks, uploads/downloads, parsing, redirects, or external integrations;
+- deployment exposure, Helm/Kubernetes/Docker security posture, public ingress, service accounts, RBAC, or network policy;
+- dependency, package manager, base image, GitHub Action, generated client, or other supply-chain surface.
+
+Execution modes:
+
+- If KRT-owned read-only subagents are approved/available, run one `security_watcher` alongside or immediately after each worker return.
+- If subagents are unavailable or delegation is inline, the lead performs the same watch pass after each worker return or meaningful diff update.
+- The watcher must not edit files, stage, commit, push, create PRs, transition Jira, run intrusive scanners, decode secrets, or mutate runtime state.
+- The watcher should not interrupt normal work for P2/P3 concerns. Record notes for the final gate.
+- Obvious P0/P1 risk may stop the execution loop immediately with a `security-blocked` closeout.
+
+Security watch note shape:
+
+```text
+Security watch notes:
+- Surface: <auth/tenant/secrets/API/deploy/supply-chain/etc.>
+  Files:
+  Early concern:
+  Suggested verification:
+  Gate input:
+  Severity estimate: P0/P1/P2/P3/advisory
+```
+
+Record notes in `compound-master-state.md` and, when useful, under the work package's Security Gate section. The final Security Sentinel Gate owns the formal finding decision; watch notes are leads, not final verdicts.
+
 Do not mark the package `implementation-complete` merely because a worker returned once. Mark it complete only after every included unit has an explicit implemented/verified/skipped/blocked disposition, with skipped verification justified.
 
 Invocation shape:
@@ -94,7 +129,7 @@ Completion gate:
 - Pending changes/commits are coherent and ready for `krt-release-marshal`.
 - No unresolved product decision remains.
 
-After worker return, the lead must inspect the summary/diff by unit, update unit statuses, start documented local services when safe, run the package verification gate or closest targeted tests, fix straightforward failures inline or through `work`, and continue to review only when all units have a non-pending disposition. Stop only for missing credentials, destructive setup, paid external resources, unclear environment decisions, or non-inferable product/technical decisions.
+After worker return, the lead must inspect the summary/diff by unit, update unit statuses, collect Security Watch notes when enabled, start documented local services when safe, run the package verification gate or closest targeted tests, fix straightforward failures inline or through `work`, and continue to review only when all units have a non-pending disposition. Stop only for missing credentials, destructive setup, paid external resources, unclear environment decisions, non-inferable product/technical decisions, or obvious P0/P1 security risk.
 
 ## Impact Scan Gate
 
@@ -179,13 +214,62 @@ Loop:
 5. Log P3/advisory findings unless the user marks them blocking.
 6. Stop after three rounds if blockers remain.
 
-Passing gate: Impact Scan complete when required, no actionable finding at or above threshold, no unresolved security/data/contract finding, tests pass or an acceptable verification gap is recorded, advisory findings recorded.
+Passing gate: Impact Scan complete when required, no actionable finding at or above threshold, no unresolved security/data/contract finding, tests pass or an acceptable verification gap is recorded, advisory findings recorded. For high-risk packages, this means the work-review loop is ready for the Security Sentinel Gate, not release handoff.
+
+## Security Sentinel Gate
+
+Run this gate after the main work-review loop passes and before `krt-release-marshal`.
+
+Use the gate when the package or Impact Scan touches one or more of:
+
+- auth, authorization, tenant isolation, ownership, permissions, roles, or scopes;
+- secrets, credentials, tokens, env vars, CI/CD permissions, or deploy credentials;
+- PII, regulated data, audit logs, retention, encryption, exports, or destructive actions;
+- public API contracts, webhooks, callbacks, file upload/download, parsing, redirects, or external integrations;
+- deployment exposure, Helm/Kubernetes/Docker security posture, public ingress, service accounts, RBAC, or network policy;
+- dependency, package manager, base image, GitHub Action, generated client, or other supply-chain surface;
+- any package classified high-risk where the primary review did not deeply inspect the security surface.
+
+Prefer `krt-security-sentinel` as the specialized security reviewer when available. If it is not available, use another security-review skill or perform a direct evidence-based security pass with the same output expectations.
+
+Security gate input:
+
+- work package path;
+- origin plan path;
+- changed files/diff summary;
+- Impact Scan summary;
+- Security Watch notes collected during work;
+- surface-aware verification evidence;
+- current branch/base;
+- known skipped tests or local blockers.
+
+Security gate output:
+
+```text
+Security status: pass | fixes needed | blocked | advisory only
+Blocking findings:
+- [P0-P2] <title> -- evidence, remediation, verification
+Advisory findings:
+- [P3] <title>
+Required verification:
+- <tests/checks/manual review>
+Release notes for handoff:
+- <internal release-readiness notes only>
+```
+
+Routing:
+
+- P0/P1 findings block release handoff.
+- P2 findings block when they affect auth, tenant isolation, secrets, public API security, PII, deployment exposure, or supply chain.
+- P3 findings are advisory unless the user or repo policy marks them blocking.
+- Security blockers loop through `work`, targeted verification, and the main `code_review` role before rerunning the Security Sentinel Gate.
+- Do not ask `krt-release-marshal` to hide, bypass, or explain away unresolved security risk.
 
 ## Optional Review Fan-Out
 
-Keep the resolved `code_review` role as the primary review. Fan-out supplements it; it does not replace the main review or the lead's synthesis.
+Keep the resolved `code_review` role as the primary review. Fan-out supplements it; it does not replace the main review, the lead's synthesis, or the post-review Security Sentinel Gate.
 
-Use read-only reviewer fan-out when the package or Impact Scan touches one or more of:
+Use read-only reviewer fan-out inside the code-review loop when the package or Impact Scan touches one or more of:
 
 - auth, authorization, tenant isolation, ownership, or permissions;
 - database schema, migrations, backfills, or persistent data integrity;

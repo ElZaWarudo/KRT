@@ -26,6 +26,7 @@ Formal skill IDs use the Every-style hyphen form (`krt-*`). Some runtimes may ex
 | `$krt:compound-master` | `krt-compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, document reviews, work packages, execution gates, code review, and PR/Jira handoff. |
 | `$krt:release-marshal` | `krt-release-marshal` | Direct the final delivery march: commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
 | `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, plan fixes, and draft clear reviewer replies. |
+| `$krt:security-sentinel` | `krt-security-sentinel` | Review security-sensitive slices and diagnose whole systems for cybersecurity risk. |
 | `$krt:ci-questor` | `krt-ci-questor` | Investigate failing CI runs and produce concise cause reports. |
 | `$krt:deploy-summoner` | `krt-deploy-summoner` | Prepare and diagnose Docker, Helm, and Kubernetes deployments. |
 | `$krt:docs-chronicler` | `krt-docs-chronicler` | Keep durable docs, ADRs, changelogs, runbooks, and learnings current. |
@@ -56,6 +57,9 @@ krt-release-marshal
 krt-review-herald
   -> triage review feedback and prepare fixes/replies
 
+krt-security-sentinel
+  -> review high-risk slices and diagnose system security posture
+
 krt-ci-questor
   -> investigate CI failures and report likely cause
 
@@ -77,7 +81,7 @@ Some skills are useful standalone; others expect companions.
 
 | Skill | Expected companions | Why |
 |---|---|---|
-| `krt-compound-master` | Required: `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal`. Optional: `krt-ci-questor` | Full artifact, execution, and release pipeline. `krt-ci-questor` handles CI incident escalation when available; otherwise Compound Master resolves another CI investigator or triages inline. |
+| `krt-compound-master` | Required: `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal`. Optional: `krt-security-sentinel`, `krt-ci-questor` | Full artifact, execution, and release pipeline. `krt-security-sentinel` reviews high-risk security slices when available; `krt-ci-questor` handles CI incident escalation when available. Compound Master falls back inline when optional specialists are missing. |
 | `krt-release-marshal` | `krt-gitflow-knight`, `krt-rebase-smith`, `krt-jira-scribe` | Clean commits, clean branch history, Jira, and PR handoff. |
 | `krt-jira-scribe` | Jira env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
 
@@ -129,6 +133,12 @@ Triage PR feedback:
 Use $krt:review-herald to classify review comments and draft replies for PR #42.
 ```
 
+Review a security-sensitive slice:
+
+```text
+Use $krt:security-sentinel to review this auth and tenant-isolation work package before release.
+```
+
 Investigate a failed pipeline:
 
 ```text
@@ -174,7 +184,7 @@ npx -y skills add ElZaWarudo/krt \
   -g
 ```
 
-This installs the KRT side of the artifact and release pipeline. `krt-compound-master` also expects the Compound Engineering skills it resolves at runtime, such as `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, and `ce-review`. Add `--skill krt-ci-questor` when you want the optional CI incident specialist installed too.
+This installs the KRT side of the artifact and release pipeline. `krt-compound-master` also expects the Compound Engineering skills it resolves at runtime, such as `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, and `ce-review`. Add `--skill krt-security-sentinel` for the optional security specialist and `--skill krt-ci-questor` for the optional CI incident specialist.
 
 Install the release court globally:
 
@@ -230,6 +240,9 @@ skills/
     SKILL.md
     references/
   krt-review-herald/
+    SKILL.md
+    references/
+  krt-security-sentinel/
     SKILL.md
     references/
   krt-ci-questor/

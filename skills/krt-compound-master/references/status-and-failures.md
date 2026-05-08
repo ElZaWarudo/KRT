@@ -16,7 +16,7 @@ Track:
 - Dependency waves.
 - Branch names and base branches.
 - Impact Scan status: required yes/no, changed contracts, scan patterns, consumers found, contract-drift tests searched, required consumer tests, run/skipped results.
-- Surface-aware verification results, code-review status, review fan-out roles, deduplicated findings, and advisory findings.
+- Surface-aware verification results, code-review status, Security Watch notes, security review status, review fan-out roles, deduplicated findings, and advisory findings.
 - Jira URLs, PR URLs, reviewers, CI break-prevention evidence, and CI incident/escalation reports when a failure is surfaced.
 - Blockers and required user decisions.
 
@@ -35,6 +35,9 @@ in-progress
 implementation-complete
 review-fix-needed
 review-passed
+security-watch-active
+security-review-needed
+security-blocked
 pr-handoff-started
 pr-opened
 ci-prevention-ready
@@ -60,6 +63,7 @@ Stop and write the blocker into `compound-master-state.md` when:
 - Plans lack units/dependencies/tests after review.
 - A package changes an API contract, endpoint, binding, shared helper, schema, payload, auth/tenant/ownership behavior, or test fixture contract and lacks a complete Impact Scan.
 - Review blockers remain after three loops.
+- Security review is required after the work-review loop and P0/P1 findings remain unresolved, or a P2 finding affects auth, tenant isolation, secrets, public API security, PII, supply chain, or deployment exposure.
 - Branch base is ambiguous or would degrade the git tree.
 - Jira is required but configuration is missing.
 - PR handoff would duplicate a PR or target the wrong base.
@@ -80,6 +84,8 @@ Every closeout must include:
 - Exact next invocation or command when one exists.
 
 For review-blocked closeouts, also include latest findings path, unresolved findings grouped by severity, verification status, and the recommended resolver invocation.
+
+For security-blocked closeouts, include the security finding evidence, affected asset/actor, required remediation, verification path, and whether `krt-security-sentinel` or a fallback reviewer produced the finding.
 
 For shipping-blocked closeouts, include the exact missing input, missing role, Jira config issue, duplicate PR, or base/branch ambiguity.
 

@@ -35,9 +35,11 @@ Core pipeline:
 6. Review roadmap, brainstorms, plans, and work packages with the resolved document-review role.
 7. Derive work packages that map to independently reviewable PR/Jira units.
 8. Execute each ready package with the resolved work role in implementation-only/no-shipping mode.
-9. Review implementation with the resolved code-review role, looping fixes until the configured threshold passes.
-10. Hand the finished package to `krt-release-marshal`, which owns commits, clean rebase, Jira, GitHub PR, reviewer requests, and approved post-PR Jira transition to `En Revisión`.
-11. Record CI break-prevention evidence before handoff; if CI later breaks, escalate to the dedicated CI investigation workflow.
+9. Keep Security Sentinel watch active by default for high-risk packages during execution, collecting read-only notes as files change.
+10. Review implementation with the resolved code-review role, looping fixes until the configured threshold passes.
+11. After the work-review loop finishes, run the resolved security review role for high-risk packages before release handoff, using watch notes as input.
+12. Hand the finished package to `krt-release-marshal`, which owns commits, clean rebase, Jira, GitHub PR, reviewer requests, and approved post-PR Jira transition to `En Revisión`.
+13. Record CI break-prevention evidence before handoff; if CI later breaks, escalate to the dedicated CI investigation workflow.
 
 ## Load References
 
@@ -96,6 +98,8 @@ Portable delegated roles:
 | `document_reviewer` | review roadmap, brainstorm, plan, and work-package artifacts |
 | `worker` | implement exactly one approved work package without shipping |
 | `code_reviewer` | review current implementation/diff without mutating unless explicitly allowed |
+| `security_watcher` | read-only incremental security watch during execution for high-risk packages |
+| `security_reviewer` | read-only focused security review for high-risk packages or system slices |
 
 Delegation policy:
 
@@ -140,6 +144,7 @@ Resolve these logical roles during preflight:
 | `document_review` | `document-review` | artifact generation | `/ce-doc-review`, `ce-doc-review`, `compound-engineering:document-review` |
 | `work` | `ce-work` | execution | `/ce-work`, `ce:work`, `compound-engineering:ce-work` |
 | `code_review` | `ce-review` | execution | `/ce-code-review`, `ce:review`, `ce-code-review`, `compound-engineering:ce-review` |
+| `security_review` | `krt-security-sentinel` | optional high-risk package security review | `krt:security-sentinel`, runtime security sentinel equivalent |
 | `project_pr` | `krt-release-marshal` | shipping | `krt:release-marshal`, runtime release marshal equivalent |
 | `ci_investigator` | `krt-ci-questor` | optional escalation when CI breaks | `krt:ci-questor`, runtime CI investigator equivalent |
 | `gitflow_commit` | `krt-gitflow-knight` | shipping component | `krt:gitflow-knight`, runtime gitflow commit equivalent |
@@ -159,6 +164,7 @@ Blocking policy:
 
 - Missing `roadmap_generator`, `brainstorm`, `plan`, or `document_review`: stop immediately.
 - Missing `work` or `code_review`: complete artifact generation if possible, then stop before execution.
+- Missing `security_review`: do not block normal execution. If a high-risk package needs security review, search for another available security-review skill first; if none exists, perform a direct evidence-based security pass using the same expected output.
 - Missing `project_pr` or component skills: stop before shipping and suggest:
   `npx -y skills add ElZaWarudo/krt --skill krt-release-marshal --skill krt-gitflow-knight --skill krt-rebase-smith --skill krt-jira-scribe -g`
 - Missing `ci_investigator`: do not block release handoff or CI incident handling. If CI breaks later, search for another available CI/log/check investigation skill first. If none is available, Compound Master performs direct evidence-first triage itself using the same report shape.
@@ -198,7 +204,7 @@ docs/brainstorms/
 docs/plans/
 ```
 
-Maintain `docs/orchestration/compound-master-state.md`. State must track initiative, mode, date, resolved roles, runtime/delegation availability, delegation decisions and telemetry, source docs, context readiness, roadmap, brainstorms, plans, work packages, waves, branch/base choices, Impact Scan status, CI break-prevention checks, surface-aware verification, review status, Jira/PR URLs, release-follow-up blockers, and required user decisions.
+Maintain `docs/orchestration/compound-master-state.md`. State must track initiative, mode, date, resolved roles, runtime/delegation availability, delegation decisions and telemetry, source docs, context readiness, roadmap, brainstorms, plans, work packages, waves, branch/base choices, Impact Scan status, security watch notes, security review status, CI break-prevention checks, surface-aware verification, review status, Jira/PR URLs, release-follow-up blockers, and required user decisions.
 
 ## Workflow
 
@@ -255,21 +261,25 @@ Load `references/execution-flow.md`. Ask/resolve the execution delegation gate b
 
 ### Step 7 - Execute Package
 
-Invoke the resolved `work` role in implementation-only/no-shipping mode. The worker returns changed files, verification attempted/results/skips, and questions. The lead inspects the diff, starts documented local services when safe, runs/attempts verification, fixes straightforward failures inline or via `work`, and continues to review.
+Invoke the resolved `work` role in implementation-only/no-shipping mode. For high-risk packages, start Security Sentinel watch by default before or alongside work execution. The watch is read-only and tracks changed files, risky surfaces, missing negative tests, and likely gate inputs without mutating code or blocking normal progress except for obvious P0/P1 risk. The worker returns changed files, verification attempted/results/skips, and questions. The lead inspects the diff, integrates security watch notes, starts documented local services when safe, runs/attempts verification, fixes straightforward failures inline or via `work`, and continues to review.
 
 ### Step 8 - Code Review And Fix Loop
 
 Invoke the resolved `code_review` role normally. Prefer autofix when safe; retry with documented report-only/inline mode only if the runtime refuses agent launch. For high-risk packages, use optional read-only reviewer fan-out only after the main review path is clear and within the delegation budget. Findings at or above `review-threshold`, or any unresolved security/data/contract/test blocker, loop through `work` and review. Stop after three blocked rounds.
 
-### Step 9 - Release Marshal Handoff
+### Step 9 - Security Sentinel Gate
+
+After the work-review loop passes, load `references/execution-flow.md` and run the security review gate for packages that touch auth/authz, tenant isolation, secrets, PII, public API security, external integrations, deployment exposure, CI/CD permissions, supply chain, or other high-risk surfaces. Prefer `krt-security-sentinel` when available; otherwise resolve another security-review skill or perform a direct evidence-based security pass. Feed all Security Watch notes into this gate. Security blockers loop back through `work` and `code_review` before release handoff.
+
+### Step 10 - Release Marshal Handoff
 
 When implementation and review gates pass, invoke `krt-release-marshal`. Do not stop after saying it is the next step. Include work package path, roadmap item, origin plan, current branch, intended base, Jira policy, suggested Jira summary/description, PR title/body bullets, suggested commit grouping when natural boundaries exist, verification results as internal release-readiness context, and instruction to include automatic reviewer handling and automatic post-PR Jira transition to `En Revisión` in the release plan when Jira context exists.
 
-### Step 10 - CI Break-Prevention And Escalation
+### Step 11 - CI Break-Prevention And Escalation
 
 Load `references/execution-flow.md`. Before and during release handoff, record the CI break-prevention evidence that should keep predictable checks green: contract-drift scan, consumer tests, surface-aware verification, and known CI-only gaps. Do not poll CI in a loop. If the user reports a broken check or the release workflow surfaces one, use `krt-ci-questor` when available, resolve another CI investigator if possible, or perform direct evidence-first triage inline. Record a release-follow-up blocker until the CI incident has a cause, owner, and next action.
 
-### Step 11 - Continue Waves Or Finish
+### Step 12 - Continue Waves Or Finish
 
 Refresh state and dependencies after each PR handoff. Dependent packages wait for merge or branch from the parent PR branch. At the end, write `docs/orchestration/YYYY-MM-DD-compound-master-summary.md`.
 
