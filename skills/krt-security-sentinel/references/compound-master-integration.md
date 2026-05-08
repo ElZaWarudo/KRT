@@ -1,10 +1,10 @@
 # Compound Master Integration
 
-Use this reference when Security Sentinel is invoked by, or to support, `krt-compound-master`.
+Use this reference when KRT Security Sentinel is invoked by, or to support, `krt-compound-master`.
 
 ## When To Invoke
 
-Invoke Security Sentinel for a work package when any of these are true:
+Invoke KRT Security Sentinel for a work package when any of these are true:
 
 - auth, authorization, tenant isolation, ownership, permissions, roles, or scopes change;
 - public API contracts, webhooks, callbacks, file upload/download, parsing, redirects, or external integrations change;
@@ -22,7 +22,7 @@ Security Watch should:
 - inspect changed files and worker summaries as they appear;
 - identify changed trust boundaries and sensitive surfaces;
 - suggest negative/security verification while the context is fresh;
-- record early concerns for the final Security Sentinel Gate;
+- record early concerns for the final KRT Security Sentinel Gate;
 - stop immediately only for obvious P0/P1 risk.
 
 Security Watch must not:
@@ -31,7 +31,7 @@ Security Watch must not:
 - stage, commit, push, create PRs, or transition Jira;
 - run intrusive scanners or mutate runtime state;
 - decode, print, or store secrets;
-- replace the final Security Sentinel Gate.
+- replace the final KRT Security Sentinel Gate.
 
 ## Input From Compound Master
 

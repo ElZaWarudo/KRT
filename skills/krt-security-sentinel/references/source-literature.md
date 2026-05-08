@@ -1,6 +1,6 @@
 # Security Guidance Synthesis
 
-This file is the stable working synthesis for Security Sentinel. It distills the external guidance listed in "Source Basis" into review principles that should remain useful even when external pages move or expand.
+This file is the stable working synthesis for KRT Security Sentinel. It distills the external guidance listed in "Source Basis" into review principles that should remain useful even when external pages move or expand.
 
 ## Core Model
 
@@ -113,4 +113,4 @@ This synthesis is based on these external bodies of guidance, consulted during s
 - CIS Critical Security Controls.
 - OWASP SAMM.
 
-Use these sources for deeper detail when needed, but do not require live web access for normal Security Sentinel operation.
+Use these sources for deeper detail when needed, but do not require live web access for normal KRT Security Sentinel operation.

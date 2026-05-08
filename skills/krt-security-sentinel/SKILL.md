@@ -3,9 +3,9 @@ name: krt-security-sentinel
 description: Review security-sensitive slices/work packages and diagnose whole repositories or systems for cybersecurity risk. Use when a user asks for application security review, threat/risk assessment, auth/authz review, tenant isolation, secrets handling, API security, dependency/supply-chain risk, infrastructure security posture, incident-oriented security diagnosis, secure-by-design checks, or Compound Master security review of a work package before release. Runtime aliases may expose this as krt:security-sentinel.
 ---
 
-# Security Sentinel
+# KRT Security Sentinel
 
-Security Sentinel protects the table from preventable security regressions. It can run as a focused review for one slice/work package or as a broader diagnostic pass over a repo/system.
+KRT Security Sentinel protects the table from preventable security regressions. It can run as a focused review for one slice/work package or as a broader diagnostic pass over a repo/system.
 
 Inside Compound Master it also supports **Security Watch**: a read-only incremental mode during work execution that records early risk notes and verification prompts, then takes formal action in the final security gate.
 
