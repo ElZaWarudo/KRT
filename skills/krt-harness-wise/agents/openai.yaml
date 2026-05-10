@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-harness-wise"
+  short_description: "Build compact coding harnesses before implementation"
+  default_prompt: "Use krt-harness-wise to prepare or review a concise coding harness before implementation work begins."

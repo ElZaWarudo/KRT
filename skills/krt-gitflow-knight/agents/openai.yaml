@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-gitflow-knight"
+  short_description: "Plan and create atomic gitflow-style commits"
+  default_prompt: "Use krt-gitflow-knight to enforce branch hygiene, propose a commit plan, and create clean atomic commits."

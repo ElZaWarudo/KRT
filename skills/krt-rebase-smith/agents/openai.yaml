@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-rebase-smith"
+  short_description: "Rebase child branches safely onto the correct base"
+  default_prompt: "Use krt-rebase-smith to cleanly rebase a branch onto the right base without dragging merged parent history."

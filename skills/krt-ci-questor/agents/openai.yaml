@@ -1,4 +1,4 @@
 interface:
-  display_name: "CI Questor"
+  display_name: "krt-ci-questor"
   short_description: "Investigate CI failures and report likely causes"
   default_prompt: "Use krt-ci-questor to investigate a failing CI run, identify the likely cause, and produce a concise incident-style report."

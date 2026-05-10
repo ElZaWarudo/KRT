@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-roadmap-cartographer"
+  short_description: "Generate one roadmap or readiness report for an initiative"
+  default_prompt: "Use krt-roadmap-cartographer to assess initiative context and produce either a roadmap or a readiness report."

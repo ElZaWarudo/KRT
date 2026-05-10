@@ -1,4 +1,4 @@
 interface:
-  display_name: "Deploy Summoner"
+  display_name: "krt-deploy-summoner"
   short_description: "Prepare and diagnose Docker, Helm, and Kubernetes deployments"
   default_prompt: "Use krt-deploy-summoner to inspect deployment manifests, diagnose runtime issues, and prepare safe deploy or rollback plans."

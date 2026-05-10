@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-jira-scribe"
+  short_description: "Manage Jira Server/Data Center issues in Spanish"
+  default_prompt: "Use krt-jira-scribe to verify, propose, and transition Jira Server/Data Center issues and subtasks in Spanish."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-compound-master"
+  short_description: "Turn documented initiatives into roadmap and delivery packages"
+  default_prompt: "Use krt-compound-master to turn a documented software initiative into roadmap artifacts, reviewed work packages, and delivery coordination."
