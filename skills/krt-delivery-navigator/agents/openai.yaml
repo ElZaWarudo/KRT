@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-delivery-navigator"
+  short_description: "Plan delivery from validated requirements"
+  default_prompt: "Use krt-delivery-navigator to turn a validated requirements packet into a delivery plan, backlog, milestones, and risks."
