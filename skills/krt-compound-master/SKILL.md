@@ -42,6 +42,7 @@ Core pipeline:
 11. After the work-review loop finishes, run the resolved security review role for high-risk packages before release handoff, using watch notes as input.
 12. Hand the finished package to `krt-release-marshal`, which owns commits, clean rebase, Jira, GitHub PR, reviewer requests, and approved post-PR Jira transition to `En Revisión`.
 13. Record CI break-prevention evidence before handoff; if CI later breaks, escalate to the dedicated CI investigation workflow.
+14. Keep `compound-master-state.md` compact by invoking the resolved state archivist after major gates and before resume loads when the state becomes too large.
 
 ## Load References
 
@@ -74,6 +75,7 @@ Core pipeline:
 - Do not open PRs from protected branches: `main`, `master`, or `develop`.
 - Do not transition Jira outside an approved release plan. `krt-jira-scribe` must fetch real transitions and require confirmation before `En Revisión` or any other state; an accepted `krt-release-marshal` plan may count as confirmation for automatic post-PR transition to `En Revisión` when it names the issue, target status, and fallback behavior.
 - Treat verification results as release-readiness evidence, not public PR copy. Do not put test commands, test output, or verification summaries in suggested PR body bullets unless the user, repo template, or project convention explicitly requires it.
+- Treat state compaction as preservation, not deletion. `compound-master-state.md` is the live resume entrypoint; long historical evidence belongs in linked archive files created before the live state is rewritten.
 - Require an Impact Scan before `review-passed` when a package changes an API contract, endpoint, binding, shared helper, schema, payload, auth/tenant/ownership behavior, or test fixture contract. The scan must identify consumers and expand required tests from those consumers.
 - When the Impact Scan touches auth, permissions, roles, scopes, tenant ownership/isolation, endpoint gates, payload contracts, or fixtures, explicitly search for contract-drift tests before release. Look for exact-list expectations, snapshots, allowlists, `deepStrictEqual`/`toEqual`, role bundles, permission normalization, generated bindings, seeded tenants/users, and fixture setup that may encode the old contract.
 - Verification evidence must be surface-aware for broad packages. Do not record only "tests pass"; record the changed surfaces and the evidence for each relevant surface, such as permissions/role-bundle checks, normalization checks, endpoint gates, tenant isolation, generated client contracts, migrations, config, and docs.
@@ -149,6 +151,7 @@ Resolve these logical roles during preflight:
 | `brainstorm` | `ce-brainstorm` | artifact generation | `/ce-brainstorm`, `ce:brainstorm`, `compound-engineering:ce-brainstorm` |
 | `plan` | `ce-plan` | artifact generation | `/ce-plan`, `ce:plan`, `compound-engineering:ce-plan` |
 | `document_review` | `document-review` | artifact generation | `/ce-doc-review`, `ce-doc-review`, `compound-engineering:document-review` |
+| `state_archivist` | `krt-state-archivist` | optional state compaction | `krt:state-archivist`, runtime state archivist equivalent |
 | `work` | `ce-work` | execution | `/ce-work`, `ce:work`, `compound-engineering:ce-work` |
 | `code_review` | `ce-review` | execution | `/ce-code-review`, `ce:review`, `ce-code-review`, `compound-engineering:ce-review` |
 | `security_review` | `krt-security-sentinel` | optional high-risk package security review | `krt:security-sentinel`, runtime security sentinel equivalent |
@@ -170,6 +173,7 @@ Resolution order:
 Blocking policy:
 
 - Missing `roadmap_generator`, `brainstorm`, `plan`, or `document_review`: stop immediately.
+- Missing `state_archivist`: do not block. Compact state inline only when safe; otherwise preserve the long state and record that state archiving was unavailable.
 - Missing `work` or `code_review`: complete artifact generation if possible, then stop before execution.
 - Missing `security_review`: do not block normal execution. If a high-risk package needs security review, search for another available security-review skill first; if none exists, perform a direct evidence-based security pass using the same expected output.
 - Missing `project_pr` or component skills: stop before shipping and suggest:
@@ -200,6 +204,7 @@ Create as needed:
 
 ```text
 docs/orchestration/
+docs/orchestration/archive/compound-master-state/
 docs/roadmaps/
 docs/work-packages/RDM-###-<roadmap-item-slug>/
 docs/review-findings/
@@ -212,13 +217,13 @@ docs/brainstorms/
 docs/plans/
 ```
 
-Maintain `docs/orchestration/compound-master-state.md`. State must track initiative, mode, date, resolved roles, runtime/delegation availability, delegation decisions and telemetry, source docs, context readiness, production posture, roadmap, brainstorms, plans, work packages, waves, branch/base choices, Impact Scan status, security watch notes, security review status, CI break-prevention checks, surface-aware verification, review status, Jira/PR URLs, release-follow-up blockers, and required user decisions.
+Maintain `docs/orchestration/compound-master-state.md` as a compact live resume entrypoint. State must track initiative, mode, date, resolved roles, runtime/delegation availability, delegation decisions and telemetry, source docs, context readiness, production posture, roadmap, brainstorms, plans, work packages, waves, branch/base choices, Impact Scan status, security watch notes, security review status, CI break-prevention checks, surface-aware verification, review status, Jira/PR URLs, release-follow-up blockers, and required user decisions. Long historical detail should be archived under `docs/orchestration/archive/compound-master-state/` and linked from the live state.
 
 ## Workflow
 
 ### Step 0 - Preflight
 
-Resolve roles, record runtime/delegation availability, confirm repo status, identify integration base (`develop` if present, otherwise GitHub default), inspect working tree, check for `STRATEGY.md` when product intent is unclear, resolve production posture, update state, and check only the presence of Jira env vars (`JIRA_HOST`, `JIRA_API_TOKEN`, `JIRA_PROJECT_KEY`).
+Resolve roles, record runtime/delegation availability, confirm repo status, identify integration base (`develop` if present, otherwise GitHub default), inspect working tree, check for `STRATEGY.md` when product intent is unclear, resolve production posture, update state, and check only the presence of Jira env vars (`JIRA_HOST`, `JIRA_API_TOKEN`, `JIRA_PROJECT_KEY`). In `mode:resume`, if the state file is long enough that loading it would crowd the context, invoke the optional `state_archivist` before broad state ingestion; if it is unavailable, load only headings and the latest operational sections first, then record the degraded path.
 
 Production posture resolution:
 
@@ -298,6 +303,10 @@ Load `references/execution-flow.md`. Before and during release handoff, record t
 ### Step 12 - Continue Waves Or Finish
 
 Refresh state, dependencies, and the integration base after each PR handoff. Before continuing while a parent PR is pending, fetch and inspect the branch that receives PRs (`develop` when present, otherwise the GitHub default or recorded release base). Compare it with the current/parent PR branch, note new commits or likely conflicts in state, and only then decide whether to continue from the parent PR branch as a stacked PR or record another explicit clean-tree strategy that `krt-rebase-smith` can normalize later. Dependent packages wait for merge when the next package needs the merged artifact, the refreshed base changes package assumptions, or the package cannot be stacked cleanly. At the end, write `docs/orchestration/YYYY-MM-DD-compound-master-summary.md`.
+
+### Step 13 - State Archive Hygiene
+
+Invoke the resolved `state_archivist` after major gates when the live state grows noisy: after roadmap review, after a brainstorm/plan/package set is reviewed, after implementation/review/security gates, before long closeouts, after PR handoff, and before `mode:resume` loads a large state. Prefer `krt-state-archivist` when available. If it is unavailable, preserve the long state and record that state compaction was skipped; do not delete historical detail inline. The live state should remain a compact resume entrypoint with links to archived history.
 
 ## Failure And Status
 

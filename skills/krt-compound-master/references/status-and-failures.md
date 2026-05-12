@@ -11,6 +11,7 @@ Track:
 - Runtime adapter/delegation availability.
 - Delegation decisions and telemetry: selected mode, reason, roles used, read-only/mutating classification, outcome, confidence, approximate duration, and loop effect.
 - Source docs and context readiness result.
+- State archive status: compact state path, archive snapshot path, and whether `krt-state-archivist` completed or the run used a degraded inline/no-archive path.
 - Roadmap, brainstorm, plan, and work-package paths. Work packages should be grouped by roadmap item folder under `docs/work-packages/RDM-###-<roadmap-item-slug>/`.
 - Plan implementation units included in the selected package, with per-unit status: pending, in-progress, implemented, verified, skipped, or blocked.
 - Dependency waves.

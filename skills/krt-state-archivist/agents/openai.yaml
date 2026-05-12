@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-state-archivist"
+  short_description: "Compact Compound Master state safely"
+  default_prompt: "Use $krt-state-archivist to compact Compound Master state while preserving archived history."

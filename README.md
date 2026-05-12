@@ -24,6 +24,7 @@ Formal skill IDs use the Every-style hyphen form (`krt-*`). Some runtimes may ex
 | `$krt:harness-wise` | `krt-harness-wise` | Build or review a compact coding harness before implementation. Good for repo reconnaissance, context curation, stale-doc checks, risk estimates, and skill recommendations. |
 | `$krt:roadmap-cartographer` | `krt-roadmap-cartographer` | Generate exactly one roadmap or readiness report from existing project context before compound delivery. |
 | `$krt:compound-master` | `krt-compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, document reviews, work packages, execution gates, code review, and PR/Jira handoff. |
+| `$krt:state-archivist` | `krt-state-archivist` | Keep Compound Master state compact by archiving long historical detail into linked files. |
 | `$krt:release-marshal` | `krt-release-marshal` | Direct the final delivery march: commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
 | `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, plan fixes, and draft clear reviewer replies. |
 | `$krt:security-sentinel` | `krt-security-sentinel` | Review security-sensitive slices and diagnose whole systems for cybersecurity risk. |
@@ -50,6 +51,9 @@ krt-roadmap-cartographer
 
 krt-compound-master
   -> consume roadmap, run brainstorm/plan/review/package/execution gates
+
+krt-state-archivist
+  -> keep Compound Master state compact and archive historical context
 
 krt-release-marshal
   -> commit, rebase, Jira, push, PR, reviewers, Jira review transition
@@ -81,7 +85,7 @@ Some skills are useful standalone; others expect companions.
 
 | Skill | Expected companions | Why |
 |---|---|---|
-| `krt-compound-master` | Required: `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal`. Optional: `krt-security-sentinel`, `krt-ci-questor` | Full artifact, execution, and release pipeline. `krt-security-sentinel` reviews high-risk security slices when available; `krt-ci-questor` handles CI incident escalation when available. Compound Master falls back inline when optional specialists are missing. |
+| `krt-compound-master` | Required: `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal`. Optional: `krt-state-archivist`, `krt-security-sentinel`, `krt-ci-questor` | Full artifact, execution, and release pipeline. `krt-state-archivist` keeps live orchestration state compact when available; `krt-security-sentinel` reviews high-risk security slices; `krt-ci-questor` handles CI incident escalation. Compound Master falls back inline when optional specialists are missing. |
 | `krt-release-marshal` | `krt-gitflow-knight`, `krt-rebase-smith`, `krt-jira-scribe` | Clean commits, clean branch history, Jira, and PR handoff. |
 | `krt-jira-scribe` | Jira env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
 
@@ -125,6 +129,12 @@ Resume execution from existing orchestration state:
 
 ```text
 Use $krt:compound-master mode:resume jira-policy:optional parallel:false
+```
+
+Compact noisy Compound Master state before resuming:
+
+```text
+Use $krt:state-archivist on docs/orchestration/compound-master-state.md
 ```
 
 Triage PR feedback:
@@ -177,6 +187,7 @@ Install the Compound Master pipeline globally:
 npx -y skills add ElZaWarudo/krt \
   --skill krt-roadmap-cartographer \
   --skill krt-compound-master \
+  --skill krt-state-archivist \
   --skill krt-release-marshal \
   --skill krt-gitflow-knight \
   --skill krt-rebase-smith \
@@ -236,6 +247,10 @@ skills/
     references/
     assets/
       codex-agents/
+  krt-state-archivist/
+    SKILL.md
+    references/
+    scripts/
   krt-release-marshal/
     SKILL.md
     references/
