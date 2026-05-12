@@ -42,6 +42,7 @@ The script is a structural harness. It archives the full pre-compaction state, b
 Review the scaffold before considering the job done:
 
 - Keep current initiative, mode, source paths, active package, branch/base, open PR/Jira references, blockers, required user decisions, and exact next invocation/action.
+- Prefer the latest detected Phase/Fase block for scaffold signals. Treat older branch, PR, Jira, blocker, and review sections as historical unless they are repeated in the latest-phase window or confirmed from current repo/GitHub/Jira state.
 - Keep historical phases as short summaries with links to archived detail.
 - Remove repeated verification logs, old review loops, merged PR/Jira details, and decisions that are already captured in linked brainstorm/plan/work-package artifacts.
 - Preserve repo-relative links to canonical artifacts.
@@ -65,6 +66,7 @@ If this skill is missing or blocked, Compound Master may continue inline, but it
 - Never treat compaction as permission to drop audit history.
 - Never overwrite a state file unless a full archive snapshot has been written first.
 - Never compact when the active phase, blocker, or next action is unclear and cannot be recovered from linked artifacts.
+- Never trust scaffolded `Active Signals To Review` as final truth when the script marks `CURATION REQUIRED`; reconcile it with the latest phase, current branch/base, and current PR/Jira state first.
 - Do not archive secrets or credentials into a new location if the state accidentally contains them; stop and ask for a redaction decision.
 - Do not run formatters or broad cleanup against generated docs as part of state archiving.
 - Keep the live state short enough to load before work resumes; the archive can stay long.

@@ -28,6 +28,15 @@ class Section:
         return len(self.lines)
 
 
+@dataclass
+class StateSignals:
+    latest_phase: int | None
+    next_action: list[str]
+    active_signals: list[str]
+    signal_phases: list[int]
+    curation_warnings: list[str]
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Create a compact Compound Master state file and archive the full original."
@@ -122,8 +131,42 @@ def section_body(section: Section | None, limit: int | None = None) -> list[str]
     return body
 
 
-def extract_signals(lines: list[str], limit: int = 42) -> list[str]:
-    patterns = [
+def phase_numbers(text: str) -> list[int]:
+    return [int(match) for match in re.findall(r"\b(?:phase|fase)\s+(\d+)\b", text, flags=re.IGNORECASE)]
+
+
+def latest_phase_number(lines: list[str]) -> int | None:
+    phases: list[int] = []
+    for line in lines:
+        phases.extend(phase_numbers(line))
+    return max(phases) if phases else None
+
+
+def latest_phase_window(lines: list[str], latest_phase: int | None) -> list[str]:
+    if latest_phase is None:
+        return lines
+
+    labels = (f"phase {latest_phase}", f"fase {latest_phase}")
+    indices = [
+        idx
+        for idx, line in enumerate(lines)
+        if any(label in line.lower() for label in labels)
+    ]
+    if not indices:
+        return lines
+
+    start = min(indices)
+    end = len(lines)
+    for idx in range(start + 1, len(lines)):
+        if re.match(r"^##\s+", lines[idx]):
+            end = idx
+            break
+
+    return lines[start:end]
+
+
+def signal_patterns() -> list[str]:
+    return [
         "next required gate",
         "next action",
         "recommended next",
@@ -145,22 +188,78 @@ def extract_signals(lines: list[str], limit: int = 42) -> list[str]:
         "blocker",
         "required decision",
     ]
-    matches: list[str] = []
-    for line in lines:
+
+
+def extract_latest_next_action(lines: list[str], sections: list[Section], latest_phase: int | None) -> list[str]:
+    next_patterns = ["next required gate", "next action", "recommended next"]
+    phase_label = f"phase {latest_phase}" if latest_phase is not None else None
+    fase_label = f"fase {latest_phase}" if latest_phase is not None else None
+
+    fallback: str | None = None
+    for line in reversed(lines):
         stripped = line.strip()
         lowered = stripped.lower()
-        if stripped.startswith("-") and any(pattern in lowered for pattern in patterns):
-            matches.append(stripped)
+        if not stripped:
+            continue
+        if any(pattern in lowered for pattern in next_patterns):
+            if fallback is None:
+                fallback = stripped
+            if phase_label is None or phase_label in lowered or fase_label in lowered:
+                return [stripped]
+
+    if fallback:
+        return [fallback]
+
+    return extract_next_action(first_section(sections, "Next Action"))
+
+
+def extract_signals(lines: list[str], latest_phase: int | None = None, limit: int = 24) -> tuple[list[str], list[int]]:
+    patterns = [
+        *signal_patterns(),
+    ]
+    phase_label = f"phase {latest_phase}" if latest_phase is not None else None
+    fase_label = f"fase {latest_phase}" if latest_phase is not None else None
+
+    preferred: list[str] = []
+    fallback: list[str] = []
+    for line in reversed(lines):
+        stripped = line.strip()
+        lowered = stripped.lower()
+        if not stripped.startswith("-") or not any(pattern in lowered for pattern in patterns):
+            continue
+
+        phases = phase_numbers(stripped)
+        has_other_phase = latest_phase is not None and phases and latest_phase not in phases
+        has_latest_phase = phase_label is not None and (phase_label in lowered or fase_label in lowered)
+        if has_latest_phase or not has_other_phase:
+            preferred.append(stripped)
+        else:
+            fallback.append(stripped)
 
     deduped: list[str] = []
     seen: set[str] = set()
-    for item in matches:
+    signal_phases: set[int] = set()
+    for item in preferred:
         normalized = re.sub(r"\s+", " ", item.lower())
         if normalized not in seen:
             seen.add(normalized)
             deduped.append(item)
+            signal_phases.update(phase_numbers(item))
+        if len(deduped) >= limit:
+            break
 
-    return deduped[-limit:]
+    if not deduped:
+        for item in fallback:
+            normalized = re.sub(r"\s+", " ", item.lower())
+            if normalized not in seen:
+                seen.add(normalized)
+                deduped.append(item)
+                signal_phases.update(phase_numbers(item))
+            if len(deduped) >= limit:
+                break
+
+    deduped.reverse()
+    return deduped, sorted(signal_phases)
 
 
 def extract_required_decisions(lines: list[str], limit: int = 20) -> list[str]:
@@ -198,6 +297,38 @@ def extract_next_action(section: Section | None, limit: int = 8) -> list[str]:
     return selected
 
 
+def analyze_state(lines: list[str], sections: list[Section]) -> StateSignals:
+    latest_phase = latest_phase_number(lines)
+    next_action = extract_latest_next_action(lines, sections, latest_phase)
+    active_source = latest_phase_window(lines, latest_phase)
+    active_signals, signal_phases = extract_signals(active_source, latest_phase=latest_phase)
+
+    warnings: list[str] = []
+    if latest_phase is not None:
+        warnings.append(f"Latest phase detected structurally: Phase {latest_phase}. Agent must confirm this is the real active phase.")
+        if active_source == lines:
+            warnings.append("Curation required: no bounded latest-phase window was found; active signals may include historical noise.")
+
+    contradictory_phases = [phase for phase in signal_phases if latest_phase is None or phase != latest_phase]
+    if contradictory_phases:
+        labels = ", ".join(f"Phase {phase}" for phase in contradictory_phases)
+        warnings.append(f"Curation required: extracted active signals still mention historical phases ({labels}).")
+
+    if not next_action:
+        warnings.append("Curation required: no next action was extracted.")
+
+    if len(active_signals) > 18:
+        warnings.append("Curation required: many active signals were extracted; trim historical noise before resuming.")
+
+    return StateSignals(
+        latest_phase=latest_phase,
+        next_action=next_action,
+        active_signals=active_signals,
+        signal_phases=signal_phases,
+        curation_warnings=warnings,
+    )
+
+
 def update_frontmatter(frontmatter: list[str], archive_path: Path) -> list[str]:
     today = dt.date.today().isoformat()
     if not frontmatter:
@@ -232,7 +363,7 @@ def update_frontmatter(frontmatter: list[str], archive_path: Path) -> list[str]:
 
 
 def choose_archive_path(state_path: Path, archive_dir: Path, values: dict[str, str]) -> Path:
-    date_value = values.get("date") or dt.date.today().isoformat()
+    date_value = dt.date.today().isoformat()
     initiative = values.get("initiative") or values.get("title") or state_path.stem
     base = archive_dir / f"{date_value}-{slugify(initiative)}-full-state.md"
     if not base.exists():
@@ -255,10 +386,10 @@ def build_compact_state(
 ) -> str:
     title = values.get("title") or "Compound Master State"
     source_docs = section_body(first_section(sections, "Source Documents"), limit=32)
-    blockers = section_body(first_section(sections, "Current Blockers"), limit=16)
-    next_action = extract_next_action(first_section(sections, "Next Action"))
-    branch_strategy = section_body(first_section(sections, "Branch Strategy"), limit=16)
-    signals = extract_signals(all_lines)
+    state_signals = analyze_state(all_lines, sections)
+    historical_sections_are_suspect = state_signals.latest_phase is not None
+    blockers = [] if historical_sections_are_suspect else section_body(first_section(sections, "Current Blockers"), limit=16)
+    branch_strategy = [] if historical_sections_are_suspect else section_body(first_section(sections, "Branch Strategy"), limit=16)
     decisions = extract_required_decisions(all_lines)
 
     output: list[str] = []
@@ -270,8 +401,13 @@ def build_compact_state(
     output.append(f"- Initiative: {values.get('initiative', 'not recorded')}")
     output.append(f"- Status: {values.get('status', 'not recorded')}")
     output.append(f"- Mode: {values.get('mode', 'not recorded')}")
+    if state_signals.latest_phase is not None:
+        output.append(f"- Latest phase detected by scaffold: Phase {state_signals.latest_phase}")
     output.append(f"- Full archived state: `{repo_relative(archive_path)}`")
-    output.append("- Agent review required: confirm active phase, blockers, branch/base, PR/Jira, and next action before resuming.")
+    output.append("- CURATION REQUIRED: confirm active phase, blockers, branch/base, PR/Jira, and next action before resuming.")
+    if state_signals.curation_warnings:
+        output.append("- Curation warnings:")
+        output.extend(f"  - {warning}" for warning in state_signals.curation_warnings)
     output.append("")
 
     output.append("## Source Documents")
@@ -286,20 +422,22 @@ def build_compact_state(
         output.append("Current blockers:")
         output.extend(blockers)
     else:
-        output.append("- Current blockers: not explicitly recorded; review the archive before resuming.")
+        output.append("- Current blockers: not extracted from the latest-phase window; agent must confirm from archive and current repo state.")
     if branch_strategy:
         output.append("")
         output.append("Branch/base notes:")
         output.extend(branch_strategy)
-    if next_action:
+    else:
+        output.append("- Branch/base: not extracted from the latest-phase window; agent must refresh the receiving branch before continuing.")
+    if state_signals.next_action:
         output.append("")
         output.append("Next action:")
-        output.extend(next_action)
+        output.extend(state_signals.next_action)
     output.append("")
 
     output.append("## Active Signals To Review")
-    if signals:
-        output.extend(signals)
+    if state_signals.active_signals:
+        output.extend(state_signals.active_signals)
     else:
         output.append("- No active signal extracted; review the archive before resuming.")
     output.append("")
@@ -321,7 +459,8 @@ def build_compact_state(
     output.append("")
 
     output.append("## Archivist Notes")
-    output.append("- This compact state is a scaffold. The agent must curate it before using it as the only resume context.")
+    output.append("- CURATION REQUIRED: this compact state is a scaffold, not a final semantic summary.")
+    output.append("- Prefer the latest phase and latest next-gate evidence; remove historical signals before resuming.")
     output.append("- Keep canonical details in linked brainstorm, plan, work-package, PR, Jira, and archive artifacts.")
 
     return "\n".join(output).rstrip() + "\n"
@@ -351,9 +490,8 @@ def main() -> int:
         print(f"already-compact state={state_path} lines={line_count} max_lines={args.max_lines}")
         return 0
 
-    signals = extract_signals(original_lines, limit=8)
-    next_action = section_body(first_section(sections, "Next Action"), limit=4)
-    if not args.allow_ambiguous and not signals and not next_action:
+    state_signals = analyze_state(original_lines, sections)
+    if not args.allow_ambiguous and not state_signals.active_signals and not state_signals.next_action:
         print(
             "blocked ambiguous-state: no next-action or active resume signal found; "
             "rerun with --allow-ambiguous only after agent review",
@@ -369,6 +507,12 @@ def main() -> int:
     print(f"compact_lines={compact_lines}")
     print(f"archive={archive_path}")
     print(f"sections={len(sections)}")
+    if state_signals.latest_phase is not None:
+        print(f"latest_phase=Phase {state_signals.latest_phase}")
+    if state_signals.curation_warnings:
+        print("curation_required=true")
+        for warning in state_signals.curation_warnings:
+            print(f"warning={warning}")
 
     if args.dry_run:
         print("dry_run=true")

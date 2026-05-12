@@ -20,6 +20,8 @@ The archive holds the full historical record: old verification logs, review roun
 - Links to archived history.
 - Any active risk that has not been resolved in a linked artifact.
 
+When the script detects a latest `Phase N` or `Fase N`, scaffolded operating state must be biased toward that latest-phase window. Older branch strategies, PRs, Jira statuses, blockers, and review notes are historical unless the latest phase repeats them or the agent verifies them against current repo/GitHub/Jira state.
+
 ## Archive Should Receive
 
 - Completed phases and packages.
@@ -78,5 +80,6 @@ The exact headings can vary, but the live state must stay easy to scan before re
 - The archive was created before the live state was rewritten.
 - No active blocker was archived as historical.
 - The next action is explicit enough for `krt-compound-master mode:resume`.
-- PR/Jira status reflects open work, not only old closeouts.
+- PR/Jira status reflects open work, not old closeouts.
+- `Active Signals To Review` does not mix contradictory phase signals without an explicit `CURATION REQUIRED` warning.
 - The compact file is materially shorter than the original.
