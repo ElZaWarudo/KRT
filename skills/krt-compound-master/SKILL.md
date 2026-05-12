@@ -91,7 +91,7 @@ The lead owns orchestration continuity. When a worker returns, the lead must int
 
 Do not stop between a passing `work`/verification/review loop and the start of `krt-release-marshal`. Starting the marshal is not shipping; it is the step that prepares and presents the release plan. The user-facing pause belongs inside `krt-release-marshal` when it shows its workflow/PR/Jira plan and asks for owned approvals.
 
-If the current package is waiting on an already-open PR to merge and the user says "continue", "resume", "next", or similar, treat that as permission to continue with the next ready package when a clean tree strategy exists. Prefer a stacked PR from the parent PR branch, or another explicit branch strategy that `krt-rebase-smith` can later rebase cleanly onto the merged base. Stop only when the next package truly requires the merged artifact, the parent PR has unresolved release-follow-up blockers, or no clean branch/base strategy can be named.
+If the current package is waiting on an already-open PR to merge and the user says "continue", "resume", "next", or similar, treat that as permission to consider the next ready package, but do not advance until the integration base has been refreshed and inspected. Fetch and inspect the branch that receives PRs (`develop` when present, otherwise the GitHub default or recorded release base), compare it with the current/parent PR branch, and record whether new upstream changes, conflicts, or release-follow-up blockers affect the next package. Continue only when that base check supports a clean strategy. Prefer a stacked PR from the parent PR branch, or another explicit branch strategy that `krt-rebase-smith` can later rebase cleanly onto the refreshed base. Stop when the next package requires the merged artifact, the parent PR has unresolved release-follow-up blockers, the refreshed base introduces incompatible changes or likely conflicts, or no clean branch/base strategy can be named.
 
 ## Runtime Adapter Guidance
 
@@ -297,7 +297,7 @@ Load `references/execution-flow.md`. Before and during release handoff, record t
 
 ### Step 12 - Continue Waves Or Finish
 
-Refresh state and dependencies after each PR handoff. Dependent packages wait for merge only when the next package needs the merged artifact or cannot be stacked cleanly. When the user asks to continue while a parent PR is pending, continue from the parent PR branch as a stacked PR, or record another explicit clean-tree strategy that `krt-rebase-smith` can normalize later. At the end, write `docs/orchestration/YYYY-MM-DD-compound-master-summary.md`.
+Refresh state, dependencies, and the integration base after each PR handoff. Before continuing while a parent PR is pending, fetch and inspect the branch that receives PRs (`develop` when present, otherwise the GitHub default or recorded release base). Compare it with the current/parent PR branch, note new commits or likely conflicts in state, and only then decide whether to continue from the parent PR branch as a stacked PR or record another explicit clean-tree strategy that `krt-rebase-smith` can normalize later. Dependent packages wait for merge when the next package needs the merged artifact, the refreshed base changes package assumptions, or the package cannot be stacked cleanly. At the end, write `docs/orchestration/YYYY-MM-DD-compound-master-summary.md`.
 
 ## Failure And Status
 
