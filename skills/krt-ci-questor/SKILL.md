@@ -33,6 +33,8 @@ Prefer structured evidence over broad guessing:
 
 - fetch or read job logs, annotations, check summaries, artifacts, test reports, and workflow configuration;
 - inspect the first failing step and the first actionable error above generic exit-code lines;
+- after the first actionable failure is understood, inspect neighboring tests/assertions and likely related cases before recommending a PR update; deterministic failures can be hidden behind the first red assertion;
+- for domain normalization, serialization, contract, fixture, or status/value changes, search adjacent concepts and aliases across the affected test area, not only the exact failed line;
 - compare the failing commit with the previous passing run when available;
 - check whether dependencies, images, runners, caches, secrets, variables, or external services changed;
 - preserve secret hygiene: never print tokens, credentials, masked values, or full environment dumps.
@@ -59,11 +61,16 @@ Do not call a failure flaky just because rerunning is easy. Require evidence suc
 Choose the smallest useful next move:
 
 - local reproduction command when the job maps cleanly to repo scripts;
+- verification ladder for deterministic test/build fixes: use a minimal targeted command for diagnosis, then a natural sub-suite when the test depends on shared setup, then the repo-specific command equivalent to the affected CI job before saying the fix is ready to push;
 - targeted rerun when evidence points to transient flake or infrastructure;
 - CI config patch when the pipeline definition is wrong;
 - code/test fix when the failure is deterministic and tied to the diff;
 - dependency pin/update when a version drift caused the break;
 - follow-up issue when the build can be unblocked but the underlying flake needs ownership.
+
+Derive the CI-equivalent command from the repository's workflow/job definition, package scripts, Makefile, task runner, or documented local commands. Do not hardcode commands from another project. If the equivalent command cannot run locally, report the blocker and say the PR update would be unvalidated unless the user explicitly overrides.
+
+Targeted selectors are diagnostic evidence, not shipping evidence, when the test has global hooks, shared fixtures, seeded state, or suite-level setup. If a selector fails differently from CI because setup is incomplete, treat the selector result as inconclusive and validate with the natural suite or CI-equivalent job command.
 
 Ask before recommending a red-build bypass, disabling tests, widening retries, changing release gates, or accepting a reviewer-visible risk.
 
@@ -85,6 +92,7 @@ Keep the report readable enough to paste into a PR, Jira issue, or team chat.
 
 - Start from evidence, not provider folklore.
 - Prefer the first actionable error over the last noisy line.
+- Diagnostic runs may be targeted; PR-ready fixes need parity with the affected CI job or an explicit unvalidated gap.
 - Never expose secrets or full environment output.
 - Do not hide an unresolved deterministic failure behind retries.
 - Do not propose disabling a failing check unless there is a linked follow-up and explicit user approval.

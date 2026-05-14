@@ -135,6 +135,13 @@ Completion gate:
 - Pending changes/commits are coherent and ready for `krt-release-marshal`.
 - No unresolved product decision remains.
 
+Verification ladder:
+
+- Run the narrowest useful targeted command to diagnose a failure or changed behavior.
+- When tests depend on global hooks, shared fixtures, seeded state, or suite-level setup, run the natural sub-suite for the affected area before trusting the result.
+- Before release handoff or PR update for a CI fix, run the repo-specific command equivalent to the affected CI job, derived from workflow config, package scripts, Makefiles, task runners, or documented local commands.
+- If the CI-equivalent command cannot run locally, record the concrete blocker and pass that as an explicit verification gap to `krt-release-marshal`; do not treat targeted-only evidence as enough for a PR update.
+
 After worker return, the lead must inspect the summary/diff by unit, update unit statuses, collect Security Watch notes when enabled, start documented local services when safe, run the package verification gate or closest targeted tests, fix straightforward failures inline or through `work`, and continue to review only when all units have a non-pending disposition. Stop only for missing credentials, destructive setup, paid external resources, unclear environment decisions, non-inferable product/technical decisions, or obvious P0/P1 security risk.
 
 ## Impact Scan Gate
@@ -352,6 +359,7 @@ Prevention rules:
 
 - Before handoff, name the CI surfaces most likely to fail because of the package: build/typecheck/lint, unit/function/API tests, generated artifacts, migrations, permissions/auth/tenant tests, snapshots, and deployment/config checks.
 - For each changed surface, record local verification or a concrete reason it is CI-only.
+- For each affected CI job, identify the repo-specific local equivalent command from workflow/job definitions or documented scripts; use it as the release-readiness command when runnable.
 - For auth/permission/tenant/contract changes, run the contract-drift test scan before release rather than waiting for CI to discover stale expectations.
 - Pass CI risk notes to `krt-release-marshal` as internal release-readiness context, not PR-body noise.
 - Do not poll PR checks repeatedly from Compound Master. The release workflow or user can surface broken checks.
@@ -363,6 +371,7 @@ Escalation rules:
 - If no specialist is available, Compound Master performs direct evidence-first triage itself using the same report shape. Do not stop just because the optional specialist is missing.
 - The selected investigator, whether Questor, another skill, or Compound Master inline, owns the investigation report: cause, evidence, flake assessment, ownership, and next action.
 - If the failure is package-owned, route the fix through a focused follow-up change on the PR branch using the normal release/gitflow context.
+- Before pushing a package-owned CI fix, review neighboring tests/assertions and likely chained failures in the same affected area, then run the affected CI job's local equivalent command when runnable.
 - If the failure is flaky, external, infra, or unknown, record a release-follow-up blocker instead of silently rerunning or bypassing.
 - Do not disable checks, widen retries, bypass red CI, or mark Jira done without explicit user approval.
 

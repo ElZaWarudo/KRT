@@ -29,6 +29,7 @@ Load `references/github-pr-flow.md` for exact `git`/`gh` commands, PR body detai
 - Never include secrets, tokens, credentials, or internal environment dumps in the PR body.
 - Treat verification results from upstream workflows as readiness evidence only. Do not include test commands, test output, or verification summaries in the PR body unless the user, repo template, or project convention explicitly requires it.
 - Do not run tests, linters, or formatters unless the user explicitly asks; use verification results supplied by the user or upstream workflow.
+- Before pushing or updating a PR with a CI-fix commit, require evidence that the repo-specific command equivalent to the affected CI job passed locally, or present the missing validation clearly and ask for explicit override before the remote mutation.
 - Do not ask for Jira credentials. If required Jira env vars are missing, continue without Jira only if the user approves.
 - Use `--force-with-lease`, never plain `--force`, when a rewritten branch must be pushed.
 - Prefer concise PR bodies: change bullets first, Jira URL last, no section headings unless the repo template requires them.
@@ -62,6 +63,7 @@ Use context already provided by the user or previous skills:
 - Draft vs ready preference.
 - Explicit reviewers, or "sin reviewers" / "no reviewers".
 - Verification results as internal readiness context only.
+- For CI fixes, affected workflow/job context plus the local CI-equivalent command result, or the exact reason that validation could not be run.
 - Suggested commit grouping from an enclosing workflow, when provided.
 
 If the user asks simply to create a PR and there are uncommitted changes or no Jira context, propose the full flow and ask before creating Jira artifacts.
@@ -121,6 +123,7 @@ Before push or PR creation/update, show:
 - Current branch.
 - Base branch.
 - Push command, including `--force-with-lease` if required.
+- For CI fixes: affected workflow/job, local CI-equivalent command, result, and whether any targeted-only result is diagnostic rather than PR-ready evidence.
 - PR title.
 - PR body.
 - Draft or ready status.

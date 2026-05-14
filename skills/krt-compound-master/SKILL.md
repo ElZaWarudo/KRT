@@ -7,22 +7,26 @@ description: >
   handing shipping to krt-release-marshal with CI break-prevention evidence. Use when turning an existing documented software project
   into a sequenced roadmap and PR/Jira delivery program. Runtime aliases may expose this as
   krt:compound-master.
-argument-hint: >
-  [initiative description or docs path]
-  [mode:artifacts|mode:execute|mode:full|mode:resume]
-  [package:<work-package-path>]
-  [pr-granularity:auto|roadmap-item|plan-unit]
-  [jira-policy:required|optional|skip]
-  [production:unknown|live|preprod|prototype]
-  [parallel:true|false]
-  [delegation:auto|ask|inline]
-  [review-threshold:P0-P2|P0-P1|P0]
-  [subagent-model:<runtime-specific-model>]
 ---
 
 # Compound Master
 
 Compound Master coordinates existing skills. It does **not** replace Compound Engineering and it does **not** duplicate `krt-release-marshal` (`krt:release-marshal` in alias-friendly runtimes).
+
+Argument hint:
+
+```text
+[initiative description or docs path]
+[mode:artifacts|mode:execute|mode:full|mode:resume]
+[package:<work-package-path>]
+[pr-granularity:auto|roadmap-item|plan-unit]
+[jira-policy:required|optional|skip]
+[production:unknown|live|preprod|prototype]
+[parallel:true|false]
+[delegation:auto|ask|inline]
+[review-threshold:P0-P2|P0-P1|P0]
+[subagent-model:<runtime-specific-model>]
+```
 
 Default posture: **artifact-first after discovery**. Generate durable artifacts from explicit context and user decisions; execute later only when the user explicitly asks or `mode:full` reaches its execution gate. The brainstorm step is the main product-discovery gate, not a paperwork shortcut.
 
@@ -79,6 +83,8 @@ Core pipeline:
 - Require an Impact Scan before `review-passed` when a package changes an API contract, endpoint, binding, shared helper, schema, payload, auth/tenant/ownership behavior, or test fixture contract. The scan must identify consumers and expand required tests from those consumers.
 - When the Impact Scan touches auth, permissions, roles, scopes, tenant ownership/isolation, endpoint gates, payload contracts, or fixtures, explicitly search for contract-drift tests before release. Look for exact-list expectations, snapshots, allowlists, `deepStrictEqual`/`toEqual`, role bundles, permission normalization, generated bindings, seeded tenants/users, and fixture setup that may encode the old contract.
 - Verification evidence must be surface-aware for broad packages. Do not record only "tests pass"; record the changed surfaces and the evidence for each relevant surface, such as permissions/role-bundle checks, normalization checks, endpoint gates, tenant isolation, generated client contracts, migrations, config, and docs.
+- Use a verification ladder before release handoff and CI-fix PR updates: targeted command for diagnosis, natural sub-suite for the affected area when setup is shared, repo-specific command equivalent to the affected CI job for shipping evidence. Derive the final command from the project's workflow/job definition or documented scripts; do not hardcode commands from another project.
+- Treat targeted selectors as diagnostic-only when tests depend on global hooks, shared fixtures, seeded state, or suite-level setup. If a selector fails differently from CI because setup is incomplete, validate with the natural suite or CI-equivalent job command before handoff.
 - For broad packages, provide suggested logical commit grouping to `krt-release-marshal`. Prefer reviewable commits by natural boundary, while keeping each commit internally coherent. Do not collapse persistence/schema, service/integration behavior, API/generated contracts, config/deployment wiring, focused tests, and docs into one or two package-sized commits when those surfaces changed separately.
 - Treat PR creation as a handoff milestone, not proof that CI is healthy. Compound Master should prevent predictable CI breaks before handoff by expanding contract tests, verification evidence, and release notes. If CI later fails, do not spin in an observation loop; invoke or recommend the dedicated CI investigation workflow and keep the package marked as release-follow-up until the incident has an owner.
 - Never ask for Jira credentials. Missing Jira env vars are a configuration blocker or a user-approved no-Jira exception, depending on `jira-policy`.

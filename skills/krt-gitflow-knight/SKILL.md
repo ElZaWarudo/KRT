@@ -25,6 +25,7 @@ Create clean, user-approved commits following a gitflow-style process: correct b
 - Prefer non-interactive commands. Avoid `git add -p` unless the user explicitly wants an interactive hunk workflow.
 - Use the host runtime's command wrapper only when the current repo requires one. The command examples below use plain `git` for portability.
 - Do not run tests, linters, or formatters unless the user explicitly asks.
+- When committing a CI fix, record whether the affected CI job's repo-specific equivalent command has passed locally. If it has not, mark the commit as locally unverified for release handoff; do not participate in a push/update-PR flow unless the user explicitly overrides the verification gap.
 
 ### 1) Preflight (do not change anything yet)
 
@@ -96,6 +97,7 @@ Goal: split pending work into atomic, reviewable commits with clear messages. Do
   - Keep staged changes as "Commit 0".
   - Unstage and rebuild the whole plan.
   - Commit staged changes separately with a planned message.
+- For CI-fix commits, include verification evidence in the plan when available: minimal diagnostic command, natural sub-suite, and affected CI job equivalent. If only a targeted selector was run and the test relies on global hooks, shared fixtures, or seeded state, call that out as diagnostic-only evidence.
 - Do not mix pre-staged changes with newly staged files unless the commit plan explicitly includes that grouping.
 - Prefer file-level grouping. If a single file mixes multiple concerns, propose either:
   - a small refactor to split changes first, or
