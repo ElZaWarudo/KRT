@@ -33,21 +33,22 @@ Default posture: **artifact-first after discovery**. Generate durable artifacts 
 Core pipeline:
 
 1. Preflight skills, repo, branch, delegation, Jira readiness, and context.
-1. Resolve production posture: whether this is a live production system, pre-production system, prototype, or unknown.
-2. Invoke the required roadmap generator to create either a roadmap or a readiness report.
-3. Review the roadmap or stop on readiness.
-4. Run one interactive brainstorm per roadmap item before writing or finalizing that item's requirements.
-5. Run one plan per reviewed brainstorm document.
-6. Review roadmap, brainstorms, and plans with the resolved document-review role.
-7. Derive work packages that map to independently reviewable PR/Jira units.
-8. Review work packages with the resolved document-review role before execution.
-9. Execute each ready package with the resolved work role in implementation-only/no-shipping mode.
-10. Keep Security Sentinel watch active by default for high-risk packages during execution, collecting read-only notes as files change.
-11. Review implementation with the resolved code-review role, looping fixes until the configured threshold passes.
-12. After the work-review loop finishes, run the resolved security review role for high-risk packages before release handoff, using watch notes as input.
-13. Record CI break-prevention evidence before handoff; if CI later breaks, escalate to the dedicated CI investigation workflow.
-14. Hand the finished package to `krt-release-marshal`, which owns commits, clean rebase, Jira, GitHub PR, reviewer requests, and approved post-PR Jira transition to `En Revisión`.
-15. Keep `compound-master-state.md` compact by invoking the resolved state archivist after major gates and before resume loads when the state becomes too large.
+2. Resolve production posture: whether this is a live production system, pre-production system, prototype, or unknown.
+3. Invoke the required roadmap generator to create either a roadmap or a readiness report.
+4. Review the roadmap or stop on readiness.
+5. Run one interactive brainstorm per roadmap item before writing or finalizing that item's requirements.
+6. Review each brainstorm/requirements artifact with the resolved document-review role.
+7. Run one plan per reviewed requirements artifact.
+8. Review each plan with the resolved document-review role.
+9. Confirm roadmap, brainstorm/requirements, and plan reviews have passed before deriving work packages.
+10. Derive work packages that map to independently reviewable PR/Jira units.
+11. Review work packages with the resolved document-review role before execution.
+12. Execute each ready package with the resolved work role in implementation-only/no-shipping mode.
+13. Keep Security Sentinel watch active by default for high-risk packages during execution, collecting read-only notes as files change.
+14. Review implementation with the resolved code-review role, looping fixes until the configured threshold passes.
+15. After the work-review loop finishes, run the resolved security review role for high-risk packages before release handoff, using watch notes as input.
+16. Record CI break-prevention evidence before handoff; if CI later breaks, escalate to the dedicated CI investigation workflow.
+17. Hand the finished package to `krt-release-marshal`, which owns commits, clean rebase, Jira, GitHub PR, reviewer requests, and approved post-PR Jira transition to `En Revisión`.
 
 ## Load References
 
@@ -273,11 +274,22 @@ Next required gate is the brainstorm for <roadmap item>. Existing context sugges
 First question: <single focused question>
 ```
 
-If the user explicitly skips brainstorm, record the override and assumptions in `compound-master-state.md`, mark the generated requirements as assumption-backed, and include follow-up decisions in the document. User product decisions remain with existing docs or the user. Review each requirements doc with `document_review` and loop safe fixes.
+The brainstorm gate must finish with an explicit artifact handoff before Step 4:
 
-### Step 4 - Plan Per Brainstorm
+```text
+brainstorm_path: docs/brainstorms/...
+planning_input_path: docs/brainstorms/...
+requirements_decisions: captured | assumption-backed
+open_decisions: none | [decision that still blocks planning]
+```
 
-Invoke the resolved `plan` role for each reviewed requirements doc. Verify stable U-IDs, dependencies, repo-relative paths, test scenarios, and verification criteria. Review plans with `document_review` until no blocking findings remain.
+`brainstorm_path` records the discovery conversation or notes. `planning_input_path` is the reviewed requirements/decisions artifact that the `plan` role must consume. They may be the same file when the resolved brainstorm role combines discovery and requirements in one artifact.
+
+If the user explicitly skips brainstorm, record the override and assumptions in `compound-master-state.md`, mark the generated requirements as assumption-backed, and include follow-up decisions in the document. User product decisions remain with existing docs or the user. Review `planning_input_path` with `document_review` and loop safe fixes before planning.
+
+### Step 4 - Plan Per Reviewed Requirements Artifact
+
+Invoke the resolved `plan` role for each reviewed `planning_input_path`. Verify stable U-IDs, dependencies, repo-relative paths, test scenarios, and verification criteria. Review plans with `document_review` until no blocking findings remain.
 
 ### Step 5 - Derive Work Packages
 
@@ -311,9 +323,9 @@ When CI break-prevention evidence is recorded and implementation and review gate
 
 Refresh state, dependencies, and the integration base after each PR handoff. Before continuing while a parent PR is pending, fetch and inspect the branch that receives PRs (`develop` when present, otherwise the GitHub default or recorded release base). Compare it with the current/parent PR branch, note new commits or likely conflicts in state, and only then decide whether to continue from the parent PR branch as a stacked PR or record another explicit clean-tree strategy that `krt-rebase-smith` can normalize later. Dependent packages wait for merge when the next package needs the merged artifact, the refreshed base changes package assumptions, or the package cannot be stacked cleanly. At the end, write `docs/orchestration/YYYY-MM-DD-compound-master-summary.md`.
 
-### Step 13 - State Archive Hygiene
+### Cross-Cutting State Archive Hygiene
 
-Invoke the resolved `state_archivist` after major gates when the live state grows noisy: after roadmap review, after a brainstorm/plan/package set is reviewed, after implementation/review/security gates, before long closeouts, after PR handoff, and before `mode:resume` loads a large state. Prefer `krt-state-archivist` when available. If it is unavailable, preserve the long state and record that state compaction was skipped; do not delete historical detail inline. The live state should remain a compact resume entrypoint with links to archived history.
+Invoke the resolved `state_archivist` throughout the workflow after major gates when the live state grows noisy: after roadmap review, after a brainstorm/plan/package set is reviewed, after implementation/review/security gates, before long closeouts, after PR handoff, and before `mode:resume` loads a large state. Prefer `krt-state-archivist` when available. If it is unavailable, preserve the long state and record that state compaction was skipped; do not delete historical detail inline. The live state should remain a compact resume entrypoint with links to archived history.
 
 ## Failure And Status
 
