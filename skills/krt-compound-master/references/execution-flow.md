@@ -301,56 +301,6 @@ Fan-out rules:
 - Reopen the work loop only for findings at or above `review-threshold`, or any unresolved security/data/contract/test blocker.
 - Log advisory findings below threshold unless the user marks them blocking.
 
-## Release Marshal Handoff
-
-When implementation and review gates pass, invoke `krt-release-marshal`; do not duplicate its procedures and do not stop with "next step" when the role is available.
-
-Handoff prompt shape:
-
-```text
-Skill("<project_pr>", "Run the full krt-release-marshal workflow for this completed work package.
-
-Work package: <work-package-path>
-Roadmap item: RDM-###
-Origin plan: <origin-plan-path>
-Current branch: <branch-name>
-Intended base: <base-branch>
-Jira policy: <required|optional|skip>
-Suggested Jira summary: <summary>
-Suggested Jira description: <description>
-Suggested PR title: <title>
-Suggested PR body bullets:
-- <change>
-- <change>
-Suggested commit grouping:
-- <type(scope): summary> -- <files/surfaces> -- <why this is one logical review unit>
-- <type(scope): summary> -- <files/surfaces> -- <why this is separate or bundled>
-- Split broad packages by changed surface when applicable: persistence/schema/model state; domain service/integration behavior; API/controller/generated contracts; config/deployment wiring; focused tests/fixtures; docs/orchestration. Do not default to one implementation commit plus one docs commit for multi-surface feature work.
-Verification results for release-readiness only, not PR body copy:
-- <command/result>
-Impact Scan for release-readiness only:
-- <changed contracts/consumer tests summary or Not required>
-
-Use krt-release-marshal exactly. Do not run tests unless the user explicitly asks; use the verification results above only to decide readiness. Do not include tests or verification summaries in the PR body unless the user, repo template, or project convention explicitly requires them. Include automatic reviewer handling in the release plan: use explicit reviewers if provided, otherwise infer a clear reviewer after PR creation and request review without asking a second time; skip reviewer assignment if no clear human reviewer exists. Include automatic post-PR Jira transition to En Revisión in the release plan when Jira context exists; after PR creation, use krt-jira-scribe and the real transition list to perform that approved transition without asking a second time.")
-```
-
-Suggested Jira summary/description, PR title/body bullets, branch name, suggested commit groups, and eventual commit messages must be semantic. Do not include roadmap IDs, U-IDs, package numbers, date sequences, or other Compound Master numbering unless the user or repo convention explicitly requires them.
-
-PR tree safety:
-
-- Independent PRs target integration/default branch.
-- Stacked PRs target parent package branch and declare dependency in PR body.
-- When the user asks to continue while a parent PR is pending merge, prefer the next ready package as a stacked PR from the parent PR branch when dependencies and review scope allow it.
-- If stacked PRs are awkward but the next package can proceed, record the exact clean-tree strategy and intended `krt-rebase-smith` normalization path before starting work.
-- Waiting for merge is a blocker only when the next package needs the merged artifact, the parent PR has unresolved release-follow-up blockers, or no clean branch/base strategy can be named.
-- Do not retarget stacked PRs silently.
-- Do not combine unrelated roadmap items unless grouped in one package.
-- If an open PR exists for the branch, do not create a duplicate.
-- If Jira is required and config is missing, stop with a configuration blocker.
-- If Jira is optional and config is missing, let `krt-release-marshal` ask whether to continue without Jira.
-
-After handoff, record Jira URL, PR URL, status, branch, base, reviewers, CI break-prevention evidence, blockers, and any stacked/clean-tree continuation strategy in state. Do not start a CI polling loop from Compound Master.
-
 ## CI Break-Prevention And Escalation
 
 Compound Master's CI responsibility is prevention first, escalation second.
@@ -398,3 +348,55 @@ State updates:
 - `ci-incident-escalated`: `krt-ci-questor`, another resolved CI investigator, or Compound Master inline triage owns investigation.
 - `ci-blocked`: failure is unknown, external, or needs user/project decision.
 - `completed`: release handoff completed and no release-follow-up blocker is recorded by Compound Master.
+
+## Release Marshal Handoff
+
+When CI break-prevention evidence is recorded and implementation and review gates pass, invoke `krt-release-marshal`; do not duplicate its procedures and do not stop with "next step" when the role is available.
+
+Handoff prompt shape:
+
+```text
+Skill("<project_pr>", "Run the full krt-release-marshal workflow for this completed work package.
+
+Work package: <work-package-path>
+Roadmap item: RDM-###
+Origin plan: <origin-plan-path>
+Current branch: <branch-name>
+Intended base: <base-branch>
+Jira policy: <required|optional|skip>
+Suggested Jira summary: <summary>
+Suggested Jira description: <description>
+Suggested PR title: <title>
+Suggested PR body bullets:
+- <change>
+- <change>
+Suggested commit grouping:
+- <type(scope): summary> -- <files/surfaces> -- <why this is one logical review unit>
+- <type(scope): summary> -- <files/surfaces> -- <why this is separate or bundled>
+- Split broad packages by changed surface when applicable: persistence/schema/model state; domain service/integration behavior; API/controller/generated contracts; config/deployment wiring; focused tests/fixtures; docs/orchestration. Do not default to one implementation commit plus one docs commit for multi-surface feature work.
+Verification results for release-readiness only, not PR body copy:
+- <command/result>
+Impact Scan for release-readiness only:
+- <changed contracts/consumer tests summary or Not required>
+CI risk notes for release-readiness only:
+- <changed CI surface/local equivalent command/result or CI-only gap>
+
+Use krt-release-marshal exactly. Do not run tests unless the user explicitly asks; use the verification results and CI risk notes above only to decide readiness. Do not include tests, verification summaries, or CI risk notes in the PR body unless the user, repo template, or project convention explicitly requires them. Include automatic reviewer handling in the release plan: use explicit reviewers if provided, otherwise infer a clear reviewer after PR creation and request review without asking a second time; skip reviewer assignment if no clear human reviewer exists. Include automatic post-PR Jira transition to En Revisión in the release plan when Jira context exists; after PR creation, use krt-jira-scribe and the real transition list to perform that approved transition without asking a second time.")
+```
+
+Suggested Jira summary/description, PR title/body bullets, branch name, suggested commit groups, and eventual commit messages must be semantic. Do not include roadmap IDs, U-IDs, package numbers, date sequences, or other Compound Master numbering unless the user or repo convention explicitly requires them.
+
+PR tree safety:
+
+- Independent PRs target integration/default branch.
+- Stacked PRs target parent package branch and declare dependency in PR body.
+- When the user asks to continue while a parent PR is pending merge, prefer the next ready package as a stacked PR from the parent PR branch when dependencies and review scope allow it.
+- If stacked PRs are awkward but the next package can proceed, record the exact clean-tree strategy and intended `krt-rebase-smith` normalization path before starting work.
+- Waiting for merge is a blocker only when the next package needs the merged artifact, the parent PR has unresolved release-follow-up blockers, or no clean branch/base strategy can be named.
+- Do not retarget stacked PRs silently.
+- Do not combine unrelated roadmap items unless grouped in one package.
+- If an open PR exists for the branch, do not create a duplicate.
+- If Jira is required and config is missing, stop with a configuration blocker.
+- If Jira is optional and config is missing, let `krt-release-marshal` ask whether to continue without Jira.
+
+After handoff, record Jira URL, PR URL, status, branch, base, reviewers, CI break-prevention evidence, blockers, and any stacked/clean-tree continuation strategy in state. Do not start a CI polling loop from Compound Master.

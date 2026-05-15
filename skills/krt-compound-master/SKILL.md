@@ -38,21 +38,22 @@ Core pipeline:
 3. Review the roadmap or stop on readiness.
 4. Run one interactive brainstorm per roadmap item before writing or finalizing that item's requirements.
 5. Run one plan per reviewed brainstorm document.
-6. Review roadmap, brainstorms, plans, and work packages with the resolved document-review role.
+6. Review roadmap, brainstorms, and plans with the resolved document-review role.
 7. Derive work packages that map to independently reviewable PR/Jira units.
-8. Execute each ready package with the resolved work role in implementation-only/no-shipping mode.
-9. Keep Security Sentinel watch active by default for high-risk packages during execution, collecting read-only notes as files change.
-10. Review implementation with the resolved code-review role, looping fixes until the configured threshold passes.
-11. After the work-review loop finishes, run the resolved security review role for high-risk packages before release handoff, using watch notes as input.
-12. Hand the finished package to `krt-release-marshal`, which owns commits, clean rebase, Jira, GitHub PR, reviewer requests, and approved post-PR Jira transition to `En Revisión`.
+8. Review work packages with the resolved document-review role before execution.
+9. Execute each ready package with the resolved work role in implementation-only/no-shipping mode.
+10. Keep Security Sentinel watch active by default for high-risk packages during execution, collecting read-only notes as files change.
+11. Review implementation with the resolved code-review role, looping fixes until the configured threshold passes.
+12. After the work-review loop finishes, run the resolved security review role for high-risk packages before release handoff, using watch notes as input.
 13. Record CI break-prevention evidence before handoff; if CI later breaks, escalate to the dedicated CI investigation workflow.
-14. Keep `compound-master-state.md` compact by invoking the resolved state archivist after major gates and before resume loads when the state becomes too large.
+14. Hand the finished package to `krt-release-marshal`, which owns commits, clean rebase, Jira, GitHub PR, reviewer requests, and approved post-PR Jira transition to `En Revisión`.
+15. Keep `compound-master-state.md` compact by invoking the resolved state archivist after major gates and before resume loads when the state becomes too large.
 
 ## Load References
 
 - Roadmap/readiness criteria and templates are owned by the resolved `roadmap_generator` role.
 - Load `references/artifact-templates.md` before writing work-package, artifact closeout, or summary files.
-- Load `references/execution-flow.md` for Steps 6-9 execution, verification, code-review, and release handoff detail.
+- Load `references/execution-flow.md` for Steps 6-11 execution, verification, code-review, CI break-prevention, and release handoff detail.
 - Load `references/status-and-failures.md` when updating state, selecting statuses, or producing blocker/closeout output.
 
 ## Non-Negotiable Rules
@@ -298,13 +299,13 @@ Invoke the resolved `code_review` role normally. Prefer autofix when safe; retry
 
 After the work-review loop passes, load `references/execution-flow.md` and run the security review gate for packages that touch auth/authz, tenant isolation, secrets, PII, public API security, external integrations, deployment exposure, CI/CD permissions, supply chain, or other high-risk surfaces. Prefer `krt-security-sentinel` when available; otherwise resolve another security-review skill or perform a direct evidence-based security pass. Feed all Security Watch notes into this gate. Security blockers loop back through `work` and `code_review` before release handoff.
 
-### Step 10 - Release Marshal Handoff
+### Step 10 - CI Break-Prevention And Escalation
 
-When implementation and review gates pass, invoke `krt-release-marshal`. Do not stop after saying it is the next step. Include work package path, roadmap item, origin plan, current branch, intended base, Jira policy, suggested Jira summary/description, PR title/body bullets, suggested commit grouping when natural boundaries exist, verification results as internal release-readiness context, and instruction to include automatic reviewer handling and automatic post-PR Jira transition to `En Revisión` in the release plan when Jira context exists.
+Load `references/execution-flow.md`. Before release handoff, record the CI break-prevention evidence that should keep predictable checks green: contract-drift scan, consumer tests, surface-aware verification, and known CI-only gaps. Do not poll CI in a loop. If the user reports a broken check or the release workflow surfaces one, use `krt-ci-questor` when available, resolve another CI investigator if possible, or perform direct evidence-first triage inline. Record a release-follow-up blocker until the CI incident has a cause, owner, and next action.
 
-### Step 11 - CI Break-Prevention And Escalation
+### Step 11 - Release Marshal Handoff
 
-Load `references/execution-flow.md`. Before and during release handoff, record the CI break-prevention evidence that should keep predictable checks green: contract-drift scan, consumer tests, surface-aware verification, and known CI-only gaps. Do not poll CI in a loop. If the user reports a broken check or the release workflow surfaces one, use `krt-ci-questor` when available, resolve another CI investigator if possible, or perform direct evidence-first triage inline. Record a release-follow-up blocker until the CI incident has a cause, owner, and next action.
+When CI break-prevention evidence is recorded and implementation and review gates pass, invoke `krt-release-marshal`. Do not stop after saying it is the next step. Include work package path, roadmap item, origin plan, current branch, intended base, Jira policy, suggested Jira summary/description, PR title/body bullets, suggested commit grouping when natural boundaries exist, verification results and CI risk notes as internal release-readiness context, and instruction to include automatic reviewer handling and automatic post-PR Jira transition to `En Revisión` in the release plan when Jira context exists.
 
 ### Step 12 - Continue Waves Or Finish
 
