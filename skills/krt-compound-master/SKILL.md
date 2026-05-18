@@ -24,6 +24,7 @@ Argument hint:
 [production:unknown|live|preprod|prototype]
 [parallel:true|false]
 [delegation:auto|ask|inline]
+[autonomy:manual|guarded|high]
 [review-threshold:P0-P2|P0-P1|P0]
 [subagent-model:<runtime-specific-model>]
 ```
@@ -69,6 +70,7 @@ Core pipeline:
 - Treat "continue", "resume", "next step", or "siguiente paso" as permission to advance to the next required gate, not as permission to bypass the brainstorm conversation.
 - Skip or compress brainstorm only when the current invocation explicitly asks to skip discovery, run non-interactively, or use existing decisions as final. Record that override in state and list the risks.
 - Do not invent product behavior, authorization rules, data contracts, Jira transitions, release constraints, branch bases, or dependency edges. Ask one blocking question at a time.
+- Give agents explicit decision rights before execution. Reversible, package-local, convention-following choices may be decided by the assigned agent and recorded as assumptions. Escalate non-inferable product behavior, authorization rules, destructive data operations, public contract removal, branch/base strategy, Jira/PR workflow, or production compatibility breakage.
 - Do not invent production posture. If the repo or user context does not make clear whether the system is live, pre-production, prototype, or unknown, record `production:unknown` and ask before making risky compatibility, migration, deletion, rollback, or data-shape decisions.
 - Treat `production:live` as a compatibility-preserving default: prefer additive changes, feature flags, migrations with rollback/forward plans, backwards-compatible API changes, explicit deployment notes, and stronger regression evidence. Breaking pre-existing behavior requires explicit user/product approval and recorded rationale.
 - Treat `production:prototype` as permission to move faster only after recording that posture. Even then, do not remove user data, credentials, security controls, or documented contracts without explicit approval.
@@ -115,6 +117,7 @@ Portable delegated roles:
 | `document_reviewer` | review roadmap, brainstorm, plan, and work-package artifacts |
 | `worker` | implement exactly one approved work package without shipping |
 | `code_reviewer` | review current implementation/diff without mutating unless explicitly allowed |
+| `impact_scan_helper` | read-only consumer, contract-drift, and verification-surface discovery for changed contracts |
 | `security_watcher` | read-only incremental security watch during execution for high-risk packages |
 | `security_reviewer` | read-only focused security review for high-risk packages or system slices |
 
@@ -126,8 +129,8 @@ Delegation policy:
 - Do not add or imply a free-form swarm mode. Use bounded delegation and reviewer fan-out only when the package shape justifies it and the decision is recorded.
 - During preflight, record whether direct KRT-owned agent launch is `automatic`, `requires-approval`, or `unavailable`.
 - Distinguish direct KRT-owned agent launch from invoking another resolved skill. Do not preemptively downgrade `document_review`, `work`, or `code_review` just because that skill may internally launch agents.
-- At the start of any execution phase (`mode:execute`, `mode:resume` when resuming execution/review/release, or `mode:full` after the artifact execution gate), ask one explicit execution delegation gate before deciding whether KRT itself will launch subagents. Do this even when the runtime might support automatic launch, unless the user already included `delegation:inline`, `delegation:ask`, `parallel:true`, "con subagentes", or "sin subagentes" in the current invocation.
-- If the user approves subagents, record the approval scope in state and use KRT-owned delegated agents only for isolated, useful roles.
+- At the start of any execution phase (`mode:execute`, `mode:resume` when resuming execution/review/release, or `mode:full` after the artifact execution gate), resolve delegation and autonomy. `delegation:ask`, `autonomy:manual`, `parallel:true` without `autonomy:high`, "con subagentes", or ambiguous mutating scope require the execution delegation gate before KRT-owned mutating subagents launch. `delegation:auto` with `autonomy:guarded` may launch read-only agents and one scoped worker without asking when the package has clear ownership, no open product decision, and safe isolation. `autonomy:high` may launch parallel workers only when `parallel:true`, isolated worktrees/checkouts, non-overlapping scopes, and package dependencies all support it.
+- If the user approves subagents or the resolved autonomy permits them, record the approval/scope in state and use KRT-owned delegated agents only for isolated, useful roles.
 - If the user declines, direct launch is unavailable, or the answer is unclear, set delegation mode to `inline` for this run, continue inline, and record the fallback.
 - `subagent-model:<value>` is advisory and runtime-specific.
 - Initial delegation budget: at most one mutating worker per work package and at most three read-only reviewer subagents in any review fan-out.
@@ -201,7 +204,8 @@ Blocking policy:
 - `pr-granularity:auto|roadmap-item|plan-unit`: default `auto`, based on dependency, file overlap, risk, and reviewability.
 - `jira-policy:required|optional|skip`: default `required`; `optional` allows user-approved PR without Jira if config is missing.
 - `parallel:false|true`: default `false`; `true` requires safe dependencies, no dangerous overlap, and isolated worktrees/checkouts.
-- `delegation:auto|ask|inline`: default `auto`; during execution, `auto` asks the execution delegation gate once before KRT-owned launches, `ask` always asks even if prior state recorded approval, and `inline` disables KRT-owned agent launches. Resolved skills still own their internal behavior.
+- `delegation:auto|ask|inline`: default `auto`; during execution, `auto` follows the resolved autonomy mode, `ask` always asks before KRT-owned mutating launches even if prior state recorded approval, and `inline` disables KRT-owned agent launches. Resolved skills still own their internal behavior.
+- `autonomy:manual|guarded|high`: default `guarded`; `manual` preserves explicit user gates before KRT-owned mutating subagents, `guarded` allows read-only agents and one scoped worker to proceed when the work package has an autonomy contract and no open product/branch/security decision, and `high` allows parallel workers only with `parallel:true`, isolation, non-overlapping scopes, and recorded fallback strategy.
 - `review-threshold:P0-P2|P0-P1|P0`: default `P0-P2`.
 - `subagent-model:<value>`: runtime-specific advisory only.
 - Invalid values fall back to defaults and should be recorded in state.
@@ -225,7 +229,7 @@ docs/brainstorms/
 docs/plans/
 ```
 
-Maintain `docs/orchestration/compound-master-state.md` as a compact live resume entrypoint. State must track initiative, mode, date, resolved roles, runtime/delegation availability, delegation decisions and telemetry, source docs, context readiness, production posture, roadmap, brainstorms, plans, work packages, waves, branch/base choices, Impact Scan status, security watch notes, security review status, CI break-prevention checks, surface-aware verification, review status, Jira/PR URLs, release-follow-up blockers, and required user decisions. Long historical detail should be archived under `docs/orchestration/archive/compound-master-state/` and linked from the live state.
+Maintain `docs/orchestration/compound-master-state.md` as a compact live resume entrypoint. State must track initiative, mode, date, resolved roles, runtime/delegation availability, autonomy mode, delegation decisions and telemetry, source docs, context readiness, production posture, roadmap, brainstorms, plans, work packages, waves, branch/base choices, Impact Scan status, security watch notes, security review status, CI break-prevention checks, surface-aware verification, review status, Jira/PR URLs, release-follow-up blockers, and required user decisions. Long historical detail should be archived under `docs/orchestration/archive/compound-master-state/` and linked from the live state.
 
 ## Workflow
 
@@ -297,7 +301,7 @@ Load `references/artifact-templates.md`. Create independently reviewable package
 
 ### Step 6 - Execution Wave Planning
 
-Load `references/execution-flow.md`. Ask/resolve the execution delegation gate before planning KRT-owned subagents. Apply the delegation decision matrix, budget, and telemetry rules before launching any subagent. Classify packages as independent, dependent, overlapping, or high-risk. Execute serially unless `parallel:true` and isolation make parallel work safe.
+Load `references/execution-flow.md`. Resolve autonomy and the execution delegation gate before planning KRT-owned mutating subagents. Apply the delegation decision matrix, budget, and telemetry rules before launching any subagent. Classify packages as independent, dependent, overlapping, or high-risk. Execute serially unless `parallel:true`, `autonomy:high`, and isolation make parallel work safe.
 
 ### Step 7 - Execute Package
 

@@ -18,18 +18,21 @@ Prioritize:
 - changed files outside scope
 - branch/PR readiness risks
 
+When requesting changes, produce resolver-ready guidance: the smallest safe fix, affected files, tests to run, and whether the fix is inside the worker's autonomy contract or needs lead/user escalation.
+
 Return:
 1. Objective received.
 2. Files inspected.
 3. Verdict: approve / request changes.
 4. Blocking findings with severity, evidence path/line when available, and why each blocks the configured review threshold.
 5. Non-blocking findings with severity, evidence path/line when available, and why each does not block.
-6. Missing tests.
-7. Assumptions.
-8. Risks or blockers.
-9. Verification or checks performed, if any.
-10. Confidence: high / medium / low, with reason.
-11. Recommended next action.
+6. Resolver packet: smallest safe fix, files, tests, and escalation needed for each blocking finding.
+7. Missing tests.
+8. Assumptions.
+9. Risks or blockers.
+10. Verification or checks performed, if any.
+11. Confidence: high / medium / low, with reason.
+12. Recommended next action.
 
 Do not edit files unless explicitly asked by the parent agent.
 Do not create commits, PRs, or Jira transitions.

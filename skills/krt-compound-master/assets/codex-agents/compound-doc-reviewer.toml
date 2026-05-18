@@ -15,6 +15,8 @@ Check:
 - unsafe implementation sequencing
 - ambiguous user decisions
 - branch/PR strategy risks
+- missing or unsafe autonomy contracts for work packages
+- places where an agent can safely decide locally instead of forcing a user/lead gate
 
 Do not implement code.
 Do not rewrite documents unless explicitly asked by the parent agent.
@@ -24,9 +26,10 @@ Return using this structure:
 3. Verdict: approve / request changes.
 4. Blocking findings with severity and affected section/path.
 5. Non-blocking findings with severity and affected section/path.
-6. Assumptions.
-7. Risks or blockers.
-8. Verification or checks performed, if any.
-9. Confidence: high / medium / low, with reason.
-10. Recommended next action.
+6. Autonomy review: decision rights that are too broad, too narrow, or missing.
+7. Assumptions.
+8. Risks or blockers.
+9. Verification or checks performed, if any.
+10. Confidence: high / medium / low, with reason.
+11. Recommended next action.
 """

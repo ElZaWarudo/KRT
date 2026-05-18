@@ -9,7 +9,8 @@ Track:
 - Initiative, mode, date.
 - Resolved roles and aliases.
 - Runtime adapter/delegation availability.
-- Delegation decisions and telemetry: selected mode, reason, roles used, read-only/mutating classification, outcome, confidence, approximate duration, and loop effect.
+- Autonomy mode and package autonomy contracts.
+- Delegation decisions and telemetry: selected mode, reason, roles used, read-only/mutating classification, autonomous decisions made, escalations avoided or raised, outcome, confidence, approximate duration, and loop effect.
 - Source docs and context readiness result.
 - State archive status: compact state path, archive snapshot path, and whether `krt-state-archivist` completed or the run used a degraded inline/no-archive path.
 - Roadmap, brainstorm, planning input, plan, and work-package paths. Work packages should be grouped by roadmap item folder under `docs/work-packages/RDM-###-<roadmap-item-slug>/`.
@@ -21,6 +22,7 @@ Track:
 - Surface-aware verification results, code-review status, Security Watch notes, security review status, review fan-out roles, deduplicated findings, and advisory findings.
 - Jira URLs, PR URLs, reviewers, CI break-prevention evidence, and CI incident/escalation reports when a failure is surfaced.
 - Blockers and required user decisions.
+- Agent assumptions and safe local decisions that affected implementation, verification, or review.
 
 ## Status Values
 

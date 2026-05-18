@@ -4,12 +4,14 @@ Use this reference for Compound Master's execution phase: Execution Wave Plannin
 
 ## Wave Planning
 
-Before selecting workers or reviewer subagents, resolve the execution delegation gate from `SKILL.md`.
+Before selecting workers or reviewer subagents, resolve `delegation` and `autonomy` from `SKILL.md`.
 
 - If the current invocation explicitly says `delegation:inline` or "sin subagentes", do not launch KRT-owned subagents.
-- If it says `parallel:true`, `delegation:ask`, or "con subagentes", treat that as intent to discuss/approve subagents and ask the gate before launching.
-- If it says `delegation:auto` or omits delegation, ask the gate once at the start of execution.
-- Record the answer in `compound-master-state.md` with scope, selected mode, and any runtime limitation.
+- If it says `delegation:ask`, `autonomy:manual`, `parallel:true` without `autonomy:high`, or "con subagentes", ask the gate before launching KRT-owned mutating subagents.
+- If it says `delegation:auto` or omits delegation, use `autonomy:guarded` unless another autonomy value is explicit.
+- Under `autonomy:guarded`, launch read-only explorers, security watchers, Impact Scan helpers, and reviewer fan-out without another user gate when useful. Launch one scoped mutating worker without asking only when the work package has clear ownership, expected files/tests, no open product decision, no ambiguous branch/base strategy, and safe isolation.
+- Under `autonomy:high`, parallel workers are allowed only when `parallel:true`, isolated worktrees/checkouts, non-overlapping write scopes, dependency order, and fallback branch strategy are all recorded.
+- Record the resolved mode in `compound-master-state.md` with scope, selected autonomy, selected delegation, and any runtime limitation.
 - If subagents are denied or unavailable, continue inline rather than stopping.
 
 Classify packages:
@@ -35,28 +37,40 @@ If execution was requested without `package:`, select the first unblocked packag
 
 ## Delegation Decision Matrix
 
-Use this matrix after the execution delegation gate and before launching KRT-owned subagents. Explain the selected path in state and in the user-facing progress update.
+Use this matrix after autonomy/delegation resolution and before launching KRT-owned subagents. Explain the selected path in state and in the user-facing progress update.
 
 | Package shape | Default delegation choice |
 |---|---|
 | Small package, same-file edits, sequential steps, or tightly coupled decisions | Run inline. The coordination overhead is higher than the benefit. |
-| Many files to inspect (roughly 30+), scattered docs/contracts, or uncertain local conventions | Launch one read-only `explorer`, then the lead decides whether work stays inline or moves to a worker. |
-| Clear implementation scope, defined file ownership, explicit verification, and no product decision remaining | Launch at most one mutating `worker` for the package. |
-| Fresh perspective needed after implementation, or the package touches risky surfaces | Use the main `code_review` role and optional read-only reviewer fan-out within budget. |
-| Independent packages with non-overlapping write sets and isolated worktrees/checkouts | Parallel workers are allowed only when `parallel:true` and isolation are both present. |
+| Many files to inspect (roughly 30+), scattered docs/contracts, or uncertain local conventions | Launch one read-only `explorer`; under `guarded`, this does not need a user gate. The explorer returns an execution context packet. |
+| Clear implementation scope, defined file ownership, explicit verification, autonomy contract present, and no product decision remaining | Launch at most one mutating `worker` for the package. Under `guarded`, do this without asking when isolation and branch/base are safe. |
+| Fresh perspective needed after implementation, or the package touches risky surfaces | Use the main `code_review` role and optional read-only reviewer fan-out within budget. Read-only fan-out is automatic under `guarded` when it materially reduces risk. |
+| Independent packages with non-overlapping write sets and isolated worktrees/checkouts | Parallel workers are allowed only when `parallel:true`, `autonomy:high`, and isolation are all present. |
 | Overlapping files, unclear ownership, missing isolation, or product/branch decisions still open | Run serially inline or stop for the missing decision. |
+
+## Agent Autonomy Contract
+
+Every work package should give execution agents explicit decision rights.
+
+Agents may decide without asking when the choice is reversible, local to the package, consistent with existing repo patterns, covered by tests or inspection, and does not alter product behavior or release topology. Examples include internal helper names, exact test selector choice, equivalent local verification command, small fixture updates required by the package, and straightforward lint/type/test fixes inside the assigned scope.
+
+Agents must record as assumptions when they infer repo conventions, choose one equivalent implementation path over another, skip verification because of a concrete local blocker, or make a low-risk compatibility-preserving adjustment.
+
+Agents must escalate to the lead when a decision changes product behavior, authorization/tenant/data contract rules, public API compatibility, destructive persistence behavior, production deployment/rollback expectations, branch/base strategy, Jira/PR workflow, credentials, paid external resources, or broad scope outside the package.
+
+An agent that hits an escalation point should pause only that decision. It should still complete safe exploration, tests, and implementation work that does not depend on the blocked choice.
 
 Delegation budgets:
 
 - At most one mutating worker per work package.
 - At most three read-only reviewer subagents in review fan-out.
-- Do not add a second user gate for read-only exploration or reviewer fan-out after the execution delegation gate is already accepted.
+- Do not add a second user gate for read-only exploration, Impact Scan helpers, security watchers, or reviewer fan-out after autonomy has been resolved.
 - Do not launch more generic agents to compensate for low-confidence output. Perform one targeted follow-up exploration or review with a narrower prompt.
 
 Delegation telemetry to record in `compound-master-state.md`:
 
 - Decision: inline, explorer, worker, reviewer fan-out, or parallel workers.
-- Reason: package shape, risk surface, expected benefit, and why inline was or was not sufficient.
+- Reason: autonomy mode, package shape, risk surface, expected benefit, and why inline was or was not sufficient.
 - Roles used and whether each was read-only or mutating.
 - Outcome: completed, blocked, degraded to inline, or skipped.
 - Confidence: high/medium/low with the reason supplied by the lead or subagent.
@@ -68,6 +82,8 @@ Delegation telemetry to record in `compound-master-state.md`:
 Before executing, verify that the resolved `work` role supports implementation-only/no-shipping mode. Stop before duplicate shipping if it cannot.
 
 Carry production posture into every worker prompt. For `production:live` or `production:unknown`, instruct the worker to preserve existing behavior by default, prefer additive/compatible changes, call out any possible breaking change before implementing it, and return migration, rollback, deployment, and regression-test implications. For `production:prototype`, instruct the worker which compatibility gates are intentionally relaxed and which safety boundaries still apply.
+
+Carry the work package's autonomy contract into every worker prompt. Tell the worker to decide reversible, package-local, convention-following choices directly; record assumptions and low-risk deviations; and escalate only the blocked decision categories named in the contract.
 
 Preserve plan-unit granularity during execution. A work package is the PR/Jira unit, not a license to flatten the origin plan. Before invoking `work`, extract the package's implementation units from the work package and origin plan. Track each unit's status in `compound-master-state.md` as pending, in-progress, implemented, verified, skipped, or blocked.
 
@@ -119,7 +135,7 @@ Invocation shape:
 ```text
 Skill("<work>", "<work-package-path>
 
-Execution constraint: implement this package only and run the verification you can run inside your assigned scope. Preserve the origin plan's implementation units: for each included U-ID/unit, report status, changed files, verification attempted/results/skips, and blockers. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for the lead and krt-release-marshal. Return changed files, API/contract changes detected, verification attempted, verification results, skipped verification with reasons, and any unresolved questions. Do not ask the user to take over normal local verification or review.")
+Execution constraint: implement this package only and run the verification you can run inside your assigned scope. Use the package autonomy contract: decide reversible, package-local, convention-following choices; record assumptions; escalate only non-inferable product, contract, security, production, branch/base, Jira/PR, credential, or scope decisions. Preserve the origin plan's implementation units: for each included U-ID/unit, report status, changed files, verification attempted/results/skips, and blockers. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for the lead and krt-release-marshal. Return changed files, API/contract changes detected, verification attempted, verification results, skipped verification with reasons, decisions made autonomously, and any unresolved questions. Do not ask the user to take over normal local verification or review.")
 ```
 
 Completion gate:
@@ -147,6 +163,8 @@ After worker return, the lead must inspect the summary/diff by unit, update unit
 ## Impact Scan Gate
 
 Run this gate after implementation and before code review whenever the diff changes an API contract, endpoint, binding, shared helper, schema, payload, auth/tenant/ownership behavior, or test fixture contract.
+
+Under `autonomy:guarded` or `autonomy:high`, delegate the Impact Scan to a read-only explorer/reviewer when the scan spans multiple modules, generated clients, fixture setup, or broad test surfaces. The helper owns discovery only: consumer paths, likely drift tests, and recommended verification. The lead still records the final gate result.
 
 Required output:
 

@@ -12,11 +12,15 @@ Your job:
 - Follow the work package, origin plan, acceptance criteria, and verification gate.
 - Preserve the origin plan's implementation-unit structure. If the package includes multiple U-IDs/units, keep them distinct in your work summary even when you implement them in one pass.
 - Keep scope narrow and avoid unrelated refactors.
+- Decide reversible, package-local, convention-following implementation choices without asking.
+- Record assumptions and autonomous decisions in your return summary.
+- Escalate only decisions that change product behavior, authorization/tenant/data contracts, destructive persistence behavior, public API compatibility, production deployment/rollback expectations, branch/base strategy, Jira/PR workflow, credentials, paid external resources, or scope outside the package.
+- When an escalation is needed, keep working on safe exploration, tests, and implementation that do not depend on that blocked decision.
 - Add or update tests when required.
 - Run relevant verification commands when available.
 - If verification requires stack startup and the command is documented, run it when it is local and reversible.
 - If verification cannot be run, explain the exact blocker and command/env needed; do not ask the user to take over normal local verification.
-- Return changed files, per-unit status, API/contract changes detected, actual write scope, divergences from the work package, verification attempted, verification result, skipped verification reasons, and unresolved questions.
+- Return changed files, per-unit status, API/contract changes detected, actual write scope, autonomous decisions, divergences from the work package, verification attempted, verification result, skipped verification reasons, and unresolved questions.
 
 Return using this structure:
 1. Objective received.
@@ -25,13 +29,15 @@ Return using this structure:
 4. Actual write scope and whether it matched the assigned scope.
 5. Per-unit status: for each U-ID/unit, list implemented/verified/skipped/blocked, changed files, and verification result or skip reason.
 6. API/contract changes detected, or "None".
-7. Divergences from the work package, or "None".
-8. Assumptions.
-9. Risks or blockers.
-10. Verification attempted and result.
-11. Skipped verification with concrete reasons.
-12. Confidence: high / medium / low, with reason.
-13. Recommended next action.
+7. Autonomous decisions made, or "None".
+8. Divergences from the work package, or "None".
+9. Assumptions.
+10. Escalations needed, or "None".
+11. Risks or blockers.
+12. Verification attempted and result.
+13. Skipped verification with concrete reasons.
+14. Confidence: high / medium / low, with reason.
+15. Recommended next action.
 
 Do not create PRs.
 Do not push branches.

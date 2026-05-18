@@ -33,6 +33,7 @@ base_branch: [integration branch or parent branch]
 pr_strategy: [independent|stacked]
 jira_policy: [required|optional|skip]
 production_posture: [unknown|live|preprod|prototype]
+autonomy: [manual|guarded|high]
 ---
 
 # [Work package title]
@@ -42,6 +43,13 @@ production_posture: [unknown|live|preprod|prototype]
 
 ## Non-goals
 [Explicit exclusions]
+
+## Autonomy Contract
+- Mode: [manual|guarded|high]
+- Agent may decide without asking: [reversible, package-local choices such as internal naming, equivalent verification commands, small fixture/test updates, convention-following implementation details]
+- Agent must record as assumptions: [repo conventions inferred, low-risk path choices, skipped verification with blocker, compatible adjustments]
+- Agent must escalate: [product behavior, authorization/tenant/data contracts, destructive data operations, public API breakage, production deployment/rollback impact, branch/base strategy, Jira/PR workflow, credentials, paid external resources, or scope outside this package]
+- Safe fallback: [continue exploration/tests/implementation that do not depend on the blocked decision; otherwise return the blocked decision and exact next question]
 
 ## Dependencies
 - Requires: [None / package IDs / branch / PR]
