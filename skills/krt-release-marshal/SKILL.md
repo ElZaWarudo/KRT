@@ -164,14 +164,14 @@ If Jira context was provided, keep it.
 
 If `jira-policy:skip`, omit Jira lookup, creation, backlinking, and transition.
 
-If Jira context is missing and Jira should be included, load and follow `krt-jira-scribe`. Use Jira Server/Data Center only. For PRs that look like a review unit inside a larger delivery sequence, prefer finding or creating a parent task plus a subtask for the PR. Create a standalone task only when the work is clearly standalone or the user requests it. Before proposing creation, derive Spanish Jira text:
+If Jira context is missing and Jira should be included, load and follow `krt-jira-scribe`. Use Jira Server/Data Center only. For PRs that look like a review unit inside a larger delivery sequence, prefer finding or creating a parent task plus subtasks only when there are two or more likely child tasks. Never propose a single parent task with a single child subtask; use one standalone `Tarea` for that case and attach PR backlink/comments/transition to it. Before proposing creation, derive Spanish Jira text:
 
 - Summary: concise Spanish action phrase, no branch prefixes, no Conventional Commit type, no Jira key, no Compound Master IDs, and no package/date numbers.
 - Description: 1-3 concise Spanish sentences explaining what must be done and why.
 - If an enclosing workflow supplied English suggested Jira text, translate it to Spanish while preserving the intended scope.
 - If the work domain contains unavoidable English product/API names, keep those terms but write the surrounding title and description in Spanish.
 
-Pass the Spanish summary and description explicitly to `krt-jira-scribe`. Create or reuse Jira issues only after confirmation. Capture the immediately relevant Jira URL for the PR body, usually the subtask for this PR.
+Pass the Spanish summary and description explicitly to `krt-jira-scribe`. Create or reuse Jira issues only after confirmation. Capture the immediately relevant Jira URL for the PR body: the subtask when a real multi-child parent exists, otherwise the standalone task.
 
 If required Jira env vars are missing, stop the Jira phase and ask whether to continue PR creation without Jira links only when `jira-policy:required`. With `jira-policy:optional`, record the missing configuration, omit Jira links/backlinks/transitions in the plan, and continue after the normal release-plan approval.
 

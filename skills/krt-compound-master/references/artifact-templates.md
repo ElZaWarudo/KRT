@@ -143,7 +143,7 @@ Rules:
 ## Jira Handoff Inputs
 - Jira policy: [required|optional|skip]
 - Suggested issue type: Tarea
-- Suggested subtask behavior: create/reuse subtask when parent is provided; if no parent fits and this package may have sibling PRs/work packages, prefer creating a parent task plus a subtask for this package, with the parent added to the active sprint unless explicitly skipped
+- Suggested subtask behavior: create/reuse subtask when a real parent already exists or when this package has two or more sibling review units/work packages that should share one parent. Never plan a single parent task with a single child subtask; if there is only one Jira child, collapse to one standalone `Tarea` and attach PR backlink/comments/transition there. If a new parent is justified by multiple children, add the parent to the active sprint unless explicitly skipped
 - Jira summary: [Spanish semantic title without roadmap/package numbers]
 - Jira description: [Spanish concise scope/reason without roadmap/package numbers]
 - Optional-policy fallback: if Jira role/config/context is missing, record "Jira omitted: <reason>" in state/release closeout and continue without asking solely whether Jira should be used
@@ -166,7 +166,7 @@ Keep internal planning identifiers out of public/reviewer-facing text:
 - Jira summaries should be in Spanish and read like work items a teammate would understand without the orchestration plan.
 - Jira descriptions should be in Spanish and explain scope and reason in concise prose, not restate roadmap IDs or package numbers.
 - PR titles and commit messages should be value-oriented and conventional; put traceability in artifact metadata, PR dependency notes, or Jira links instead of the title.
-- When commit messages or PR bodies include Jira traceability, include only the immediately relevant issue link/key, usually the subtask for this review-unit PR. Do not include both parent and child unless the user or repo convention explicitly asks.
+- When commit messages or PR bodies include Jira traceability, include only the immediately relevant issue link/key. Use a subtask only when a real multi-child parent exists; otherwise use the standalone task. Do not include both parent and child unless the user or repo convention explicitly asks.
 - Keep IDs only in internal fields such as `roadmap_item`, `units`, origin paths, dependency tables, and state.
 
 ## Artifact Closeout

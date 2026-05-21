@@ -116,7 +116,7 @@ Rules:
 - Put only the changes contained in this PR first, one factual markdown bullet per line, and the Jira URL last after a blank line.
 - Omit headings.
 - Do not distinguish parent vs subtask unless the user asks.
-- Include only the immediately relevant Jira URL, usually the subtask/work-package issue for this PR. Do not include both parent and child links unless the user or repo template asks.
+- Include only the immediately relevant Jira URL: the standalone task for one-PR work, or the subtask only when a real multi-child parent exists. Do not include both parent and child links unless the user or repo template asks.
 - Omit Jira URL if Jira context is missing.
 - Do not mention stacked PR relationships, temporary bases, future retargeting, dependency PRs, reviewer instructions, or merge sequencing.
 - Do not include verification unless the repo template requires it. Treat upstream test results as readiness context, not body content.

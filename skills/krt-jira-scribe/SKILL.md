@@ -51,11 +51,13 @@ Load `references/jira-api.md`. Normalize host, verify required env vars, test cr
 
 Before proposing a new global issue, decide whether the requested work should be a subtask under an existing issue or under a new parent issue.
 
+Never propose a one-parent/one-child Jira shape. If the plan would create exactly one parent `Tarea` and exactly one child `Subtarea` with no likely sibling tasks, collapse it into one standalone `Tarea` and put the PR backlink, comments, and transition on that task.
+
 1. Search for possible parents first using project, type, and meaningful summary/context terms.
 2. Inspect plausible parents by key, including summary, status, description, and existing subtasks.
 3. Prefer reuse when scope fits: if an open parent clearly covers the work, propose creating or reusing a subtask under that parent instead of creating a standalone `Tarea`.
-4. If no parent fits and the work is a pull request/work package that may have sibling tasks, prefer proposing a new parent `Tarea` plus a `Subtarea` for the immediate PR/work package. This is the default shape for Compound Master work packages and multi-PR delivery. The new parent should be added to the active sprint unless the user explicitly says `sin sprint`, `no sprint`, `fuera del sprint`, or equivalent.
-5. Ask when ambiguous: show candidate parents and ask which one to use, whether to create a new parent plus subtask, or whether the work is truly standalone.
+4. If no parent fits and the work is a pull request/work package with two or more likely sibling tasks, prefer proposing a new parent `Tarea` plus one `Subtarea` per immediate PR/work package. This is the default shape for multi-PR delivery only. The new parent should be added to the active sprint unless the user explicitly says `sin sprint`, `no sprint`, `fuera del sprint`, or equivalent.
+5. Ask when ambiguous: show candidate parents and ask which one to use, whether multiple child tasks justify a new parent with subtasks, or whether the work is truly standalone.
 6. Create a standalone global issue only after ruling out parent fit and sibling-task likelihood. Do not propose a standalone task just because no exact summary match exists.
 
 ### 3. Verify Or Create Global Issue
@@ -75,9 +77,9 @@ For new global issues/parent tasks:
 
 Do not create issues based solely on fuzzy `summary ~` search.
 
-When creating both a parent and subtask, confirm both summaries/descriptions together. Create the parent first, then create the subtask under it. Return the subtask as the immediately relevant issue for PR bodies and commit references; keep the parent for context and future sibling tasks.
+When creating a parent with subtasks, confirm the parent and child summaries/descriptions together. Create the parent first, then create the subtasks under it. Return the relevant subtask for each PR body and commit reference; keep the parent for context and future sibling tasks. Do this only when the parent will group multiple subtasks; a parent with one child is invalid and must be represented by one standalone `Tarea`.
 
-For parent-plus-subtask creation, include the active sprint plan in the same confirmation. After creating the parent, add the parent to the active sprint before or after creating the subtask without asking a second time when that sprint placement was confirmed. Do not add the subtask directly to the sprint unless the user explicitly asks; the subtask inherits the parent's sprint context.
+For parent-plus-subtasks creation, include the active sprint plan in the same confirmation. After creating the parent, add the parent to the active sprint before or after creating subtasks without asking a second time when that sprint placement was confirmed. Do not add subtasks directly to the sprint unless the user explicitly asks; subtasks inherit the parent's sprint context.
 
 ### 4. Verify Or Create Subtask
 
