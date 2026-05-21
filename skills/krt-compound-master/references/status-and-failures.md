@@ -21,6 +21,7 @@ Track:
 - Impact Scan status: required yes/no, changed contracts, scan patterns, consumers found, contract-drift tests searched, required consumer tests, run/skipped results.
 - Surface-aware verification results, code-review status, Security Watch notes, security review status, review fan-out roles, deduplicated findings, and advisory findings.
 - Jira URLs, PR URLs, reviewers, CI break-prevention evidence, and CI incident/escalation reports when a failure is surfaced.
+- Jira policy and posture: required/optional/skip, existing issue context, role/config availability, created/reused URL, or non-blocking omitted reason.
 - Blockers and required user decisions.
 - Agent assumptions and safe local decisions that affected implementation, verification, or review.
 
@@ -73,7 +74,7 @@ Stop and write the blocker into `compound-master-state.md` when:
 - Review blockers remain after three loops.
 - Security review is required after the work-review loop and P0/P1 findings remain unresolved, or a P2 finding affects auth, tenant isolation, secrets, public API security, PII, supply chain, or deployment exposure.
 - Branch base is ambiguous or would degrade the git tree.
-- Jira is required but configuration is missing.
+- Jira is required but role, context, or configuration needed for safe mutation is missing.
 - PR handoff would duplicate a PR or target the wrong base.
 - The resolved `work` role already shipped and `krt-release-marshal` would duplicate it.
 - A CI failure is surfaced by the user or release workflow and remains untriaged, package-owned without a fix plan, external/unknown without evidence, or requires a user-approved bypass.

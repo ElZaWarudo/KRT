@@ -14,6 +14,8 @@ docs/work-packages/RDM-###-<roadmap-item-slug>/YYYY-MM-DD-NNN-<package-slug>-wor
 
 Use a work package as a delivery container. Its review units are the default atomic PR/Jira units. A work package may include one roadmap item, one plan U-ID, or a cohesive group of U-IDs, but it should define smaller review units when the package spans multiple review surfaces. Do not store all work packages in one flat directory; organize them under the roadmap item folder they belong to.
 
+Default `jira_policy` to `optional`: review units should carry Jira-ready summaries and descriptions because Jira is important delivery traceability, but lack of Jira role/config/context should not block package creation or execution. Use `required` only when the user, repo, or active delivery contract explicitly makes Jira mandatory; use `skip` only when the user explicitly opts out.
+
 Split review units when units have independent value, minimal file overlap, separate risk domains, clean independent verification, large generated artifacts, large schema dumps, or orchestration docs that would obscure functional review. Combine only when units share migrations/API contracts/core files, depend tightly on each other, or would create noisier stacked PRs than a single review. A package may implement the full roadmap item in one integrated PR only when the plan units have strong integration/dependency coupling; this must be explicit in the grouping rationale.
 
 Review-unit size guardrails:
@@ -144,6 +146,7 @@ Rules:
 - Suggested subtask behavior: create/reuse subtask when parent is provided; if no parent fits and this package may have sibling PRs/work packages, prefer creating a parent task plus a subtask for this package, with the parent added to the active sprint unless explicitly skipped
 - Jira summary: [Spanish semantic title without roadmap/package numbers]
 - Jira description: [Spanish concise scope/reason without roadmap/package numbers]
+- Optional-policy fallback: if Jira role/config/context is missing, record "Jira omitted: <reason>" in state/release closeout and continue without asking solely whether Jira should be used
 ```
 
 Review every package with `document_review`. Fix blockers before execution.
@@ -181,7 +184,7 @@ When `mode:artifacts` stops, include:
 - Exact next invocation, for example:
 
 ```text
-Use krt-compound-master mode:execute package:<work-package-path> review-unit:<RU#> jira-policy:<required|optional|skip> parallel:false
+Use krt-compound-master mode:execute package:<work-package-path> review-unit:<RU#> jira-policy:optional parallel:false
 ```
 
 If no package is ready, say exactly why. If packages are ready, say artifact generation is complete and execution is intentionally waiting for an explicit user gate.

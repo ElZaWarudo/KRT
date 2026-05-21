@@ -4,9 +4,16 @@ Load for artifact generation and high-level resume decisions. Load phase-specifi
 
 ## Step 0 - Preflight
 
-Load `role-and-runtime.md`. Resolve roles, runtime/delegation availability, repo status, integration base, working tree, production posture, and Jira env var presence. Do not print tokens.
+Load `role-and-runtime.md`. Resolve roles, runtime/delegation availability, repo status, integration base, working tree, production posture, and Jira posture. Do not print tokens.
 
 In `mode:resume`, compact or selectively load state before broad ingestion when state would crowd context.
+
+Jira posture:
+
+- Resolve `jira-policy` before asking workflow questions; default to `optional`.
+- For `optional`, treat Jira as important traceability but non-blocking. Detect existing issue keys/URLs and required env var presence, prepare semantic Spanish handoff text, and continue if Jira is unavailable.
+- For `required`, block before shipping if Jira role, context, or configuration needed for safe mutation is missing.
+- For `skip`, record intentional omission and avoid Jira lookup/mutation.
 
 Production posture:
 

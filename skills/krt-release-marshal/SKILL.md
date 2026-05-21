@@ -38,7 +38,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - Treat verification results from upstream workflows as readiness evidence only. Do not include test commands, test output, or verification summaries in the PR body unless the user, repo template, or project convention explicitly requires it.
 - Do not run tests, linters, or formatters unless the user explicitly asks; use verification results supplied by the user or upstream workflow.
 - Before pushing or updating a PR with a CI-fix commit, require evidence that the repo-specific command equivalent to the affected CI job passed locally, or present the missing validation clearly and ask for explicit override before the remote mutation.
-- Do not ask for Jira credentials. If required Jira env vars are missing, continue without Jira only if the user approves.
+- Do not ask for Jira credentials. If Jira is required and required env vars are missing, block and ask whether to continue without Jira. If Jira is optional, show the no-Jira fallback in the release plan and continue after the normal release-plan approval without a separate Jira-usage question.
 - Use `--force-with-lease`, never plain `--force`, when a rewritten branch must be pushed.
 - Prefer strict PR bodies: one factual change bullet per line, blank line, then the immediately relevant Jira URL. Do not include stack context, retargeting plans, base-branch notes, reviewer instructions, verification, or any operational commentary unless the repo template explicitly requires it.
 - Prefer reviewable PRs and logical commits over package-sized PRs when the pending work has clear boundaries. A work package may produce several review-unit PRs; a single PR should represent one focused review unit unless a broad unit was explicitly approved.
@@ -69,6 +69,7 @@ Use context already provided by the user or previous skills:
 - Desired workflow scope: full flow or PR-only.
 - Review unit scope from Compound Master, when provided.
 - Jira parent issue key, subtask key, or issue URL.
+- Jira policy from an enclosing workflow: `required`, `optional`, or `skip`; default to `optional` when the enclosing workflow provided Jira-ready handoff text but no explicit policy.
 - Suggested Jira summary/description from an enclosing workflow. Treat these as semantic input, not final text; normalize them into Spanish before Jira creation proposals.
 - Target/base branch.
 - PR title/body preference.
@@ -78,7 +79,7 @@ Use context already provided by the user or previous skills:
 - For CI fixes, affected workflow/job context plus the local CI-equivalent command result, or the exact reason that validation could not be run.
 - Suggested commit grouping from an enclosing workflow, when provided.
 
-If the user asks simply to create a PR and there are uncommitted changes or no Jira context, propose the full flow and ask before creating Jira artifacts.
+If the user asks simply to create a PR and there are uncommitted changes, propose the full flow. Treat missing Jira context as optional by default: include Jira discovery when there is enough signal, otherwise state that Jira will be omitted unless the user requires it.
 
 ## Workflow
 
@@ -127,7 +128,7 @@ Plan these phases:
 
 - Commit phase: needed if there are staged/unstaged changes or branch hygiene issues.
 - Rebase phase: recommended before PR unless the user explicitly skips.
-- Jira phase: needed if the user wants a Jira link or the project requires it.
+- Jira phase: needed if the user wants a Jira link, the project requires it, or optional Jira context/configuration is available enough to create/reuse a task safely; otherwise show "omitida: sin contexto/configuracion Jira" rather than asking a separate question.
 - PR phase: always included.
 - PR scope guardrail: validate that the PR contains one focused review unit; separate docs/orchestration and generated artifacts unless explicitly approved through the size/scope decision line.
 - Reviewer phase: after PR creation, request explicit reviewers or infer one clear reviewer when the accepted plan includes automatic reviewer handling; otherwise ask or skip according to user preference.
@@ -161,6 +162,8 @@ Unless the user explicitly skips history cleanup, load and follow `krt-rebase-sm
 
 If Jira context was provided, keep it.
 
+If `jira-policy:skip`, omit Jira lookup, creation, backlinking, and transition.
+
 If Jira context is missing and Jira should be included, load and follow `krt-jira-scribe`. Use Jira Server/Data Center only. For PRs that look like a review unit inside a larger delivery sequence, prefer finding or creating a parent task plus a subtask for the PR. Create a standalone task only when the work is clearly standalone or the user requests it. Before proposing creation, derive Spanish Jira text:
 
 - Summary: concise Spanish action phrase, no branch prefixes, no Conventional Commit type, no Jira key, no Compound Master IDs, and no package/date numbers.
@@ -170,7 +173,7 @@ If Jira context is missing and Jira should be included, load and follow `krt-jir
 
 Pass the Spanish summary and description explicitly to `krt-jira-scribe`. Create or reuse Jira issues only after confirmation. Capture the immediately relevant Jira URL for the PR body, usually the subtask for this PR.
 
-If required Jira env vars are missing, stop the Jira phase and ask whether to continue PR creation without Jira links.
+If required Jira env vars are missing, stop the Jira phase and ask whether to continue PR creation without Jira links only when `jira-policy:required`. With `jira-policy:optional`, record the missing configuration, omit Jira links/backlinks/transitions in the plan, and continue after the normal release-plan approval.
 
 ### 5. PR Preparation
 

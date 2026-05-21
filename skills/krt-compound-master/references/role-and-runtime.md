@@ -20,7 +20,7 @@ Resolve these logical roles:
 | `ci_investigator` | `krt-ci-questor` | optional CI escalation |
 | `gitflow_commit` | `krt-gitflow-knight` | shipping component |
 | `clean_rebase` | `krt-rebase-smith` | shipping component |
-| `jira_workflow` | `krt-jira-scribe` | shipping with Jira |
+| `jira_workflow` | `krt-jira-scribe` | shipping with required Jira, or preferred Jira when available |
 
 Resolution order:
 
@@ -34,7 +34,7 @@ Missing optional roles do not block:
 - Missing `security_review`: resolve another security-review skill or do direct evidence-based review.
 - Missing `ci_investigator`: do direct evidence-first triage if CI breaks.
 
-Missing required shipping roles block before shipping. Missing Jira blocks only when `jira-policy:required`.
+Missing required shipping roles block before shipping. Missing Jira blocks only when `jira-policy:required`; with the default optional policy, record the missing role/config/context and continue the no-Jira handoff path.
 
 ## Runtime Adapter
 
@@ -71,12 +71,18 @@ Record delegation mode, roles used, read-only/mutating status, outcome, confiden
 - `review-unit:<RU#>`: execute or resume only that review unit.
 - `production:unknown|live|preprod|prototype`: default `unknown` unless explicit context or strong repo evidence supports another value.
 - `pr-granularity:auto|review-unit|work-package|roadmap-item|plan-unit`: default `auto`, but review-unit is the normal PR unit.
-- `jira-policy:required|optional|skip`: default `required`.
+- `jira-policy:required|optional|skip`: default `optional`.
 - `parallel:false|true`: default `false`; `true` requires safe dependencies and isolation.
 - `delegation:auto|ask|inline`: default `auto`.
 - `autonomy:manual|guarded|high`: default `guarded`.
 - `review-threshold:P0-P2|P0-P1|P0`: default `P0-P2`.
 - `subagent-model:<value>`: runtime-specific advisory only.
+
+Jira policy semantics:
+
+- `optional`: Jira-preferred and non-blocking. During preflight, detect existing Jira keys/URLs, `krt-jira-scribe` availability, and required env var presence without printing secrets. During package and release handoff, include Spanish Jira summary/description and create/reuse guidance. If Jira context, role, or configuration is absent, record the degraded path and continue without asking whether Jira matters.
+- `required`: Jira traceability is part of the delivery contract. Missing Jira role, context needed for safe mutation, or required configuration blocks before shipping.
+- `skip`: Do not do Jira lookup, creation, backlinking, or transition; record that Jira was intentionally skipped.
 
 ## Paths And State
 

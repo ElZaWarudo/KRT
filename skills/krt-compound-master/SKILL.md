@@ -29,7 +29,7 @@ Arguments:
 [subagent-model:<runtime-specific-model>]
 ```
 
-Default posture: artifact-first after discovery. Generate durable artifacts from explicit context and user decisions; execute later only when the user explicitly asks or `mode:full` reaches its execution gate.
+Default posture: artifact-first after discovery. Generate durable artifacts from explicit context and user decisions; execute later only when the user explicitly asks or `mode:full` reaches its execution gate. Treat Jira as preferred delivery traceability by default: look for existing Jira context and configuration, pass useful Jira handoff inputs forward, and degrade without blocking when Jira is unavailable unless `jira-policy:required` is explicit.
 
 ## Progressive Loading
 
@@ -57,7 +57,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 
 ## Core Pipeline
 
-1. Preflight roles, repo, branch, delegation, Jira readiness, production posture, and context.
+1. Preflight roles, repo, branch, delegation, Jira posture, production posture, and context.
 2. Invoke the resolved roadmap generator for exactly one roadmap or readiness report.
 3. Review the roadmap or stop on readiness.
 4. Run one interactive brainstorm per roadmap item before finalizing requirements.
@@ -83,7 +83,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 - Do not continue past roadmap generation when context is insufficient.
 - Do not skip interactive brainstorm unless explicitly asked to skip discovery or run non-interactively; record the override and risks.
 - Do not invent product behavior, authorization rules, data contracts, Jira transitions, release constraints, branch bases, or dependency edges.
-- Give agents explicit decision rights before execution; escalate product behavior, auth/data contracts, destructive operations, public contract removal, branch/base strategy, Jira/PR workflow, and production compatibility breakage.
+- Give agents explicit decision rights before execution; escalate product behavior, auth/data contracts, destructive operations, public contract removal, branch/base strategy, required Jira/PR workflow decisions, and production compatibility breakage.
 - Do not invent production posture. Use `production:unknown` unless explicit user context or strong repo evidence supports another value.
 - Treat `production:live` as compatibility-preserving; breaking existing behavior requires explicit approval and rationale.
 - Use repo-relative paths in generated documents.
@@ -101,6 +101,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 - Use a verification ladder: targeted diagnostic, natural affected suite, then repo-specific CI-equivalent command before release handoff or CI-fix PR update.
 - Treat PR creation as a handoff milestone, not proof that CI is healthy.
 - Never ask for Jira credentials.
+- Do not repeatedly ask whether Jira should be used. With the default optional policy, attempt Jira when context/configuration is already present; otherwise record Jira as a non-blocking omitted handoff and continue. Ask only for `jira-policy:required`, ambiguous Jira mutations, or user-visible release-plan approval that already names the intended Jira action and fallback.
 
 ## Stop Discipline
 
