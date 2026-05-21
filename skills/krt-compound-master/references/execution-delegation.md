@@ -14,10 +14,12 @@ Classify packages and review units:
 
 Rules:
 
+- Prefer changing branches in the current checkout for serial work. Do not create a worktree just to move between review units or bases.
 - Independent review units may branch from the integration base.
 - Dependent review units wait for merge or become stacked PRs based on parent branch.
 - Overlapping/high-risk/production-sensitive review units run serially unless the user explicitly accepts risk and isolation exists.
-- `parallel:true` requires isolated worktrees/checkouts, non-overlapping scopes, safe dependencies, and `autonomy:high`.
+- `parallel:true` with mutating workers requires isolated worktrees/checkouts, non-overlapping scopes, safe dependencies, and `autonomy:high`.
+- Use worktrees/checkouts only when isolation is required for parallel mutation, overlapping branches, unsafe branch switching, or an explicit user/runtime isolation constraint.
 - Without isolation, delegated workers must not stage, commit, push, create PRs, transition Jira, or run broad mutation-prone flows.
 
 If execution has no `package:`, select the first unblocked package and first ready review unit from the earliest safe wave. If the package has no review units, derive them before execution using `artifact-templates.md`.
@@ -32,6 +34,7 @@ If execution has no `package:`, select the first unblocked package and first rea
 | Risky or fresh perspective needed | Use code review plus optional read-only fan-out |
 | Independent, isolated, non-overlapping units | Parallel workers only with explicit safe mode |
 | Ambiguous ownership, overlap, missing isolation, or product/branch decision | Run inline or stop for decision |
+| Serial branch/base change | Switch branch in current checkout |
 
 ## Autonomy Contract
 

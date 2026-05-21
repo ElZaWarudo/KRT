@@ -74,7 +74,7 @@ If `mode:artifacts`, stop after artifact closeout with exact next invocation, in
 
 Load `execution-flow.md`, then `execution-delegation.md`. Resolve autonomy/delegation and classify packages and review units as independent, dependent, overlapping, high-risk, and production-sensitive.
 
-Execute serially unless `parallel:true`, `autonomy:high`, dependencies, isolation, and non-overlapping scopes make parallel execution safe.
+Execute serially unless `parallel:true`, `autonomy:high`, dependencies, isolation, and non-overlapping scopes make parallel execution safe. For serial execution, prefer switching branches in the current checkout; reserve worktrees/checkouts for parallel mutation or explicit isolation needs.
 
 ## Step 7 - Execute Review Unit
 

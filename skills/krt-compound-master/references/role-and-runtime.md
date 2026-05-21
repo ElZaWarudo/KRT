@@ -41,6 +41,7 @@ Missing required shipping roles block before shipping. Missing Jira blocks only 
 The portable core is role-based. Subagents are optional runtime adapters.
 
 - Use delegated agents only when the host supports them and the work can be isolated safely.
+- Prefer normal branch switching in the current checkout over creating worktrees. Use isolated worktrees/checkouts only when parallel mutating workers, overlapping scopes, or explicit isolation requirements make a single checkout unsafe.
 - Keep the lead as supervisor; subagents do not coordinate with each other.
 - Do not add free-form swarm behavior. Use bounded delegation and reviewer fan-out only when useful and recorded.
 - Distinguish direct KRT-owned agent launch from invoking another resolved skill. Do not downgrade `document_review`, `work`, or `code_review` just because that skill may internally launch agents.
@@ -51,7 +52,7 @@ Resolve delegation at the start of execution (`mode:execute`, execution resume, 
 - `delegation:ask`, `autonomy:manual`, `parallel:true` without `autonomy:high`, or "con subagentes": ask before mutating subagents.
 - `delegation:auto`: use `autonomy:guarded` unless explicit.
 - `autonomy:guarded`: read-only agents and one scoped worker may run when ownership is clear and no blocking decision remains.
-- `autonomy:high`: parallel workers only with `parallel:true`, isolated worktrees/checkouts, non-overlapping scopes, dependencies, and fallback branch strategy.
+- `autonomy:high`: parallel mutating workers only with `parallel:true`, isolated worktrees/checkouts, non-overlapping scopes, dependencies, and fallback branch strategy. If work is serial, prefer branch changes in the current checkout.
 
 Delegation budget:
 
