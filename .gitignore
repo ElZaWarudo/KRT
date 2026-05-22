@@ -2,6 +2,10 @@ __pycache__/
 *.py[cod]
 
 docs/*
+!docs/harnesses/
+docs/harnesses/*
+!docs/harnesses/**/
+!docs/harnesses/**/*.md
 !docs/orchestration/
 docs/orchestration/*
 !docs/orchestration/autonomy-ledgers/

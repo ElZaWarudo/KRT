@@ -21,7 +21,7 @@ Formal skill IDs use the Every-style hyphen form (`krt-*`). Some runtimes may ex
 
 | Alias | Formal skill ID | Purpose |
 |---|---|---|
-| `$krt:harness-wise` | `krt-harness-wise` | Build or review a compact coding harness before implementation. Good for repo reconnaissance, context curation, stale-doc checks, risk estimates, and skill recommendations. |
+| `$krt:harness-wise` | `krt-harness-wise` | Create versionable coding harnesses from project docs and agent initialization context, or diagnose and improve an existing harness before planning or implementation. |
 | `$krt:roadmap-cartographer` | `krt-roadmap-cartographer` | Generate exactly one roadmap or readiness report from existing project context before compound delivery. |
 | `$krt:compound-master` | `krt-compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, document reviews, work packages, execution gates, code review, and PR/Jira handoff. |
 | `$krt:state-archivist` | `krt-state-archivist` | Keep Compound Master state compact by archiving long historical detail into linked files. |
@@ -99,16 +99,16 @@ Prepare a coding harness before touching a repo:
 Use $krt:harness-wise before adding invoice CSV export.
 ```
 
-Save the harness as a markdown artifact for the next agent:
+Create a versionable harness artifact for the next agent:
 
 ```text
 Use $krt:harness-wise and generate a harness file for adding invoice CSV export.
 ```
 
-Trim noisy docs before a feature:
+Diagnose and improve an existing harness:
 
 ```text
-Use $krt:harness-wise docs-trim before working on billing.
+Use $krt:harness-wise to improve docs/harnesses/billing-refactor.md.
 ```
 
 Audit repository health:
