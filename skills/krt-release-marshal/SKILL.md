@@ -5,7 +5,7 @@ description: "Orchestrate the full delivery flow for the current project reposit
 
 # Release Marshal
 
-Orchestrate the normal KRT delivery flow: commit -> rebase -> Jira -> push/PR -> reviewers -> Jira PR backlink -> Jira review transition. Do not introduce a separate "commit-task-PR" mode.
+Orchestrate the normal KRT delivery flow: commit -> rebase -> Jira -> push/PR -> reviewers -> Jira PR backlink -> Jira review transition. Do not introduce a separate "commit-task-PR" mode. Opening a PR is a handoff for human review; merging is a separate protected action.
 
 The marshal directs component skills instead of duplicating them:
 
@@ -28,7 +28,8 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - Use the host runtime's command wrapper only when the current repo requires one.
 - Use `gh` for GitHub PR operations.
 - Never create a PR from protected branches: `main`, `master`, or `develop`.
-- Never merge PRs or branches without explicit user approval for that exact merge action, even after a release plan was accepted.
+- Never merge PRs or branches without explicit user approval for that exact merge action, even after a release plan was accepted. The approval text must identify the PR and say to merge it now; generic approval to "ship", "continue", "release", or accept the release plan is not merge approval.
+- Never merge a PR unless GitHub shows human reviewer approval for the PR and no blocking change requests remain. Internal code review, Compound Master review, CI evidence, author approval, or the agent's own judgment cannot substitute for human reviewer approval.
 - Prefer `develop` as PR base when it exists; otherwise use the repository default branch unless the user or enclosing workflow provided a base.
 - Never include LLM attribution in PR title/body or commit messages.
 - Never include Compound Master planning IDs or package numbers in PR titles, PR body bullets, branch names, or commit messages unless the user or repo convention explicitly requires them.
@@ -61,6 +62,8 @@ Ask before destructive, irreversible, external, or notification-causing work unl
 - Remote branch rewrites.
 
 One explicit release-plan approval may cover reviewer requests, automatic post-PR Jira PR backlinking, and automatic post-PR Jira transition to `En Revisión` if the plan names the behavior and fallback. For Jira PR backlinking, the plan must name the issue and PR link behavior. For Jira transition, the plan must name the issue and target status. For reviewer requests, the plan may name explicit reviewers or authorize automatic lookup and request of a clear inferred human reviewer.
+
+Merge approval cannot be bundled into the release-plan approval. If the user asks to merge, first inspect the PR's review and check state, then ask for or require the exact merge authorization only after human reviewer approval is visible. If approvals or checks are missing, report the missing gate and stop without merging.
 
 ## Inputs
 
@@ -110,6 +113,7 @@ Build and show a phase plan in the user's language. For Spanish-language interac
 - Guardarraíl de alcance de PR:
 - Decisión de tamaño/alcance:
 - Fase de reviewers:
+- Fase de merge:
 - Fase de backlink PR en Jira:
 - Fase de transición Jira:
 - Mutaciones remotas cubiertas por esta aprobación:
@@ -118,7 +122,7 @@ Build and show a phase plan in the user's language. For Spanish-language interac
 ¿Apruebas este plan de release?
 ```
 
-Fill every line with a concrete value in the same language as the labels, such as `necesaria`, `omitida`, `automática después de crear la PR`, `dentro de la review unit`, `conviene separar`, `separar antes de PR`, `aprobar PR grande por acoplamiento técnico`, or `preguntaré antes de ejecutar`. Include exact branch names, Jira issue keys/URLs when known, Spanish Jira summary/description to create when known, push commands when known, PR draft/ready intent, PR scope guardrail result, size/scope decision, reviewer behavior, Jira PR backlink behavior, and Jira transition behavior. If a value is not known yet, say what local read-only step will resolve it inside the accepted plan.
+Fill every line with a concrete value in the same language as the labels, such as `necesaria`, `omitida`, `automática después de crear la PR`, `dentro de la review unit`, `conviene separar`, `separar antes de PR`, `aprobar PR grande por acoplamiento técnico`, or `preguntaré antes de ejecutar`. `Fase de merge` must say `omitida: la PR queda esperando aprobaciones humanas y autorización exacta de merge posterior` unless the current task is already an explicit merge request that has passed the merge gate below. Include exact branch names, Jira issue keys/URLs when known, Spanish Jira summary/description to create when known, push commands when known, PR draft/ready intent, PR scope guardrail result, size/scope decision, reviewer behavior, merge posture, Jira PR backlink behavior, and Jira transition behavior. If a value is not known yet, say what local read-only step will resolve it inside the accepted plan.
 
 The plan must be in the final/user-visible response for the gate. Do not only summarize that a plan exists. Do not continue into commit, rebase, Jira creation/update, push, PR creation/update, reviewer request, Jira PR backlink, or Jira transition until the user accepts this visible plan.
 
@@ -132,6 +136,7 @@ Plan these phases:
 - PR phase: always included.
 - PR scope guardrail: validate that the PR contains one focused review unit; separate docs/orchestration and generated artifacts unless explicitly approved through the size/scope decision line.
 - Reviewer phase: after PR creation, request explicit reviewers or infer one clear reviewer when the accepted plan includes automatic reviewer handling; otherwise ask or skip according to user preference.
+- Merge phase: omitted from the normal release flow. A later merge requires a fresh PR-state inspection, visible human reviewer approval, passing required checks, no blocking change requests, and exact user authorization for that PR.
 - Jira PR backlink phase: after a ready PR exists, add the PR URL back to the associated Jira task/subtask when Jira context exists and the accepted plan included that backlink; otherwise ask.
 - Jira transition phase: after a ready PR exists, move the associated Jira task to `En Revisión` when Jira context exists and the accepted plan included that transition; otherwise ask.
 

@@ -10,7 +10,7 @@ description: >
 
 # Compound Master
 
-Coordinate existing skills. Do not replace Compound Engineering, do not duplicate `krt-release-marshal`, and do not ship from the work phase.
+Coordinate existing skills. Do not replace Compound Engineering, do not duplicate `krt-release-marshal`, and do not ship from the work phase. Compound Master may prepare PRs for review through release handoff, but it never owns PR or branch merges.
 
 Arguments:
 
@@ -96,6 +96,8 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 - Keep planning IDs out of human-facing release text.
 - Do not let work invoke PR creation, Jira transitions, or shipping workflows.
 - Do not open PRs from protected branches.
+- Do not merge PRs or branches, imply that merge is authorized, or pass merge intent to another role. A PR merge is outside Compound Master autonomy in every mode, including `mode:full`; it requires a separate exact user approval after reviewer approvals are visible on the PR.
+- Treat internal code-review, Security Sentinel, CI break-prevention evidence, and an accepted release plan as readiness signals only. They never substitute for GitHub reviewer approval or explicit human merge authorization.
 - Treat verification results as release-readiness evidence, not public PR copy.
 - Require an Impact Scan before `review-passed` when a review unit changes API contracts, endpoints, bindings, shared helpers, schemas, payloads, auth/tenant/ownership behavior, or fixture contracts.
 - Use a verification ladder: targeted diagnostic, natural affected suite, then repo-specific CI-equivalent command before release handoff or CI-fix PR update.
@@ -107,7 +109,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 
 Whenever this skill stops, return a visible closeout with current phase/status, written or updated paths, ready work, blockers or "No blockers", recommended next action, and exact next invocation.
 
-Do not stop between a passing work/verification/review loop and `krt-release-marshal`; the user-facing approval pause belongs inside `krt-release-marshal`.
+Do not stop between a passing work/verification/review loop and `krt-release-marshal`; the user-facing approval pause for commits, push, PR creation, reviewer requests, Jira backlinking, and Jira transition belongs inside `krt-release-marshal`. Never treat that pause as merge approval.
 
 When a package waits on an open parent PR and the user says "continue", fetch and inspect the integration base before choosing the next review unit. Prefer a stacked PR from the parent review-unit branch only when the base check supports it; record dependency context in state, not PR body.
 

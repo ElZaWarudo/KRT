@@ -175,3 +175,21 @@ After creation, show:
 ```bash
 gh pr view --json number,title,url,state,baseRefName,headRefName
 ```
+
+## Merge Gate
+
+Merging is not part of the normal release flow. If the user explicitly asks to merge a PR, inspect state before any merge command:
+
+```bash
+gh pr view <number> --json number,title,url,state,isDraft,mergeStateStatus,reviewDecision,statusCheckRollup,reviews,baseRefName,headRefName
+```
+
+Required before merge:
+
+- The user gave exact merge authorization for this PR after review state was inspected.
+- The PR is open and not draft.
+- `reviewDecision` is `APPROVED`, with at least one visible human reviewer approval that is not from the PR author/current agent account.
+- No unresolved `CHANGES_REQUESTED` review remains after the latest approval.
+- Required checks are passing or the user explicitly overrides a non-required/check-unavailable condition after seeing the state.
+
+If any required gate is missing, report the missing approval/check/change-request state and stop. Do not run `gh pr merge`, do not enable auto-merge, and do not merge a branch locally.

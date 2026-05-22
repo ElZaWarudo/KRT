@@ -2,7 +2,7 @@
 
 Load only when a selected review unit has passed implementation, verification, review, and required security gates.
 
-Do not duplicate `krt-release-marshal`; hand off with enough context for it to build the visible release plan.
+Do not duplicate `krt-release-marshal`; hand off with enough context for it to build the visible release plan. This handoff may authorize preparation for review only; it must not authorize or suggest merging a PR.
 
 ## Handoff Prompt
 
@@ -32,7 +32,7 @@ Impact Scan for release-readiness only:
 CI risk notes for release-readiness only:
 - <changed CI surface/local equivalent command/result or CI-only gap>
 
-Use krt-release-marshal exactly. Do not run tests unless the user explicitly asks; use verification and CI notes only to decide readiness. Do not include tests, verification summaries, stack/dependency context, future retargeting notes, or CI risk notes in the PR body unless the user, repo template, or project convention explicitly requires them. Include automatic reviewer handling in the release plan. Treat jira-policy:optional as Jira-preferred but non-blocking: include Jira lookup/creation/backlink/transition when context and configuration are available, and otherwise state the no-Jira fallback in the release plan without asking a separate Jira-usage question. Include automatic post-PR Jira backlinking and Jira transition to En Revisión when Jira context exists.")
+Use krt-release-marshal exactly. Do not run tests unless the user explicitly asks; use verification and CI notes only to decide readiness. Do not include tests, verification summaries, stack/dependency context, future retargeting notes, or CI risk notes in the PR body unless the user, repo template, or project convention explicitly requires them. Include automatic reviewer handling in the release plan. Treat jira-policy:optional as Jira-preferred but non-blocking: include Jira lookup/creation/backlink/transition when context and configuration are available, and otherwise state the no-Jira fallback in the release plan without asking a separate Jira-usage question. Include automatic post-PR Jira backlinking and Jira transition to En Revisión when Jira context exists. Do not merge, request merge, or treat this handoff as merge approval; the closeout must leave the PR awaiting human reviewer approval and a later exact merge authorization.")
 ```
 
 Suggested Jira summary/description must be semantic Spanish text. PR title/body bullets, branch name, suggested commit groups, and commit messages must be semantic and follow repo conventions. Do not include roadmap IDs, U-IDs, package numbers, date sequences, or other Compound Master numbering unless the user or repo convention explicitly requires them.
@@ -52,6 +52,7 @@ After handoff, update state with:
 - PR URL if created.
 - Jira URL if created/reused.
 - Reviewer behavior.
+- Merge status: not attempted; requires reviewer approval plus separate exact user merge authorization.
 - Jira backlink/transition behavior.
 - CI break-prevention evidence location.
 - Release-follow-up blockers, if any.
