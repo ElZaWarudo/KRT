@@ -194,7 +194,7 @@ gh pr view <number> --json number,title,url,state,isDraft,mergeStateStatus,revie
 
 Required before merge:
 
-- The user gave exact merge authorization for this PR after review state was inspected.
+- The user gave merge authorization for this PR after review state was inspected. Generic approval such as `dale`, `ok`, or `sí` is sufficient only when it directly answers an explicit pending merge prompt for the already resolved PR number.
 - The PR is open and not draft.
 - `reviewDecision` is `APPROVED`, with at least one visible human reviewer approval that is not from the PR author/current agent account.
 - No unresolved `CHANGES_REQUESTED` review remains after the latest approval.
