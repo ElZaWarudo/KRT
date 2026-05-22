@@ -1,0 +1,10 @@
+{
+  "issue_key": "KRT-42",
+  "ledger_jira_keys": ["KRT-42"],
+  "remote_links": [
+    {
+      "globalId": "github-pr:https://github.com/acme/widgets/pull/41",
+      "object": {"url": "https://github.com/acme/widgets/pull/41"}
+    }
+  ]
+}

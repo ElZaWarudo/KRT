@@ -198,6 +198,19 @@ curl -sS -f -X POST -H "Authorization: Bearer $JIRA_API_TOKEN" \
   "$JIRA_BASE_URL/rest/api/2/issue/$ISSUE_KEY/transitions"
 ```
 
+## Autonomous Validators
+
+Before autonomous Jira mutation, Release Marshal's executor must call the matching validator:
+
+```bash
+python3 <jira-scribe-skill-dir>/scripts/check_jira_text.py --text "<Spanish text>"
+python3 <jira-scribe-skill-dir>/scripts/check_jira_issue_mutation.py --mutation-class jira_create --fixture <live-state-json>
+python3 <jira-scribe-skill-dir>/scripts/check_jira_binding.py --mutation-class jira_backlink --fixture <live-state-json>
+python3 <jira-scribe-skill-dir>/scripts/check_jira_transition.py --mutation-class jira_transition_done --fixture <live-state-json>
+```
+
+Autonomous completion to `Hecho` requires an exact ledger-bound Jira key, a one-to-one PR remote link, GitHub evidence that the linked PR is merged, and an exact transition ID when multiple done-like transitions exist. Existing `Hecho` status is a no-op success only when the issue is bound to the merged PR.
+
 ## HTTP Error Handling
 
 - Use `curl -sS -f` for reads where any error should stop the flow.

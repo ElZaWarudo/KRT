@@ -1,0 +1,12 @@
+{
+  "issue_key": "KRT-42",
+  "project": "KRT",
+  "status": "En revision",
+  "status_category": "indeterminate",
+  "bound_pr_merged": true,
+  "remote_link_matches_pr": true,
+  "transitions": [
+    {"id": "31", "name": "Hecho", "to": {"statusCategory": {"key": "done"}}},
+    {"id": "41", "name": "Cerrado", "to": {"statusCategory": {"key": "done"}}}
+  ]
+}

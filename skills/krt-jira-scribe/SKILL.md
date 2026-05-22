@@ -7,14 +7,16 @@ description: Manages Jira Server/Data Center issues on a Spanish-language instan
 
 Manage Jira Server/Data Center issues safely in Spanish. This skill verifies existing global issues and subtasks, prefers fitting new work under existing parent issues, proposes creation only when the right Jira shape is clear, records PR backlinks on Jira issues, and handles final status transitions.
 
-Since Jira is a shared external system, never create issues, subtasks, PR backlinks, comments, or transitions without explicit confirmation. Confirmation may come from the current Jira prompt or from an accepted `krt-release-marshal` plan that explicitly names the issue, PR backlink behavior, target status, and automatic post-PR behavior.
+Since Jira is a shared external system, never create issues, subtasks, PR backlinks, comments, or transitions without explicit confirmation. Confirmation may come from the current Jira prompt, from an accepted `krt-release-marshal` plan that explicitly names the issue, PR backlink behavior, target status, and automatic post-PR behavior, or from an active autonomy ledger executed through Release Marshal's deterministic mutation executor.
 
 Load `references/jira-api.md` for exact `curl` commands, JSON payloads, active sprint API calls, transition calls, and HTTP error handling.
+For autonomous Jira mutation, use bundled scripts in `scripts/`: text, issue payload, backlink binding, and transition validators. These scripts validate; Release Marshal's executor performs the audited mutation.
 
 ## Spanish Jira Rules
 
 - Issue types are localized: `Tarea`, `Subtarea`, `Historia`, `Error`, `Epic` (Epic is often kept in English).
 - Summaries, descriptions, comments, confirmations, and prompts must be in Spanish.
+- Autonomous summaries/descriptions/comments must also pass `scripts/check_jira_text.py`; planning IDs, package IDs, date sequences, conventional commit prefixes, and PR operation chatter are blocked.
 - Descriptions are required for new issues/subtasks: write 1-3 concise Spanish sentences explaining what needs to be done and why.
 - Transition names are localized. Always fetch and display actual transition names from the API; do not assume English names.
 - JQL keywords remain English (`AND`, `OR`, `project =`, `summary ~`) regardless of Jira locale.
@@ -166,6 +168,8 @@ Before adding a PR backlink/comment, show:
 - Comment text, if adding a comment.
 
 Do not execute remote changes until the user confirms. For release-marshal initiated post-PR backlinks, the accepted release plan counts as confirmation only when it explicitly approved automatic backlinking of the named Jira issue to the PR URL that will be created or updated in that flow. For release-marshal initiated post-PR transitions, the accepted release plan counts as confirmation only when it explicitly approved automatic transition of the named Jira issue to `En Revisión`.
+
+For autonomous mode, the ledger plus executor validation counts as confirmation only for the exact issue key, PR URL, transition ID/status, and mutation class in scope. Markdown state is never enough authority for Jira mutation.
 
 ## Final Summary
 

@@ -1,0 +1,11 @@
+{
+  "issue_key": "KRT-42",
+  "project": "KRT",
+  "status": "Abierto",
+  "status_category": "new",
+  "bound_pr_merged": false,
+  "remote_link_matches_pr": true,
+  "transitions": [
+    {"id": "21", "name": "En Revisión", "to": {"statusCategory": {"key": "indeterminate"}}}
+  ]
+}

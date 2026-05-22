@@ -1,0 +1,12 @@
+{
+  "duplicate_candidates": 0,
+  "subtask": true,
+  "parent_key": "KRT-40",
+  "payload": {
+    "project": "KRT",
+    "issuetype": "Sub-task",
+    "parent": "KRT-40",
+    "summary": "Validar el flujo autonomo con controles deterministas",
+    "description": "Permite que el agente continue con una tarea acotada y con auditoria visible para el equipo."
+  }
+}
