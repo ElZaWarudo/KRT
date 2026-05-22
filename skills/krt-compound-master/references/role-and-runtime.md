@@ -17,6 +17,7 @@ Resolve these logical roles:
 | `code_review` | `ce-review` | execution |
 | `security_review` | `krt-security-sentinel` | high-risk review units |
 | `project_pr` | `krt-release-marshal` | shipping |
+| `mutation_executor` | `krt-release-marshal` | autonomous external mutation |
 | `ci_investigator` | `krt-ci-questor` | optional CI escalation |
 | `gitflow_commit` | `krt-gitflow-knight` | shipping component |
 | `clean_rebase` | `krt-rebase-smith` | shipping component |
@@ -35,6 +36,8 @@ Missing optional roles do not block:
 - Missing `ci_investigator`: do direct evidence-first triage if CI breaks.
 
 Missing required shipping roles block before shipping. Missing Jira blocks only when `jira-policy:required`; with the default optional policy, record the missing role/config/context and continue the no-Jira handoff path.
+
+Autonomous external mutation also requires the `mutation_executor` role and the ledger validator from `krt-compound-master`. If either is missing, autonomous shipping degrades to validation-only/manual-required mode before any PR, branch, reviewer, Jira, or merge side effect.
 
 ## Runtime Adapter
 
@@ -76,6 +79,7 @@ Record delegation mode, roles used, read-only/mutating status, outcome, confiden
 - `parallel:false|true`: default `false`; `true` requires safe dependencies and isolation.
 - `delegation:auto|ask|inline`: default `auto`.
 - `autonomy:manual|guarded|high`: default `guarded`.
+- `autonomous-ledger:<path>`: machine-readable authorization ledger for autonomous external mutation. `autonomy:high` without this ledger does not authorize external side effects.
 - `review-threshold:P0-P2|P0-P1|P0`: default `P0-P2`.
 - `subagent-model:<value>`: runtime-specific advisory only.
 
@@ -85,12 +89,20 @@ Jira policy semantics:
 - `required`: Jira traceability is part of the delivery contract. Missing Jira role, context needed for safe mutation, or required configuration blocks before shipping.
 - `skip`: Do not do Jira lookup, creation, backlinking, or transition; record that Jira was intentionally skipped.
 
+Autonomous ledger semantics:
+
+- The ledger JSON is the authority for allowed mutation classes, target scope, expiry, issuer binding, and audit path.
+- Markdown state may link to the ledger and summarize it, but scripts must validate the JSON directly before mutation.
+- Active ledgers require issuer identity or an approval artifact reference/hash. Missing issuer binding blocks autonomous external mutation.
+- Runtime permissions or credential routing must constrain mutation paths to the executor. If they cannot, the run may continue local work but external mutation remains manual-required.
+
 ## Paths And State
 
 Create as needed:
 
 ```text
 docs/orchestration/
+docs/orchestration/autonomy-ledgers/
 docs/orchestration/archive/compound-master-state/
 docs/roadmaps/
 docs/work-packages/RDM-###-<roadmap-item-slug>/

@@ -15,6 +15,24 @@ DOC_SECTIONS = (
     "docs/orchestration/compound-master-state.md",
 )
 
+MUTATION_CLASSES = {
+    "branch_push",
+    "branch_force_push",
+    "branch_cleanup",
+    "pr_create",
+    "pr_update",
+    "pr_ready",
+    "reviewer_request",
+    "jira_create",
+    "jira_update",
+    "jira_backlink",
+    "jira_transition_review",
+    "jira_transition_done",
+    "pr_merge",
+    "pr_merge_queue",
+    "pr_auto_merge",
+}
+
 
 def section(text: str, heading: str) -> str:
     pattern = re.compile(rf"^## {re.escape(heading)}\n(.*?)(?=^## |\Z)", re.M | re.S)
@@ -34,6 +52,20 @@ def main() -> int:
 
     if "review_units:" not in text:
         errors.append("frontmatter must include review_units: [RU1, ...]")
+
+    autonomous_ledger = re.search(r"^autonomous_ledger:\s*(.+)$", text, re.M)
+    allowed_mutations = re.search(r"^allowed_mutation_classes:\s*\[(.*?)\]\s*$", text, re.M)
+    if autonomous_ledger:
+        ledger_value = autonomous_ledger.group(1).strip()
+        if ledger_value not in {"none", "null", "[]"} and not ledger_value.startswith("docs/orchestration/autonomy-ledgers/"):
+            errors.append("autonomous_ledger must be none or a docs/orchestration/autonomy-ledgers/ path")
+        if ledger_value not in {"none", "null", "[]"} and not allowed_mutations:
+            errors.append("autonomous_ledger requires allowed_mutation_classes: [...]")
+    if allowed_mutations:
+        raw_values = [value.strip().strip("'\"") for value in allowed_mutations.group(1).split(",") if value.strip()]
+        invalid = [value for value in raw_values if value not in MUTATION_CLASSES]
+        if invalid:
+            errors.append(f"invalid allowed_mutation_classes: {', '.join(invalid)}")
 
     review_units = section(text, "Review Units")
     if not review_units:

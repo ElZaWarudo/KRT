@@ -10,6 +10,7 @@ Track:
 - Resolved roles and aliases.
 - Runtime adapter/delegation availability.
 - Autonomy mode and package autonomy contracts.
+- Autonomous ledger path, contract ID, contract status, allowed mutation classes, expiry, last contract hash checked, latest audit event hash, and current executor mode (`manual-required`, `validation-only`, or `executor-enabled`) when autonomous mode is requested.
 - Delegation decisions and telemetry: selected mode, reason, roles used, read-only/mutating classification, autonomous decisions made, escalations avoided or raised, outcome, confidence, approximate duration, and loop effect.
 - Source docs and context readiness result.
 - State archive status: compact state path, archive snapshot path, and whether `krt-state-archivist` completed or the run used a degraded inline/no-archive path.
@@ -21,6 +22,7 @@ Track:
 - Impact Scan status: required yes/no, changed contracts, scan patterns, consumers found, contract-drift tests searched, required consumer tests, run/skipped results.
 - Surface-aware verification results, code-review status, Security Watch notes, security review status, review fan-out roles, deduplicated findings, and advisory findings.
 - Jira URLs, PR URLs, reviewers, CI break-prevention evidence, and CI incident/escalation reports when a failure is surfaced.
+- Autonomous PR/Jira snapshots: PR URL, Jira URL, reviewer approval status, required-check summary, merge eligibility, merge outcome, Jira completion eligibility, transition outcome, and audit event links. These are history and resume hints, not permission authority.
 - Jira policy and posture: required/optional/skip, existing issue context, role/config availability, created/reused URL, or non-blocking omitted reason.
 - Blockers and required user decisions.
 - Agent assumptions and safe local decisions that affected implementation, verification, or review.
@@ -53,6 +55,9 @@ ci-prevention-ready
 ci-incident-reported
 ci-incident-escalated
 ci-blocked
+autonomous-validation-only
+autonomous-blocked
+autonomous-audit-reconcile
 blocked
 completed
 ```
@@ -75,6 +80,8 @@ Stop and write the blocker into `compound-master-state.md` when:
 - Security review is required after the work-review loop and P0/P1 findings remain unresolved, or a P2 finding affects auth, tenant isolation, secrets, public API security, PII, supply chain, or deployment exposure.
 - Branch base is ambiguous or would degrade the git tree.
 - Jira is required but role, context, or configuration needed for safe mutation is missing.
+- Autonomous external mutation is requested but the ledger is missing, expired, revoked, superseded, scope-mismatched, missing issuer binding, or has a contract/audit hash mismatch.
+- Autonomous external mutation is requested but the executor, validator, live-state input, runtime enforcement boundary, or pre-execution audit write is unavailable.
 - PR handoff would duplicate a PR or target the wrong base.
 - The resolved `work` role already shipped and `krt-release-marshal` would duplicate it.
 - A CI failure is surfaced by the user or release workflow and remains untriaged, package-owned without a fix plan, external/unknown without evidence, or requires a user-approved bypass.
@@ -97,5 +104,7 @@ For review-blocked closeouts, also include latest findings path, unresolved find
 For security-blocked closeouts, include the security finding evidence, affected asset/actor, required remediation, verification path, and whether `krt-security-sentinel` or a fallback reviewer produced the finding.
 
 For shipping-blocked closeouts, include the exact missing input, missing role, Jira config issue, duplicate PR, or base/branch ambiguity.
+
+For autonomous-blocked closeouts, include ledger path, contract ID, mutation class, target, validator block reasons, latest audit event hash, whether safe independent work may continue, and the exact manual approval or reconciliation needed.
 
 For CI-blocked closeouts, include PR URL, failing check/run, likely reason if known, ownership classification, evidence, current confidence, and the exact next action: invoke `krt-ci-questor`, provide missing run/log context, or approve a focused fix/bypass decision.

@@ -45,6 +45,8 @@ pr_strategy: [independent|stacked]
 jira_policy: [required|optional|skip]
 production_posture: [unknown|live|preprod|prototype]
 autonomy: [manual|guarded|high]
+autonomous_ledger: [none|docs/orchestration/autonomy-ledgers/<contract-id>.json]
+allowed_mutation_classes: []
 ---
 
 # [Work package title]
@@ -61,6 +63,8 @@ autonomy: [manual|guarded|high]
 - Agent must record as assumptions: [repo conventions inferred, low-risk path choices, skipped verification with blocker, compatible adjustments]
 - Agent must escalate: [product behavior, authorization/tenant/data contracts, destructive data operations, public API breakage, production deployment/rollback impact, branch/base strategy, Jira/PR workflow, credentials, paid external resources, or scope outside this package]
 - Safe fallback: [continue exploration/tests/implementation that do not depend on the blocked decision; otherwise return the blocked decision and exact next question]
+- Autonomous ledger: [none / repo-relative ledger path]
+- Allowed external mutation classes: [only when a valid ledger authorizes them; otherwise none]
 
 ## Dependencies
 - Requires: [None / package IDs / branch / PR]
@@ -139,6 +143,7 @@ Rules:
 - PR body bullets:
 - Verification results location:
 - Production/deployment notes: [required for live/unknown systems when behavior, schema, config, or deployment changes; otherwise none]
+- Autonomous mutation request: [none / mutation classes plus ledger path and latest audit hash]
 
 ## Jira Handoff Inputs
 - Jira policy: [required|optional|skip]

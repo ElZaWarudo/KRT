@@ -21,6 +21,7 @@ Rules:
 - `parallel:true` with mutating workers requires isolated worktrees/checkouts, non-overlapping scopes, safe dependencies, and `autonomy:high`.
 - Use worktrees/checkouts only when isolation is required for parallel mutation, overlapping branches, unsafe branch switching, or an explicit user/runtime isolation constraint.
 - Without isolation, delegated workers must not stage, commit, push, create PRs, transition Jira, or run broad mutation-prone flows.
+- Delegated workers never perform autonomous external mutation. They may produce implementation output and validator-ready facts; Release Marshal's executor owns PR, branch, reviewer, Jira, and merge side effects.
 
 If execution has no `package:`, select the first unblocked package and first ready review unit from the earliest safe wave. If the package has no review units, derive them before execution using `artifact-templates.md`.
 
@@ -43,6 +44,7 @@ Every work package/review unit should state:
 - Agent may decide: reversible, package-local, convention-following choices.
 - Agent must record: inferred conventions, low-risk path choices, skipped verification with blocker, compatible adjustments.
 - Agent must escalate: product behavior, auth/tenant/data contract rules, public API compatibility, destructive persistence, production deployment/rollback, branch/base strategy, Jira/PR workflow, credentials, paid resources, or scope outside the review unit.
+- Autonomous external mutation requires ledger linkage, validator pass, audit write, and Release Marshal executor handoff. Work agents cannot self-authorize it.
 
 ## Work Invocation
 

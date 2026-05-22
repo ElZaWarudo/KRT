@@ -11,6 +11,7 @@ Load this file at the start of execution. It is a router, not the full execution
 | Code review loop, security watch/review, optional reviewer fan-out, CI escalation | `review-security-ci.md` |
 | Release Marshal handoff prompt and stacked PR handling | `release-handoff.md` |
 | State transitions, blockers, closeouts | `status-and-failures.md` |
+| Autonomous ledger/executor policy | `autonomous-mode.md`, `autonomous-flow-matrix.md` |
 
 ## Execution Skeleton
 
@@ -23,7 +24,8 @@ Load this file at the start of execution. It is a router, not the full execution
 7. Run code review and fix loop.
 8. Run security review for high-risk review units.
 9. Record CI break-prevention evidence.
-10. Handoff the selected review unit to `krt-release-marshal`.
+10. If autonomous external mutation is requested, validate ledger/executor readiness and record executor mode before handoff.
+11. Handoff the selected review unit to `krt-release-marshal`.
 
 ## Review-Unit Discipline
 

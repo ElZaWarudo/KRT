@@ -8,6 +8,13 @@ Load `role-and-runtime.md`. Resolve roles, runtime/delegation availability, repo
 
 In `mode:resume`, compact or selectively load state before broad ingestion when state would crowd context.
 
+Autonomous posture:
+
+- If `autonomous-ledger:<path>` is present, load `autonomous-mode.md` and `autonomy-ledger-schema.md`.
+- Run the ledger validator before any autonomous external mutation planning.
+- Resolve the Release Marshal mutation executor and required class validators before autonomous shipping starts.
+- If the ledger, executor, validator, live-state input, audit path, or enforcement boundary is unavailable, record `autonomous-validation-only` or `autonomous-blocked` and continue only according to `autonomous-flow-matrix.md`.
+
 Jira posture:
 
 - Resolve `jira-policy` before asking workflow questions; default to `optional`.
@@ -96,9 +103,13 @@ Load `impact-verification.md` and `review-security-ci.md`. Record contract-drift
 
 Load `release-handoff.md`. Handoff the completed review unit to `krt-release-marshal`; do not duplicate its procedures.
 
+When an active autonomous ledger exists, include the ledger path, allowed mutation classes, latest audit hash, executor mode, and requested autonomous mutation classes in the handoff. Handoff does not bypass Release Marshal validators.
+
 ## Step 12 - Continue Waves Or Finish
 
 Refresh state, dependencies, and integration base after each PR handoff. If a parent PR is pending, fetch and inspect the integration base before continuing from the parent review-unit branch. Record stack/dependency context in state, not PR body.
+
+For autonomous stacked PR delivery, run a merge checkpoint after each PR handoff or resume: scan contract-scoped PRs, order parent before child, hand merge candidates to Release Marshal one at a time, refresh downstream base/check/review/Jira state after each parent merge, and transition Jira to `Hecho` only after the linked PR is proven merged.
 
 ## State Archive Hygiene
 

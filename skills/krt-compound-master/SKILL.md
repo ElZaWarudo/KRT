@@ -25,6 +25,7 @@ Arguments:
 [parallel:true|false]
 [delegation:auto|ask|inline]
 [autonomy:manual|guarded|high]
+[autonomous-ledger:<path>]
 [review-threshold:P0-P2|P0-P1|P0]
 [subagent-model:<runtime-specific-model>]
 ```
@@ -46,6 +47,7 @@ Load only what the current phase needs:
 | Code review, security, and CI handling | `references/review-security-ci.md` |
 | Release handoff | `references/release-handoff.md` |
 | State, blockers, and closeouts | `references/status-and-failures.md` |
+| Autonomous external mutation | `references/autonomous-mode.md`, `references/autonomy-ledger-schema.md`, `references/autonomous-flow-matrix.md` |
 
 Before writing or reviewing a work package, run:
 
@@ -71,7 +73,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 12. Review implementation with the resolved code-review role and loop fixes until the configured threshold passes.
 13. Run the resolved security review role for high-risk review units before release handoff.
 14. Record CI break-prevention evidence.
-15. Hand the finished review unit to `krt-release-marshal`, which owns commits, rebase, Jira, PR creation, reviewers, PR backlinking, and Jira transition.
+15. Hand the finished review unit to `krt-release-marshal`, which owns commits, rebase, Jira, PR creation, reviewers, PR backlinking, Jira transition, and ledger-bound autonomous merge execution when explicitly authorized.
 
 ## Non-Negotiable Rules
 
@@ -96,8 +98,9 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 - Keep planning IDs out of human-facing release text.
 - Do not let work invoke PR creation, Jira transitions, or shipping workflows.
 - Do not open PRs from protected branches.
-- Do not merge PRs or branches, imply that merge is authorized, or pass merge intent to another role. A PR merge is outside Compound Master autonomy in every mode, including `mode:full`; it requires a separate exact user approval after reviewer approvals are visible on the PR.
+- Do not merge PRs or branches, imply that merge is authorized, or pass merge intent to another role in manual/guarded flow. In autonomous flow, Compound Master may pass a merge candidate only to `krt-release-marshal` when an active `autonomous-ledger:<path>` allows the exact mutation class and the deterministic executor still proves reviewer approval, green required checks, branch protection/ruleset satisfaction, exact target scope, and audit readiness.
 - Treat internal code-review, Security Sentinel, CI break-prevention evidence, and an accepted release plan as readiness signals only. They never substitute for GitHub reviewer approval or explicit human merge authorization.
+- Treat `autonomy:high` without an active ledger as local autonomy only. It never authorizes PR, branch, reviewer, Jira, or merge side effects.
 - Treat verification results as release-readiness evidence, not public PR copy.
 - Require an Impact Scan before `review-passed` when a review unit changes API contracts, endpoints, bindings, shared helpers, schemas, payloads, auth/tenant/ownership behavior, or fixture contracts.
 - Use a verification ladder: targeted diagnostic, natural affected suite, then repo-specific CI-equivalent command before release handoff or CI-fix PR update.
@@ -109,7 +112,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 
 Whenever this skill stops, return a visible closeout with current phase/status, written or updated paths, ready work, blockers or "No blockers", recommended next action, and exact next invocation.
 
-Do not stop between a passing work/verification/review loop and `krt-release-marshal`; the user-facing approval pause for commits, push, PR creation, reviewer requests, Jira backlinking, and Jira transition belongs inside `krt-release-marshal`. Never treat that pause as merge approval.
+Do not stop between a passing work/verification/review loop and `krt-release-marshal`; the user-facing approval pause for commits, push, PR creation, reviewer requests, Jira backlinking, and Jira transition belongs inside `krt-release-marshal`. Never treat that pause as merge approval unless an active autonomous ledger and Release Marshal executor make that exact merge mutation eligible.
 
 When a package waits on an open parent PR and the user says "continue", fetch and inspect the integration base before choosing the next review unit. Prefer a stacked PR from the parent review-unit branch only when the base check supports it; record dependency context in state, not PR body.
 
