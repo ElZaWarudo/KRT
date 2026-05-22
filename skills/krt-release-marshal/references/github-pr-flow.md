@@ -44,6 +44,8 @@ If it does not exist, include this command in the visible release plan:
 git push -u origin <current-branch>
 ```
 
+In autonomous mode, do not run this command directly. Pass the exact push operation through `scripts/autonomous_mutation.py` with mutation class `branch_push`, state file, expected old/new SHAs, and enforcement confirmation. If no registered execution template is available, report validation-only/manual-required.
+
 If it exists, inspect ahead/behind:
 
 ```bash
@@ -55,6 +57,8 @@ If history was rewritten, show this command in the visible release plan and requ
 ```bash
 git push --force-with-lease origin <current-branch>
 ```
+
+In autonomous mode, force-with-lease push requires mutation class `branch_force_push`, a ledger entry for the exact branch, expected old/new SHAs, and the branch validator. Plain `--force` remains forbidden.
 
 ## Gather PR Content
 
@@ -152,6 +156,8 @@ Draft PR:
 gh pr create --draft --base <base> --head <current-branch> --title "<title>" --body-file <tmp-body-file>
 ```
 
+In autonomous mode, these commands are execution templates only. First call `scripts/autonomous_mutation.py` with mutation class `pr_create` or `pr_update`, the PR state file, exact base/head/head SHA, title/body payload hash, and audit path. If validator or execution template support is unavailable, stop with validation-only/manual-required instead of running `gh pr create` directly.
+
 ## Reviewer Lookup
 
 If reviewers were not provided, inspect recent merged PRs:
@@ -167,6 +173,8 @@ Add reviewers after confirmation, or without a second prompt when the accepted r
 ```bash
 gh pr edit <number> --add-reviewer user-a,user-b
 ```
+
+In autonomous mode, reviewer requests must use mutation class `reviewer_request` through the executor. The reviewer validator must prove the reviewer/team is in scope, not the author/current agent/bot, and not already requested except as an audited no-op.
 
 ## Closeout
 
@@ -193,3 +201,35 @@ Required before merge:
 - Required checks are passing or the user explicitly overrides a non-required/check-unavailable condition after seeing the state.
 
 If any required gate is missing, report the missing approval/check/change-request state and stop. Do not run `gh pr merge`, do not enable auto-merge, and do not merge a branch locally.
+
+## Autonomous Merge Gate
+
+Autonomous merge is a ledger-bound exception to the normal merge gate. It is allowed only through `scripts/autonomous_mutation.py` and the validators in `autonomous-validator-registry.md`.
+
+Before an autonomous merge/queue/auto-merge attempt:
+
+```bash
+python3 <release-marshal-skill-dir>/scripts/check_merge_eligibility.py --mutation-class <pr_merge|pr_merge_queue|pr_auto_merge> --fixture <live-state-fixture-or-fetched-json>
+```
+
+The validator must prove:
+
+- PR is open, not draft, on the expected base/head, and has a current head SHA.
+- Human approval is on the current head by a non-author, non-agent, non-bot reviewer.
+- No unresolved change request remains.
+- Required checks are green; pending, failure, skipped-required, neutral-required, stale, unavailable, or unknown states block.
+- Branch protection and ruleset state are available and satisfied.
+- Merge queue and auto-merge are treated as distinct mutation classes and audit events.
+
+If live state cannot be fetched or represented for the validator, autonomous merge blocks. Do not fall back to agent judgment.
+
+## Autonomous Stack Merge Checkpoint
+
+When a ledger allows autonomous merge for a stack:
+
+1. Fetch PRs in the contract scope and order them parent before child.
+2. Validate and merge/enqueue/auto-merge at most one PR at a time through the executor.
+3. After each successful parent merge, refresh downstream base, head SHA, review decision, required checks, branch protection/rulesets, and Jira binding.
+4. Treat downstream approvals/checks as stale until live state proves they are current after retarget/rebase.
+5. Run `jira_transition_done` only after GitHub evidence or same-contract audit proves the linked PR merged.
+6. Stop the stack on the first blocker and record whether independent PR/Jira work may continue according to Compound Master's autonomous flow matrix.

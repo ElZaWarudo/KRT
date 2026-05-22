@@ -1,0 +1,8 @@
+{
+  "parent_state": "merged",
+  "parent_branch": "feature/parent",
+  "child_base": "feature/parent",
+  "retargeted_to_base": false,
+  "approvals_refreshed": false,
+  "checks_refreshed": false
+}

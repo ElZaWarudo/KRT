@@ -1,0 +1,9 @@
+{
+  "branch": "feature/autonomous-flow",
+  "default_branch": "main",
+  "protected_branches": ["main", "develop"],
+  "owned_patterns": ["feature/*"],
+  "old_sha": "abc123",
+  "force_with_lease_allowed": false,
+  "merged": true
+}

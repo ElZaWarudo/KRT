@@ -5,7 +5,7 @@ description: "Orchestrate the full delivery flow for the current project reposit
 
 # Release Marshal
 
-Orchestrate the normal KRT delivery flow: commit -> rebase -> Jira -> push/PR -> reviewers -> Jira PR backlink -> Jira review transition. Do not introduce a separate "commit-task-PR" mode. Opening a PR is a handoff for human review; merging is a separate protected action.
+Orchestrate the normal KRT delivery flow: commit -> rebase -> Jira -> push/PR -> reviewers -> Jira PR backlink -> Jira review transition. Do not introduce a separate "commit-task-PR" mode. Opening a PR is a handoff for human review; merging is a separate protected action unless an active autonomy ledger delegates the exact merge mutation to the deterministic executor.
 
 The marshal directs component skills instead of duplicating them:
 
@@ -13,8 +13,10 @@ The marshal directs component skills instead of duplicating them:
 - `krt-rebase-smith` (`krt:rebase-smith`) owns clean branch history and safe rebase decisions.
 - `krt-jira-scribe` (`krt:jira-scribe`) owns Jira issue/subtask lookup, creation proposals, sprint handling, PR backlinks, comments, and transitions.
 - `gh` owns GitHub remote state, push/PR operations, and reviewer requests after release-plan confirmation.
+- The bundled autonomous mutation executor owns ledger-bound autonomous PR, branch, reviewer, Jira, and merge side effects after deterministic validators pass.
 
 Load `references/github-pr-flow.md` for exact `git`/`gh` commands, PR body details, base resolution, remote branch checks, and reviewer lookup.
+Load `references/autonomous-mutation-executor.md` and `references/autonomous-validator-registry.md` only for autonomous handoffs that include `autonomous-ledger:<path>`.
 
 Use bundled scripts for mechanical guardrails when preparing a PR:
 
@@ -28,7 +30,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - Use the host runtime's command wrapper only when the current repo requires one.
 - Use `gh` for GitHub PR operations.
 - Never create a PR from protected branches: `main`, `master`, or `develop`.
-- Never merge PRs or branches without explicit user approval for that exact merge action, even after a release plan was accepted. The approval text must identify the PR and say to merge it now; generic approval to "ship", "continue", "release", or accept the release plan is not merge approval.
+- Never merge PRs or branches without explicit user approval for that exact merge action, even after a release plan was accepted, unless an active autonomous ledger authorizes the exact mutation and the executor passes all merge validators. The approval text must identify the PR and say to merge it now; generic approval to "ship", "continue", "release", or accept the release plan is not merge approval.
 - Never merge a PR unless GitHub shows human reviewer approval for the PR and no blocking change requests remain. Internal code review, Compound Master review, CI evidence, author approval, or the agent's own judgment cannot substitute for human reviewer approval.
 - Prefer `develop` as PR base when it exists; otherwise use the repository default branch unless the user or enclosing workflow provided a base.
 - Never include LLM attribution in PR title/body or commit messages.
@@ -41,6 +43,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - Before pushing or updating a PR with a CI-fix commit, require evidence that the repo-specific command equivalent to the affected CI job passed locally, or present the missing validation clearly and ask for explicit override before the remote mutation.
 - Do not ask for Jira credentials. If Jira is required and required env vars are missing, block and ask whether to continue without Jira. If Jira is optional, show the no-Jira fallback in the release plan and continue after the normal release-plan approval without a separate Jira-usage question.
 - Use `--force-with-lease`, never plain `--force`, when a rewritten branch must be pushed.
+- In autonomous mode, route PR/branch/reviewer/Jira/merge side effects through `scripts/autonomous_mutation.py`; direct `gh`, Jira, or push commands are validation-only/manual-required unless the runtime enforcement boundary is confirmed.
 - Prefer strict PR bodies: one factual change bullet per line, blank line, then the immediately relevant Jira URL. Do not include stack context, retargeting plans, base-branch notes, reviewer instructions, verification, or any operational commentary unless the repo template explicitly requires it.
 - Prefer reviewable PRs and logical commits over package-sized PRs when the pending work has clear boundaries. A work package may produce several review-unit PRs; a single PR should represent one focused review unit unless a broad unit was explicitly approved.
 - Use one or two commits only when the change truly has one or two coherent concerns. Do not compress broad feature work into "implementation" plus "docs" when the diff spans persistence, services, API contracts, generated surfaces, tests, and configuration.
@@ -65,6 +68,8 @@ One explicit release-plan approval may cover reviewer requests, automatic post-P
 
 Merge approval cannot be bundled into the release-plan approval. If the user asks to merge, first inspect the PR's review and check state, then ask for or require the exact merge authorization only after human reviewer approval is visible. If approvals or checks are missing, report the missing gate and stop without merging.
 
+Autonomous approval can be bundled only by an active ledger, not by prose in a release plan. The executor must validate ledger scope, payload hash, live state, current-head human approval, branch protection/rulesets, required green checks, audit write, and enforcement boundary before mutation. Missing data blocks.
+
 ## Inputs
 
 Use context already provided by the user or previous skills:
@@ -81,6 +86,7 @@ Use context already provided by the user or previous skills:
 - Verification results as internal readiness context only.
 - For CI fixes, affected workflow/job context plus the local CI-equivalent command result, or the exact reason that validation could not be run.
 - Suggested commit grouping from an enclosing workflow, when provided.
+- Autonomous ledger path, allowed mutation classes, latest audit hash, and executor mode from Compound Master, when provided.
 
 If the user asks simply to create a PR and there are uncommitted changes, propose the full flow. Treat missing Jira context as optional by default: include Jira discovery when there is enough signal, otherwise state that Jira will be omitted unless the user requires it.
 
@@ -122,7 +128,7 @@ Build and show a phase plan in the user's language. For Spanish-language interac
 ¿Apruebas este plan de release?
 ```
 
-Fill every line with a concrete value in the same language as the labels, such as `necesaria`, `omitida`, `automática después de crear la PR`, `dentro de la review unit`, `conviene separar`, `separar antes de PR`, `aprobar PR grande por acoplamiento técnico`, or `preguntaré antes de ejecutar`. `Fase de merge` must say `omitida: la PR queda esperando aprobaciones humanas y autorización exacta de merge posterior` unless the current task is already an explicit merge request that has passed the merge gate below. Include exact branch names, Jira issue keys/URLs when known, Spanish Jira summary/description to create when known, push commands when known, PR draft/ready intent, PR scope guardrail result, size/scope decision, reviewer behavior, merge posture, Jira PR backlink behavior, and Jira transition behavior. If a value is not known yet, say what local read-only step will resolve it inside the accepted plan.
+Fill every line with a concrete value in the same language as the labels, such as `necesaria`, `omitida`, `automática después de crear la PR`, `dentro de la review unit`, `conviene separar`, `separar antes de PR`, `aprobar PR grande por acoplamiento técnico`, or `preguntaré antes de ejecutar`. In manual/guarded flow, `Fase de merge` must say `omitida: la PR queda esperando aprobaciones humanas y autorización exacta de merge posterior` unless the current task is already an explicit merge request that has passed the merge gate below. In autonomous flow with an active ledger, `Fase de merge` must say `autónoma vía executor: se ejecuta solo si la ledger permite la mutation class, la PR está aprobada por revisores humanos, checks requeridos en verde, branch protection/rulesets satisfechos y auditoría lista; si no, queda bloqueada con razón`. Include a `Fase Jira Hecho` line in autonomous post-merge plans when `jira_transition_done` is allowed. Include exact branch names, Jira issue keys/URLs when known, Spanish Jira summary/description to create when known, push commands when known, PR draft/ready intent, PR scope guardrail result, size/scope decision, reviewer behavior, merge posture, Jira PR backlink behavior, and Jira transition behavior. If a value is not known yet, say what local read-only step will resolve it inside the accepted plan.
 
 The plan must be in the final/user-visible response for the gate. Do not only summarize that a plan exists. Do not continue into commit, rebase, Jira creation/update, push, PR creation/update, reviewer request, Jira PR backlink, or Jira transition until the user accepts this visible plan.
 
@@ -221,9 +227,9 @@ If no reviewers were provided, infer candidates from recent merged PR approvals 
 
 After PR creation, return PR number, URL, base branch, head branch, Jira link if included, and draft/ready state.
 
-If Jira context was included, the PR is ready for review, and the approved plan included Jira PR backlinking, use `krt-jira-scribe` to add the PR URL back to the associated Jira issue without asking again. Prefer a Jira remote link plus a concise Spanish comment. If the issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic backlinking, ask or report the deferred action instead of updating Jira silently.
+If Jira context was included, the PR is ready for review, and the approved plan included Jira PR backlinking, use `krt-jira-scribe` to add the PR URL back to the associated Jira issue without asking again in manual/guarded flow. In autonomous flow, call the mutation executor with the Jira Scribe backlink validator; Jira Scribe supplies validation/API guidance, but Release Marshal owns the audited mutation. Prefer a Jira remote link plus a concise Spanish comment. If the issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic backlinking, ask or report the deferred action instead of updating Jira silently.
 
-If Jira context was included, the PR is ready for review, and the approved plan included review transition, use `krt-jira-scribe` to inspect real transitions and move the associated Jira issue to `En Revisión` without asking again. If `En Revisión` is unavailable, the issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic transition, ask before transitioning.
+If Jira context was included, the PR is ready for review, and the approved plan included review transition, use `krt-jira-scribe` to inspect real transitions and move the associated Jira issue to `En Revisión` without asking again in manual/guarded flow. In autonomous flow, call the mutation executor with the Jira Scribe transition validator. If `En Revisión` is unavailable, the issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic transition, ask before transitioning.
 
 ## PR-Only Mode
 

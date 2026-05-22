@@ -1,0 +1,12 @@
+{
+  "repository": "acme/widgets",
+  "base_branch": "main",
+  "head_branch": "feature/autonomous-flow",
+  "head_sha": "abc123",
+  "branch_owned": true,
+  "body_valid": true,
+  "draft": true,
+  "open_prs": [
+    {"head": "feature/autonomous-flow", "base": "main"}
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "candidate_reviewer": "human-reviewer",
+  "allowed_reviewers": ["human-reviewer", "second-reviewer"],
+  "requested_reviewers": [],
+  "author": "feature-author",
+  "current_actor": "codex-agent",
+  "bot_reviewers": ["ci-bot"]
+}
