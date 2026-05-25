@@ -4,6 +4,38 @@ Use this reference for exact Jira Server/Data Center API calls, payload shapes, 
 
 ## Setup
 
+Consumer projects can keep Jira configuration local to each checkout by loading ignored secret files before the skill runs. When the user explicitly asks to set this up, run:
+
+```bash
+python3 <jira-scribe-skill-dir>/scripts/setup_jira_env.py --root <consumer-project-root>
+```
+
+The setup script deterministically creates:
+
+```bash
+.krt/env/.gitignore
+.krt/env/jira-scribe.env
+.krt/env/jira-scribe.env.example
+```
+
+It writes this ignore rule before creating the secret file:
+
+```gitignore
+*
+!.gitignore
+!*.example
+```
+
+It refuses to write `.krt/env/jira-scribe.env` unless `git check-ignore` proves that exact path is ignored, and it refuses to continue if the file is already tracked. The user must fill the secret file locally after setup.
+
+Projects that use `direnv` can load the file from their own `.envrc`:
+
+```bash
+dotenv_if_exists .krt/env/jira-scribe.env
+```
+
+Jira Scribe still consumes only environment variables and must not read token files directly.
+
 Normalize host:
 
 ```bash

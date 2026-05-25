@@ -31,6 +31,10 @@ Use environment variables exclusively:
 - `JIRA_EMAIL` optional metadata only
 - `JIRA_BOARD_ID` optional board override for active sprint resolution
 
+Consumer project checkouts may load these variables from local secret files through `direnv` or an equivalent project-scoped loader. The runtime contract remains environment variables; Jira Scribe must not read credentials directly from project files.
+
+If the user explicitly asks to set up project-local Jira configuration, run `scripts/setup_jira_env.py` from the consumer project root. The script creates `.krt/env/.gitignore`, verifies `.krt/env/jira-scribe.env` is ignored with `git check-ignore`, refuses to proceed if that secret file is already tracked, writes placeholders only after the ignore check passes, and creates `.krt/env/jira-scribe.env.example` for non-secret documentation. After setup, tell the user to fill `.krt/env/jira-scribe.env` locally.
+
 Never ask for credentials. If `JIRA_HOST`, `JIRA_API_TOKEN`, or `JIRA_PROJECT_KEY` is missing, terminate with an error naming the missing variables. Never print `JIRA_API_TOKEN` or commands containing it.
 
 When verifying whether Jira variables exist, do not rely on filtered environment searches that may hide variables. Some command wrappers, including `rtk`, can filter or summarize `env`/search output in ways that make Jira variables look absent. Use a direct shell presence check such as `[[ -n "$JIRA_HOST" ]]`, `printenv JIRA_HOST`, or the verification snippet in `references/jira-api.md`; never print token values.

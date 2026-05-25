@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -113,6 +114,55 @@ class JiraAutonomyTest(unittest.TestCase):
         code, result = run("check_jira_transition.py", "jira_transition_done", "transition_already_done_unbound.json")
         self.assertNotEqual(code, 0)
         self.assertIn("pr-remote-link-missing-or-mismatch", result["block_reasons"])
+
+    def test_setup_jira_env_creates_ignored_secret_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, text=True, capture_output=True, check=True)
+
+            completed = subprocess.run(
+                [sys.executable, str(ROOT / "setup_jira_env.py"), "--root", str(root)],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            result = json.loads(completed.stdout)
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue(result["ok"])
+            self.assertTrue((root / ".krt/env/.gitignore").exists())
+            self.assertTrue((root / ".krt/env/jira-scribe.env").exists())
+            self.assertTrue((root / ".krt/env/jira-scribe.env.example").exists())
+
+            ignored = subprocess.run(
+                ["git", "check-ignore", "-q", ".krt/env/jira-scribe.env"],
+                cwd=root,
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(ignored.returncode, 0)
+
+    def test_setup_jira_env_blocks_tracked_secret_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, text=True, capture_output=True, check=True)
+            secret = root / ".krt/env/jira-scribe.env"
+            secret.parent.mkdir(parents=True)
+            secret.write_text("JIRA_API_TOKEN=already-tracked\n", encoding="utf-8")
+            subprocess.run(["git", "add", "-f", ".krt/env/jira-scribe.env"], cwd=root, text=True, check=True)
+
+            completed = subprocess.run(
+                [sys.executable, str(ROOT / "setup_jira_env.py"), "--root", str(root)],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            result = json.loads(completed.stdout)
+
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertFalse(result["ok"])
+            self.assertEqual(result["reason"], "secret-env-already-tracked")
 
 
 if __name__ == "__main__":
