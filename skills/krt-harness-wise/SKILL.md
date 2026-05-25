@@ -33,6 +33,8 @@ Defaults:
 - Keep the canonical skill identity `krt-harness-wise`.
 - Build harnesses from documentation, initialization files, and narrowly relevant project evidence. Do not read the whole source tree by default.
 - When the source evidence is still in `.pdf` or `.docx`, use `krt-document-forge` first and consume the generated Markdown artifacts instead of converting binary documents inline.
+- When `krt-document-forge` summaries exist, classify `docs/harnesses/summaries/*.md` as `Read First` and `docs/harnesses/sources/*.md` as `Inspect If Needed`.
+- Do not read generated source Markdown when a valid summary exists unless the summary marks uncertainty, a required detail is missing, or direct wording is needed.
 - Always inspect relevant agent initialization context before finalizing a harness: `AGENTS.md`, local agent config, and skill/runtime metadata when present.
 - When confidence is high, task scope is clear, and the output path is obvious, write or patch the harness artifact without asking another confirmation.
 - Ask one focused question before writing when the objective, harness target, or update/regeneration decision is ambiguous.

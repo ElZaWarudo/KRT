@@ -75,6 +75,7 @@ Use `--manifest <path>` to write a reproducibility manifest. The manifest is a v
 
 - converter identity and generation timestamp.
 - output and images directories.
+- summary directory and summary hashes when summaries exist.
 - source path and source SHA-256 per file.
 - generated Markdown path and SHA-256 per file.
 - conversion status, method, and message.

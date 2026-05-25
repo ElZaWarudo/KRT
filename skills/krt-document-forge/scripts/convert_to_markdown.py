@@ -48,6 +48,8 @@ class ConversionResult:
     assets: list[Path]
     source_sha256: str | None = None
     output_sha256: str | None = None
+    summary: Path | None = None
+    summary_sha256: str | None = None
 
 
 def slugify(value: str) -> str:
@@ -109,8 +111,18 @@ def default_images_dir(output_dir: Path) -> Path:
     return output_dir / "images"
 
 
+def default_summary_dir(output_dir: Path) -> Path:
+    if output_dir.name == "sources":
+        return output_dir.parent / "summaries"
+    return output_dir / "summaries"
+
+
 def expected_output_path(source: Path, output_dir: Path) -> Path:
     return output_dir / f"{slugify(source.stem)}.md"
+
+
+def expected_summary_path(source: Path, summary_dir: Path) -> Path:
+    return summary_dir / f"{slugify(source.stem)}.md"
 
 
 def source_image_dir(source: Path, image_dir: Path) -> Path:
@@ -491,12 +503,14 @@ def collect_inputs(paths: Iterable[Path], recursive: bool) -> list[Path]:
 def convert_file(
     source: Path,
     output_dir: Path,
+    summary_dir: Path,
     image_dir: Path | None,
     overwrite: bool,
     extract_images: bool,
     clean_assets: bool,
 ) -> ConversionResult:
     output = expected_output_path(source, output_dir)
+    summary = expected_summary_path(source, summary_dir)
     source_hash = sha256_file(source)
     if output.exists() and not overwrite:
         return ConversionResult(
@@ -508,6 +522,8 @@ def convert_file(
             [],
             source_hash,
             sha256_file(output),
+            summary if summary.exists() else None,
+            sha256_file(summary) if summary.exists() else None,
         )
 
     try:
@@ -536,9 +552,20 @@ def convert_file(
         output_dir.mkdir(parents=True, exist_ok=True)
         output.write_text(markdown_document(source, source_type, method, body), encoding="utf-8")
         message = "ok" if not warnings else "ok; " + "; ".join(warnings)
-        return ConversionResult(source, output, method, "converted", message, assets, source_hash, sha256_file(output))
+        return ConversionResult(
+            source,
+            output,
+            method,
+            "converted",
+            message,
+            assets,
+            source_hash,
+            sha256_file(output),
+            summary if summary.exists() else None,
+            sha256_file(summary) if summary.exists() else None,
+        )
     except ConversionError as exc:
-        return ConversionResult(source, output, None, "failed", str(exc), [], source_hash, None)
+        return ConversionResult(source, output, None, "failed", str(exc), [], source_hash, None, None, None)
 
 
 def result_payload(result: ConversionResult) -> dict[str, object]:
@@ -547,6 +574,8 @@ def result_payload(result: ConversionResult) -> dict[str, object]:
         "source_sha256": result.source_sha256,
         "output": str(result.output) if result.output else None,
         "output_sha256": result.output_sha256,
+        "summary": str(result.summary) if result.summary else None,
+        "summary_sha256": result.summary_sha256,
         "method": result.method,
         "status": result.status,
         "message": result.message,
@@ -564,6 +593,7 @@ def manifest_payload(
     results: list[ConversionResult],
     output_dir: Path,
     image_dir: Path,
+    summary_dir: Path,
     extract_images: bool,
 ) -> dict[str, object]:
     return {
@@ -572,6 +602,7 @@ def manifest_payload(
         "converter": "krt-document-forge",
         "output_dir": str(output_dir),
         "images_dir": str(image_dir),
+        "summary_dir": str(summary_dir),
         "extract_images": extract_images,
         "files": [result_payload(result) for result in results],
     }
@@ -605,10 +636,89 @@ def markdown_image_links(markdown: str) -> list[str]:
     return links
 
 
-def check_file(source: Path, output_dir: Path, manifest_entry: dict[str, object] | None) -> ConversionResult:
+def parse_frontmatter(markdown: str) -> dict[str, str]:
+    if not markdown.startswith("---\n"):
+        return {}
+    try:
+        _, frontmatter, _ = markdown.split("---", 2)
+    except ValueError:
+        return {}
+
+    values: dict[str, str] = {}
+    for line in frontmatter.splitlines():
+        if ":" not in line:
+            continue
+        key, value = line.split(":", 1)
+        value = value.strip().strip("\"'")
+        values[key.strip()] = value
+    return values
+
+
+def markdown_links(markdown: str) -> list[str]:
+    links = []
+    for match in re.finditer(r"(?<!!)\[[^\]]+\]\(([^)]+)\)", markdown):
+        link = match.group(1).strip()
+        if link and not re.match(r"^(https?:|data:|#)", link):
+            links.append(link.split("#", 1)[0])
+    return links
+
+
+def markdown_section(markdown: str, heading: str) -> str:
+    pattern = rf"^## {re.escape(heading)}\s*$"
+    match = re.search(pattern, markdown, flags=re.MULTILINE)
+    if not match:
+        return ""
+    start = match.end()
+    next_heading = re.search(r"^##\s+", markdown[start:], flags=re.MULTILINE)
+    end = start + next_heading.start() if next_heading else len(markdown)
+    return markdown[start:end]
+
+
+def validate_summary(summary: Path, output: Path) -> list[str]:
+    failures: list[str] = []
+    markdown = summary.read_text(encoding="utf-8")
+    frontmatter = parse_frontmatter(markdown)
+    output_hash = sha256_file(output)
+
+    if not frontmatter:
+        failures.append(f"summary frontmatter is missing: {summary}")
+    if frontmatter.get("source_path"):
+        declared_source = (summary.parent / frontmatter["source_path"]).resolve()
+        if declared_source != output.resolve():
+            failures.append(f"summary source_path does not point to output Markdown: {summary}")
+    else:
+        failures.append(f"summary source_path is missing: {summary}")
+
+    if frontmatter.get("source_sha256") != output_hash:
+        failures.append(f"summary source_sha256 differs from output Markdown: {summary}")
+    if not frontmatter.get("source_fallback_policy"):
+        failures.append(f"summary source_fallback_policy is missing: {summary}")
+
+    fallback = markdown_section(markdown, "Fallback Source")
+    if not fallback:
+        failures.append(f"summary Fallback Source section is missing: {summary}")
+    else:
+        linked_sources = [
+            (summary.parent / link).resolve()
+            for link in markdown_links(fallback)
+        ]
+        if output.resolve() not in linked_sources and str(output) not in fallback:
+            failures.append(f"summary Fallback Source does not point to output Markdown: {summary}")
+
+    return failures
+
+
+def check_file(
+    source: Path,
+    output_dir: Path,
+    summary_dir: Path,
+    manifest_entry: dict[str, object] | None,
+) -> ConversionResult:
     output = expected_output_path(source, output_dir)
+    summary = expected_summary_path(source, summary_dir)
     source_hash = sha256_file(source) if source.exists() else None
     output_hash = sha256_file(output) if output.exists() else None
+    summary_hash = sha256_file(summary) if summary.exists() else None
     failures: list[str] = []
     assets: list[Path] = []
 
@@ -624,11 +734,22 @@ def check_file(source: Path, output_dir: Path, manifest_entry: dict[str, object]
             if not asset.exists():
                 failures.append(f"linked image is missing: {link}")
 
+        if summary.exists():
+            failures.extend(validate_summary(summary, output))
+
     if manifest_entry:
         if manifest_entry.get("source_sha256") and manifest_entry.get("source_sha256") != source_hash:
             failures.append("source hash differs from manifest")
         if manifest_entry.get("output_sha256") and manifest_entry.get("output_sha256") != output_hash:
             failures.append("output hash differs from manifest")
+        if manifest_entry.get("summary"):
+            manifest_summary = Path(str(manifest_entry["summary"]))
+            if not manifest_summary.exists():
+                failures.append(f"manifest summary is missing: {manifest_summary}")
+            elif manifest_entry.get("summary_sha256") and manifest_entry.get("summary_sha256") != sha256_file(manifest_summary):
+                failures.append(f"manifest summary hash differs: {manifest_summary}")
+        if manifest_entry.get("summary_sha256") and manifest_entry.get("summary_sha256") != summary_hash:
+            failures.append("expected summary hash differs from manifest")
         for asset_entry in manifest_entry.get("assets", []):
             if isinstance(asset_entry, str):
                 asset = Path(asset_entry)
@@ -647,13 +768,18 @@ def check_file(source: Path, output_dir: Path, manifest_entry: dict[str, object]
 
     status = "failed" if failures else "checked"
     message = "; ".join(failures) if failures else "ok"
-    return ConversionResult(source, output, None, status, message, assets, source_hash, output_hash)
+    return ConversionResult(source, output, None, status, message, assets, source_hash, output_hash, summary if summary.exists() else None, summary_hash)
 
 
-def check_artifacts(files: list[Path], output_dir: Path, manifest: Path | None) -> list[ConversionResult]:
+def check_artifacts(
+    files: list[Path],
+    output_dir: Path,
+    summary_dir: Path,
+    manifest: Path | None,
+) -> list[ConversionResult]:
     manifest_by_source = load_manifest(manifest)
     return [
-        check_file(source, output_dir, manifest_by_source.get(str(source)))
+        check_file(source, output_dir, summary_dir, manifest_by_source.get(str(source)))
         for source in files
     ]
 
@@ -663,11 +789,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("inputs", nargs="+", type=Path, help="PDF/DOCX files or directories to convert")
     parser.add_argument("--output-dir", type=Path, default=Path("docs/harnesses/sources"))
     parser.add_argument("--images-dir", type=Path, help="image asset directory; defaults beside the output sources")
+    parser.add_argument("--summary-dir", type=Path, help="summary directory; defaults beside the output sources")
     parser.add_argument("--recursive", action="store_true", help="recurse into input directories")
     parser.add_argument("--overwrite", action="store_true", help="replace existing generated Markdown")
     parser.add_argument("--extract-images", action="store_true", help="extract embedded images and link them from Markdown")
     parser.add_argument("--clean-assets", action="store_true", help="remove old image assets for each source before regenerating")
-    parser.add_argument("--check", action="store_true", help="validate existing Markdown, image links, and manifest hashes")
+    parser.add_argument("--check", action="store_true", help="validate existing Markdown, summaries, image links, and manifest hashes")
     parser.add_argument("--install-missing", action="store_true", help="install optional Python extractors into a local venv")
     parser.add_argument("--dependency-venv", type=Path, default=DEFAULT_VENV, help="local venv for --install-missing")
     parser.add_argument("--manifest", type=Path, help="optional JSON summary path")
@@ -687,13 +814,14 @@ def main(argv: list[str]) -> int:
         return 2
 
     image_dir = args.images_dir or default_images_dir(args.output_dir)
+    summary_dir = args.summary_dir or default_summary_dir(args.output_dir)
     if args.check:
         try:
-            results = check_artifacts(files, args.output_dir, args.manifest)
+            results = check_artifacts(files, args.output_dir, summary_dir, args.manifest)
         except ConversionError as exc:
             print(f"ERROR: {exc}", file=sys.stderr)
             return 2
-        payload = manifest_payload(results, args.output_dir, image_dir, args.extract_images)
+        payload = manifest_payload(results, args.output_dir, image_dir, summary_dir, args.extract_images)
         print(json.dumps(payload, indent=2, ensure_ascii=False))
         return 1 if any(result.status == "failed" for result in results) else 0
 
@@ -711,10 +839,10 @@ def main(argv: list[str]) -> int:
             return 2
 
     results = [
-        convert_file(path, args.output_dir, image_dir, args.overwrite, args.extract_images, args.clean_assets)
+        convert_file(path, args.output_dir, summary_dir, image_dir, args.overwrite, args.extract_images, args.clean_assets)
         for path in files
     ]
-    payload = manifest_payload(results, args.output_dir, image_dir, args.extract_images)
+    payload = manifest_payload(results, args.output_dir, image_dir, summary_dir, args.extract_images)
 
     print(json.dumps(payload, indent=2, ensure_ascii=False))
     if args.manifest:
