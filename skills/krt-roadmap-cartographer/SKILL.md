@@ -7,8 +7,8 @@ description: >
   Use when a user needs a roadmap before compound delivery, or when
   krt-compound-master resolves its required roadmap_generator role. Runtime
   aliases may expose this as krt:roadmap-cartographer.
-argument-hint: >
-  [initiative description or docs path]
+metadata:
+  argument_hint: "[initiative description or docs path]"
 ---
 
 # Roadmap Cartographer
