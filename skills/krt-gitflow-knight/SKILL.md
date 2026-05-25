@@ -25,10 +25,16 @@ Create clean, user-approved commits following a gitflow-style process: correct b
 - Prefer non-interactive commands. Avoid `git add -p` unless the user explicitly wants an interactive hunk workflow.
 - Use the host runtime's command wrapper only when the current repo requires one. The command examples below use plain `git` for portability.
 - Do not run tests, linters, or formatters unless the user explicitly asks.
+- Before planning commits, run `scripts/ensure_krt_env_ignore.py` from the repository root. This deterministically writes `.krt/env/.gitignore`, proves `.krt/env/jira-scribe.env` is ignored with `git check-ignore`, and blocks if that secret file is already tracked.
+- Build commit plans from a deterministic, sorted changed-path list.
+- The only allowed way for Gitflow Knight to create a commit is `scripts/create_approved_commit.py --root <repo-root> --message "<approved message>" --path <approved-path>...`. Do not run `git add` or `git commit` directly from this skill. The script validates commit-message shape, requires a clean index unless `--reset-index-approved` was explicitly authorized in the visible plan, stages exactly the approved paths, verifies the staged path set, enforces the KRT env ignore guard, and blocks staged env-secret paths or secret-like environment assignments. `.env.example` and `*.env.example` files are allowed when they contain placeholders rather than real secret values.
 - When committing a CI fix, record whether the affected CI job's repo-specific equivalent command has passed locally. If it has not, mark the commit as locally unverified for release handoff; do not participate in a push/update-PR flow unless the user explicitly overrides the verification gap.
 
 ### 1) Preflight (do not change anything yet)
 
+- Run `<gitflow-knight-skill-dir>/scripts/ensure_krt_env_ignore.py --root <repo-root>`.
+  - If it reports `changed: true`, include `.krt/env/.gitignore` in the commit plan as a deterministic local-env guardrail change.
+  - If it reports any `block_reasons`, stop before staging or committing.
 - Determine current branch: `git branch --show-current`
 - Inspect working tree and staging:
   - `git status --porcelain=v1 -b`
@@ -74,6 +80,7 @@ Goal: split pending work into atomic, reviewable commits with clear messages. Do
   - Build/CI files -> `ci(...)` / `build(...)` / `chore(...)`
   - Product code changes -> `feat(...)` / `fix(...)` / `refactor(...)` depending on intent
 - Treat suggested commit grouping from an enclosing `krt-release-marshal` or Compound Master handoff as a starting point, not an override. Refine it when the actual changed files reveal clearer atomic boundaries.
+- Sort changed paths lexicographically before grouping and keep that order stable in the visible plan. When staged changes exist, preserve their explicit "Commit 0" grouping unless the user approves rebuilding the plan.
 - Prefer three to six commits for broad multi-surface packages when the changes have clear natural boundaries. One or two commits are correct only when the diff truly has one or two coherent concerns; do not use "implementation" and "docs" as the default split for a package that touches persistence, services, API contracts, tests, and deployment/config docs.
 - Natural boundaries include:
   - data/model/schema/backfill changes;
@@ -137,20 +144,15 @@ Ask the user to approve the plan (and any exact commit messages) before staging 
 
 For each commit in the accepted plan:
 
-- Stage only the planned files: `git add <paths...>`
-- Quote paths with spaces or shell-sensitive characters.
-- Sanity-check staged files:
-  - `git diff --cached --name-status`
-  - `git diff --cached --stat`
-- Only inspect the full staged diff when needed for correctness or when the user asks.
-- Create the commit:
-  - `git commit -m "<exact approved message>"`
-  - Keep the message clean; do not add trailers/footers.
+- Create the commit only through:
+  - `<gitflow-knight-skill-dir>/scripts/create_approved_commit.py --root <repo-root> --message "<exact approved message>" --path <path-a> --path <path-b>`
+- If the script reports any `block_reasons`, stop and report them. Do not bypass it with direct `git add` or `git commit`.
+- The script owns staging, staged-path verification, env-secret leak checks, and the final `git commit`.
 
 If there were already staged changes before this workflow started:
 
 - Treat them explicitly as "Commit 0" in the plan, or ask the user if you should unstage and restage by plan.
-- Never run `git restore --staged .` without user approval.
+- Never clear the index without user approval. If the accepted plan explicitly says to rebuild the index from approved paths, pass `--reset-index-approved` to `create_approved_commit.py`; otherwise let the script block with `index-not-clean`.
 
 ### 5) Post-commit checks
 
