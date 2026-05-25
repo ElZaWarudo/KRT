@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-document-forge"
+  short_description: "Convert PDFs and DOCX files into harness-ready Markdown"
+  default_prompt: "Use krt-document-forge to convert PDFs and DOCX files into Markdown source artifacts for krt-harness-wise."
