@@ -21,6 +21,8 @@ Harness files are versionable by default. Use:
 docs/harnesses/<task-slug>.md
 ```
 
+When client, commercial, internal planning, or converted document evidence is involved, load `publication-safety.md` before writing. Keep raw or generated source Markdown out of the harness; cite sanitized summaries first and source files only as fallback evidence.
+
 Write the harness without another confirmation when:
 
 - The task objective is clear.
@@ -38,6 +40,7 @@ Use the structure in `harness-schema.md`. Keep the harness compact and operation
 - Source-of-truth ranking.
 - Agent initialization summary.
 - Context plan with read/summarize/inspect/ignore buckets.
+- Publication-safe source handling: summaries as primary evidence, generated sources as fallback only.
 - Guardrails and non-goals.
 - Risks and deferred verification.
 - Validation expectations.

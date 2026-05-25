@@ -6,10 +6,16 @@ docs/*
 !docs/examples.md
 !docs/safety.md
 !docs/skills.md
+docs/raw/
 !docs/harnesses/
 docs/harnesses/*
 !docs/harnesses/**/
-!docs/harnesses/**/*.md
+!docs/harnesses/*.md
+docs/harnesses/sources/
+docs/harnesses/images/
+!docs/harnesses/summaries/
+docs/harnesses/summaries/*
+!docs/harnesses/summaries/*.md
 !docs/orchestration/
 docs/orchestration/*
 !docs/orchestration/autonomy-ledgers/

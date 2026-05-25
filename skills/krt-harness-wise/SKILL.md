@@ -35,6 +35,8 @@ Defaults:
 - When the source evidence is still in `.pdf` or `.docx`, use `krt-document-forge` first and consume the generated Markdown artifacts instead of converting binary documents inline.
 - When `krt-document-forge` summaries exist, classify `docs/harnesses/summaries/*.md` as `Read First` and `docs/harnesses/sources/*.md` as `Inspect If Needed`.
 - Do not read generated source Markdown when a valid summary exists unless the summary marks uncertainty, a required detail is missing, or direct wording is needed.
+- Before writing versionable harnesses from client, commercial, internal planning, or converted source evidence, load `references/publication-safety.md` and sanitize business-sensitive and personal information.
+- Do not write generated source Markdown, raw converted text, source document hashes, exact budgets, named RACI/escalation paths, personal contact details, or unnecessary client identifiers into versionable harnesses.
 - Always inspect relevant agent initialization context before finalizing a harness: `AGENTS.md`, local agent config, and skill/runtime metadata when present.
 - When confidence is high, task scope is clear, and the output path is obvious, write or patch the harness artifact without asking another confirmation.
 - Ask one focused question before writing when the objective, harness target, or update/regeneration decision is ambiguous.
@@ -51,6 +53,7 @@ Load only what the current flow needs:
 |---|---|
 | Create a new harness | `references/create-harness.md`, `references/harness-schema.md`, `references/agent-initialization-context.md`, `references/context-budget.md` |
 | Diagnose or patch existing harness | `references/diagnose-harness.md`, `references/harness-schema.md`, `references/deterministic-validation.md` |
+| Client/commercial/internal evidence may become versionable | `references/publication-safety.md` |
 | Use scripts | `references/deterministic-validation.md` |
 | Validate expected behavior | `references/validation-scenarios.md` |
 
@@ -71,10 +74,11 @@ Resolve `<harness-wise-skill-dir>` to the directory containing this `SKILL.md`; 
    - `find_agent_init.py` to locate initialization context.
    - `find_harness.py` to find likely existing harnesses.
 3. Load the flow-specific reference.
-4. Read only the docs, initialization files, and narrow evidence needed for the harness decision.
-5. Create, patch, or recommend regeneration.
-6. Run `check_harness.py` on any written or reviewed harness when a file path is available.
-7. Return the harness path/status, diagnosis summary if applicable, validation result, and any deferred verification.
+4. Load `references/publication-safety.md` when the evidence includes client, commercial, internal planning, converted document, or potentially sensitive material.
+5. Read only the docs, initialization files, and narrow evidence needed for the harness decision.
+6. Create, patch, or recommend regeneration. For versionable harnesses, sanitize before writing and prefer summaries over generated sources.
+7. Run `check_harness.py` on any written or reviewed harness when a file path is available.
+8. Return the harness path/status, diagnosis summary if applicable, validation result, publication-safety status, and any deferred verification.
 
 ## Output Discipline
 
@@ -84,6 +88,7 @@ For created or updated files, report:
 - Status: `draft`, `ready`, `blocked`, or `review`.
 - Initialization context used.
 - Validation result.
+- Publication-safety result.
 - Remaining blocking questions or deferred verification.
 
 For diagnosis-only output, lead with findings and verdict before any summary.

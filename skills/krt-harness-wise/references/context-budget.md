@@ -16,6 +16,8 @@ Load when deciding what evidence belongs in a harness.
 - `Inspect If Needed`: conditional implementation evidence.
 - `Ignore For Now`: nearby but out of scope.
 
+For `krt-document-forge` evidence, classify sanitized summaries as `Read First` and generated sources as `Inspect If Needed`. Do not promote raw/sources evidence to `Read First` unless no summary exists and the harness will remain local-only or be sanitized before versioning.
+
 Every item must answer why it matters for this task.
 
 ## Anti-Bloat Rules
@@ -24,4 +26,5 @@ Every item must answer why it matters for this task.
 - Avoid whole-repo maps.
 - Avoid generic convention summaries unless grounded in inspected evidence.
 - Keep task-relevant docs summarized; do not dump long documents into the harness.
+- Do not include raw client/commercial evidence, source document hashes, exact budgets, personal contact details, or named RACI/escalation paths in versionable harnesses.
 - If a fact is not verified, mark it as deferred verification rather than hiding uncertainty.
