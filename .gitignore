@@ -2,6 +2,10 @@ __pycache__/
 *.py[cod]
 
 docs/*
+!docs/development.md
+!docs/examples.md
+!docs/safety.md
+!docs/skills.md
 !docs/harnesses/
 docs/harnesses/*
 !docs/harnesses/**/
