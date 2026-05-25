@@ -1,191 +1,60 @@
 # KRT
 
-KRT means **Knights of the Round Table**: portable agent skills for keeping the whole Camelot of a codebase in order without asking one overcaffeinated linux squire to remember everything.
+KRT means **Knights of the Round Table**: portable agent skills for keeping a codebase in formation without asking one overcaffeinated linux squire to remember every ritual by heart.
 
-## Philosophy
+KRT gives agent runtimes reusable workflows for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, CI, deployment, security, docs, and repo health. The bit is medieval. The contract is not.
 
-KRT exists because skills need a proper keep: one place for focused agent workflows that inspect, plan, review, and coordinate work before the diff starts making royal decrees.
+## Choose A Skill
 
-Each skill should cover its part of Camelot cleanly:
+| When you have... | Start with... |
+|---|---|
+| A fuzzy brief, prompt, or feature idea | `krt-requirements-weaver` |
+| A repo you do not trust yourself to touch yet | `krt-harness-wise` |
+| Existing context that needs a roadmap or readiness report | `krt-roadmap-cartographer` |
+| Validated requirements that need a delivery plan | `krt-delivery-navigator` |
+| A larger initiative that needs orchestration | `krt-compound-master` |
+| Noisy Compound Master state | `krt-state-archivist` |
+| A finished change that needs clean shipping | `krt-release-marshal` |
+| PR review feedback | `krt-review-herald` |
+| Security-sensitive work | `krt-security-sentinel` |
+| A failing CI run | `krt-ci-questor` |
+| Deployment manifests, rollout, or rollback risk | `krt-deploy-summoner` |
+| Stale, missing, or noisy docs | `krt-docs-chronicler` |
+| Suspicious repo health | `krt-repo-medic` |
 
-- small enough to load only when useful
-- explicit enough that another agent can follow it
-- portable across agent runtimes where possible
-- opinionated enough to stop bad context from becoming bad code
+Full catalog: [`docs/skills.md`](docs/skills.md). Prompt examples: [`docs/examples.md`](docs/examples.md).
 
-The bit is medieval. The contract is not.
+## Common Flows
 
-## Skills
+| Flow | Skills |
+|---|---|
+| Discovery | `krt-requirements-weaver` -> `krt-roadmap-cartographer` -> `krt-delivery-navigator` |
+| Execution | `krt-harness-wise` -> `krt-compound-master` -> `krt-release-marshal` |
+| Operations | `krt-review-herald`, `krt-ci-questor`, `krt-deploy-summoner`, `krt-docs-chronicler`, `krt-repo-medic`, `krt-security-sentinel` |
 
-Formal skill IDs use the Every-style hyphen form (`krt-*`). Some runtimes may expose the friendlier `$krt:*` alias used below.
-
-| Alias | Formal skill ID | Purpose |
-|---|---|---|
-| `$krt:harness-wise` | `krt-harness-wise` | Create versionable coding harnesses from project docs and agent initialization context, or diagnose and improve an existing harness before planning or implementation. |
-| `$krt:roadmap-cartographer` | `krt-roadmap-cartographer` | Generate exactly one roadmap or readiness report from existing project context before compound delivery. |
-| `$krt:compound-master` | `krt-compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, document reviews, work packages, execution gates, code review, and PR/Jira handoff. |
-| `$krt:state-archivist` | `krt-state-archivist` | Keep Compound Master state compact by archiving long historical detail into linked files. |
-| `$krt:release-marshal` | `krt-release-marshal` | Direct the final delivery march: commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
-| `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, plan fixes, and draft clear reviewer replies. |
-| `$krt:security-sentinel` | `krt-security-sentinel` | Review security-sensitive slices and diagnose whole systems for cybersecurity risk. |
-| `$krt:ci-questor` | `krt-ci-questor` | Investigate failing CI runs and produce concise cause reports. |
-| `$krt:deploy-summoner` | `krt-deploy-summoner` | Prepare and diagnose Docker, Helm, and Kubernetes deployments. |
-| `$krt:docs-chronicler` | `krt-docs-chronicler` | Keep durable docs, ADRs, changelogs, runbooks, and learnings current. |
-| `$krt:gitflow-knight` | `krt-gitflow-knight` | Keep branch hygiene and atomic commits in formation. |
-| `$krt:rebase-smith` | `krt-rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
-| `$krt:jira-scribe` | `krt-jira-scribe` | Manage Jira Server/Data Center issues, subtasks, sprints, and transitions in Spanish. |
-| `$krt:repo-medic` | `krt-repo-medic` | Diagnose repository health, stale docs, broken workflows, and maintenance risks. |
-
-Skills can bring their own auxiliary files: references, templates, assets, adapter configs, or agent definitions. Keep the main `SKILL.md` readable; put the heavy armor in nearby files.
-
-## How They Fit Together
-
-KRT skills are meant to compose without turning one skill into the whole system:
-
-```text
-krt-harness-wise
-  -> prepare compact context before coding
-
-krt-roadmap-cartographer
-  -> produce one roadmap or readiness report
-
-krt-compound-master
-  -> consume roadmap, run brainstorm/plan/review/package/execution gates
-
-krt-state-archivist
-  -> keep Compound Master state compact and archive historical context
-
-krt-release-marshal
-  -> commit, rebase, Jira, push, PR, reviewers, Jira review transition
-
-krt-review-herald
-  -> triage review feedback and prepare fixes/replies
-
-krt-security-sentinel
-  -> review high-risk slices and diagnose system security posture
-
-krt-ci-questor
-  -> investigate CI failures and report likely cause
-
-krt-deploy-summoner
-  -> inspect deployment manifests and prepare safe deploy/rollback plans
-
-krt-docs-chronicler
-  -> capture durable docs, decisions, runbooks, changelogs, and learnings
-
-krt-repo-medic
-  -> diagnose repo health and prescribe focused maintenance
-```
-
-`krt-compound-master` treats a **work package** as the PR/Jira unit, but preserves the plan's implementation units inside that package. A package can ship as one PR while still reporting per-unit execution, verification, review, and commit grouping.
-
-## Skill Dependencies
-
-Some skills are useful standalone; others expect companions.
-
-| Skill | Expected companions | Why |
-|---|---|---|
-| `krt-compound-master` | Required: `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal`. Optional: `krt-state-archivist`, `krt-security-sentinel`, `krt-ci-questor` | Full artifact, execution, and release pipeline. `krt-state-archivist` keeps live orchestration state compact when available; `krt-security-sentinel` reviews high-risk security slices; `krt-ci-questor` handles CI incident escalation. Compound Master falls back inline when optional specialists are missing. |
-| `krt-release-marshal` | `krt-gitflow-knight`, `krt-rebase-smith`, `krt-jira-scribe` | Clean commits, clean branch history, Jira, and PR handoff. |
-| `krt-jira-scribe` | Jira env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
-
-For Jira flows, configure `JIRA_HOST`, `JIRA_API_TOKEN`, and `JIRA_PROJECT_KEY`. When checking those variables, prefer direct shell presence checks over filtered environment searches; wrappers such as `rtk` can summarize output and make existing variables look absent. Never print `JIRA_API_TOKEN`.
-
-## Quick Examples
-
-Prepare a coding harness before touching a repo:
-
-```text
-Use $krt:harness-wise before adding invoice CSV export.
-```
-
-Create a versionable harness artifact for the next agent:
-
-```text
-Use $krt:harness-wise and generate a harness file for adding invoice CSV export.
-```
-
-Diagnose and improve an existing harness:
-
-```text
-Use $krt:harness-wise to improve docs/harnesses/billing-refactor.md.
-```
-
-Audit repository health:
-
-```text
-Use $krt:repo-medic for a standard health check before planning the next maintenance sprint.
-```
-
-Turn a documented initiative into delivery artifacts:
-
-```text
-Use $krt:compound-master for docs/specs/reporting.md mode:artifacts
-```
-
-`krt-compound-master` expects `krt-roadmap-cartographer` to be available as its required roadmap generator. Install both when you want the full artifact pipeline.
-
-Resume execution from existing orchestration state:
-
-```text
-Use $krt:compound-master mode:resume jira-policy:optional parallel:false
-```
-
-Compact noisy Compound Master state before resuming:
-
-```text
-Use $krt:state-archivist on docs/orchestration/compound-master-state.md
-```
-
-Triage PR feedback:
-
-```text
-Use $krt:review-herald to classify review comments and draft replies for PR #42.
-```
-
-Review a security-sensitive slice:
-
-```text
-Use $krt:security-sentinel to review this auth and tenant-isolation work package before release.
-```
-
-Investigate a failed pipeline:
-
-```text
-Use $krt:ci-questor to explain why the latest GitHub Actions run failed and what to do next.
-```
-
-Prepare a deployment:
-
-```text
-Use $krt:deploy-summoner to review Helm values and produce a safe rollout and rollback plan.
-```
-
-Capture durable knowledge:
-
-```text
-Use $krt:docs-chronicler to update docs and ADRs after this incident fix.
-```
+`krt-compound-master` treats a **work package** as the PR/Jira unit while preserving the plan's implementation units inside it. One PR may carry the package; the bookkeeping should still know which pieces marched where.
 
 ## Install
 
-Install globally so KRT follows you between projects:
+Install one skill globally:
 
 ```bash
 npx -y skills add ElZaWarudo/krt --skill krt-<skill-name> -g
 ```
 
-Install the whole table globally:
+Install everything:
 
 ```bash
 npx -y skills add ElZaWarudo/krt --all -g
 ```
 
-Install the Compound Master pipeline globally:
+Install the Compound Master pipeline:
 
 ```bash
 npx -y skills add ElZaWarudo/krt \
+  --skill krt-requirements-weaver \
   --skill krt-roadmap-cartographer \
+  --skill krt-delivery-navigator \
   --skill krt-compound-master \
   --skill krt-state-archivist \
   --skill krt-release-marshal \
@@ -195,9 +64,7 @@ npx -y skills add ElZaWarudo/krt \
   -g
 ```
 
-This installs the KRT side of the artifact and release pipeline. `krt-compound-master` also expects the Compound Engineering skills it resolves at runtime, such as `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, and `ce-review`. Add `--skill krt-security-sentinel` for the optional security specialist and `--skill krt-ci-questor` for the optional CI incident specialist.
-
-Install the release court globally:
+Install the release flow:
 
 ```bash
 npx -y skills add ElZaWarudo/krt \
@@ -208,81 +75,50 @@ npx -y skills add ElZaWarudo/krt \
   -g
 ```
 
-`krt-release-marshal` expects those three companions to be available. The skills CLI supports repeated `--skill` flags and `--all`; KRT does not currently rely on automatic dependency resolution in skill frontmatter. The Mariscal can read the room, but he still needs the room installed.
-
-Omit `-g` only when you want the skill installed into the current project. Without it, the skill may stay in this castle and fail to appear when you ride into the next repo.
-
-Target a specific runtime when needed:
-
-```bash
-npx -y skills add ElZaWarudo/krt --skill krt-<skill-name> -g -a <agent>
-```
-
-Use `-a <agent>` when you want the skill wired into a particular agent instead of trusting autodetection. Some agents read `.agents/skills/` directly; others need the CLI to place a symlink or copy in their own directory. Name the knight you expect to answer.
-
 Update installed skills:
 
 ```bash
 npx skills update
 ```
 
-If `npx` wanders into the forest:
+If `npx` gets dramatic:
 
 ```bash
 npm exec --yes --package skills -- skills update
 ```
 
-## Components
+## Safety
 
-```text
-skills/
-  krt-harness-wise/
-    SKILL.md
-    references/
-  krt-roadmap-cartographer/
-    SKILL.md
-    references/
-  krt-compound-master/
-    SKILL.md
-    references/
-    assets/
-      codex-agents/
-  krt-state-archivist/
-    SKILL.md
-    references/
-    scripts/
-  krt-release-marshal/
-    SKILL.md
-    references/
-  krt-review-herald/
-    SKILL.md
-    references/
-  krt-security-sentinel/
-    SKILL.md
-    references/
-  krt-ci-questor/
-    SKILL.md
-    references/
-  krt-deploy-summoner/
-    SKILL.md
-    references/
-  krt-docs-chronicler/
-    SKILL.md
-    references/
-  krt-gitflow-knight/
-    SKILL.md
-  krt-rebase-smith/
-    SKILL.md
-  krt-jira-scribe/
-    SKILL.md
-    references/
-  krt-repo-medic/
-    SKILL.md
-    references/
+KRT is deliberately fussy about mutation:
+
+- read first, mutate second
+- keep every action inside the active skill's job
+- ask before remote, destructive, notification-causing, production-impacting, or credential-sensitive work
+- never print or copy secrets, tokens, kubeconfigs, full env dumps, or masked CI values
+- keep merge approval separate from release-plan approval
+
+Per-skill safety notes live in [`docs/safety.md`](docs/safety.md). They are short on purpose; if a safety note needs a throne room, it has already failed.
+
+## Develop
+
+Edit skills in `skills/<name>/`. Keep reusable detail in `references/` or `assets/` so `SKILL.md` stays readable.
+
+Validate a changed skill:
+
+```bash
+rtk python3 /home/teb/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/<skill-name>
 ```
 
-## Local Development
+Before committing docs or skill changes:
 
-Edit skills in `skills/<name>/`. Keep reusable detail in `references/` or `assets/` so the top-level skill stays compact.
+```bash
+rtk git diff --check
+```
 
-Validate with whichever skill validator your target runtime uses. For manual checks, install the skill into a disposable agent profile and run the quick examples above. If the agent comes back with a quest, a map, and no accidental rewrite of the kingdom, the table is holding.
+Sync edited skills into the local runtime:
+
+```bash
+rtk rsync -a skills/ /home/teb/.agents/skills/
+```
+
+Contributor details: [`docs/development.md`](docs/development.md).
