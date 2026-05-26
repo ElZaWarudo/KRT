@@ -24,6 +24,7 @@ Arguments:
 [production:unknown|live|preprod|prototype]
 [parallel:true|false]
 [delegation:auto|ask|inline]
+[worktree-policy:avoid|auto|required]
 [autonomy:manual|guarded|high]
 [autonomous-ledger:<path>]
 [review-threshold:P0-P2|P0-P1|P0]
@@ -98,6 +99,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 - Keep planning IDs out of human-facing release text.
 - Do not let work invoke PR creation, Jira transitions, or shipping workflows.
 - Do not open PRs from protected branches.
+- Avoid creating worktrees by default. Use the current checkout with normal branch switching for serial work. Create or require worktrees only when the user explicitly requests `worktree-policy:required`, or when `worktree-policy:auto` plus explicit parallel mutating execution makes isolation necessary and safe.
 - Do not merge PRs or branches, imply that merge is authorized, or pass merge intent to another role in manual/guarded flow. In autonomous flow, Compound Master may pass a merge candidate only to `krt-release-marshal` when an active `autonomous-ledger:<path>` allows the exact mutation class and the deterministic executor still proves reviewer approval, green required checks, branch protection/ruleset satisfaction, exact target scope, and audit readiness.
 - Treat internal code-review, Security Sentinel, CI break-prevention evidence, and an accepted release plan as readiness signals only. They never substitute for GitHub reviewer approval or explicit human merge authorization.
 - Treat `autonomy:high` without an active ledger as local autonomy only. It never authorizes PR, branch, reviewer, Jira, or merge side effects.

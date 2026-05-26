@@ -44,7 +44,7 @@ Autonomous external mutation also requires the `mutation_executor` role and the 
 The portable core is role-based. Subagents are optional runtime adapters.
 
 - Use delegated agents only when the host supports them and the work can be isolated safely.
-- Prefer normal branch switching in the current checkout over creating worktrees. Use isolated worktrees/checkouts only when parallel mutating workers, overlapping scopes, or explicit isolation requirements make a single checkout unsafe.
+- Prefer normal branch switching in the current checkout over creating worktrees. With default `worktree-policy:avoid`, do not create isolated worktrees/checkouts; when the policy is `auto|required`, use them only when parallel mutating workers, overlapping scopes, or explicit isolation requirements make a single checkout unsafe.
 - Keep the lead as supervisor; subagents do not coordinate with each other.
 - Do not add free-form swarm behavior. Use bounded delegation and reviewer fan-out only when useful and recorded.
 - Distinguish direct KRT-owned agent launch from invoking another resolved skill. Do not downgrade `document_review`, `work`, or `code_review` just because that skill may internally launch agents.
@@ -55,7 +55,10 @@ Resolve delegation at the start of execution (`mode:execute`, execution resume, 
 - `delegation:ask`, `autonomy:manual`, `parallel:true` without `autonomy:high`, or "con subagentes": ask before mutating subagents.
 - `delegation:auto`: use `autonomy:guarded` unless explicit.
 - `autonomy:guarded`: read-only agents and one scoped worker may run when ownership is clear and no blocking decision remains.
-- `autonomy:high`: parallel mutating workers only with `parallel:true`, isolated worktrees/checkouts, non-overlapping scopes, dependencies, and fallback branch strategy. If work is serial, prefer branch changes in the current checkout.
+- `worktree-policy:avoid`: default. Do not create worktrees/checkouts; run serially in the current checkout or ask before changing the policy.
+- `worktree-policy:auto`: worktrees/checkouts are allowed only when explicit parallel mutating execution needs safe isolation.
+- `worktree-policy:required`: the user or runtime explicitly requires isolated checkouts; stop if safe isolation cannot be created.
+- `autonomy:high`: parallel mutating workers only with `parallel:true`, `worktree-policy:auto|required`, isolated worktrees/checkouts, non-overlapping scopes, dependencies, and fallback branch strategy. If work is serial, prefer branch changes in the current checkout.
 
 Delegation budget:
 
@@ -78,6 +81,7 @@ Record delegation mode, roles used, read-only/mutating status, outcome, confiden
 - `jira-policy:required|optional|skip`: default `optional`.
 - `parallel:false|true`: default `false`; `true` requires safe dependencies and isolation.
 - `delegation:auto|ask|inline`: default `auto`.
+- `worktree-policy:avoid|auto|required`: default `avoid`; `parallel:true` does not override it.
 - `autonomy:manual|guarded|high`: default `guarded`.
 - `autonomous-ledger:<path>`: machine-readable authorization ledger for autonomous external mutation. `autonomy:high` without this ledger does not authorize external side effects.
 - `review-threshold:P0-P2|P0-P1|P0`: default `P0-P2`.

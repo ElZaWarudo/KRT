@@ -15,11 +15,12 @@ Classify packages and review units:
 Rules:
 
 - Prefer changing branches in the current checkout for serial work. Do not create a worktree just to move between review units or bases.
+- With default `worktree-policy:avoid`, do not create worktrees/checkouts. If parallel execution would need them, downgrade to serial execution or ask for an explicit policy change.
 - Independent review units may branch from the integration base.
 - Dependent review units wait for merge or become stacked PRs based on parent branch.
 - Overlapping/high-risk/production-sensitive review units run serially unless the user explicitly accepts risk and isolation exists.
-- `parallel:true` with mutating workers requires isolated worktrees/checkouts, non-overlapping scopes, safe dependencies, and `autonomy:high`.
-- Use worktrees/checkouts only when isolation is required for parallel mutation, overlapping branches, unsafe branch switching, or an explicit user/runtime isolation constraint.
+- `parallel:true` with mutating workers requires `worktree-policy:auto|required`, isolated worktrees/checkouts, non-overlapping scopes, safe dependencies, and `autonomy:high`.
+- Use worktrees/checkouts only when the worktree policy allows it and isolation is required for parallel mutation, overlapping branches, unsafe branch switching, or an explicit user/runtime isolation constraint.
 - Without isolation, delegated workers must not stage, commit, push, create PRs, transition Jira, or run broad mutation-prone flows.
 - Delegated workers never perform autonomous external mutation. They may produce implementation output and validator-ready facts; Release Marshal's executor owns PR, branch, reviewer, Jira, and merge side effects.
 
@@ -36,6 +37,7 @@ If execution has no `package:`, select the first unblocked package and first rea
 | Independent, isolated, non-overlapping units | Parallel workers only with explicit safe mode |
 | Ambiguous ownership, overlap, missing isolation, or product/branch decision | Run inline or stop for decision |
 | Serial branch/base change | Switch branch in current checkout |
+| Parallel work needs worktrees but `worktree-policy:avoid` is active | Run serially or ask for policy change |
 
 ## Autonomy Contract
 
