@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-redactor-natural"
+  short_description: "Redacta textos naturales y menos genericos"
+  default_prompt: "Use krt-redactor-natural to draft or revise a text so it sounds natural, specific, and context-aware."
