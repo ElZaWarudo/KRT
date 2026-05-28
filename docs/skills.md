@@ -22,7 +22,7 @@ Formal skill IDs use lowercase hyphenated `krt-*` names. Some runtimes may expos
 | `$krt:rebase-smith` | `krt-rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
 | `$krt:jira-scribe` | `krt-jira-scribe` | Manage Jira Server/Data Center issues, subtasks, sprints, and transitions in Spanish. |
 | `$krt:repo-medic` | `krt-repo-medic` | Diagnose repository health, stale docs, broken workflows, and maintenance risks. |
-| `$krt:redactor-natural` | `krt-redactor-natural` | Draft and revise text so it sounds natural, specific, and less formulaic. |
+| `$krt:bicentennial-writer` | `krt-bicentennial-writer` | Draft and revise text so it sounds natural, specific, and less formulaic. |
 
 Skills can bring their own references, templates, scripts, assets, or agent definitions. Keep the main `SKILL.md` readable; put the heavy armor nearby.
 
