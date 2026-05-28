@@ -39,7 +39,7 @@ Prefer structured evidence over broad guessing:
 - check whether dependencies, images, runners, caches, secrets, variables, or external services changed;
 - preserve secret hygiene: never print tokens, credentials, masked values, or full environment dumps.
 
-Use provider CLIs when available (`gh`, `glab`, `circleci`, Jenkins CLI/API), but keep the report useful when only pasted logs are available.
+Use provider CLIs when available (`gh`, `glab`, `circleci`, Jenkins CLI/API). For GitHub Actions, prefer `gh` over GitHub plugins/connectors; use plugin/connector APIs only when `gh` is unavailable, unauthenticated, or cannot expose the needed evidence. Keep the report useful when only pasted logs are available.
 
 ### Step 3 - Classify Cause
 

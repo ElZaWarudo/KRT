@@ -1,6 +1,6 @@
 # GitHub PR Flow
 
-Use this reference when `krt-release-marshal` needs exact `git`/`gh` commands or PR content details.
+Use this reference when `krt-release-marshal` needs exact `git`/`gh` commands or PR content details. Prefer `gh` before GitHub plugins/connectors for all GitHub reads and writes.
 
 ## Preflight
 

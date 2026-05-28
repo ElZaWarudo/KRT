@@ -12,7 +12,7 @@ The marshal directs component skills instead of duplicating them:
 - `krt-gitflow-knight` (`krt:gitflow-knight`) owns branch hygiene, staging, and commit planning.
 - `krt-rebase-smith` (`krt:rebase-smith`) owns clean branch history and safe rebase decisions.
 - `krt-jira-scribe` (`krt:jira-scribe`) owns Jira issue/subtask lookup, creation proposals, sprint handling, PR backlinks, comments, and transitions.
-- `gh` owns GitHub remote state, push/PR operations, and reviewer requests after release-plan confirmation.
+- `gh` owns GitHub remote state, push/PR operations, and reviewer requests after release-plan confirmation. Prefer `gh` before GitHub plugins/connectors; use connector/plugin APIs only as fallback when `gh` is unavailable, unauthenticated, or lacks required data.
 - The bundled autonomous mutation executor owns ledger-bound autonomous PR, branch, reviewer, Jira, and merge side effects after deterministic validators pass.
 
 Load `references/github-pr-flow.md` for exact `git`/`gh` commands, PR body details, base resolution, remote branch checks, and reviewer lookup.
@@ -29,7 +29,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 ## Mandatory Rules
 
 - Use the host runtime's command wrapper only when the current repo requires one.
-- Use `gh` for GitHub PR operations.
+- Use `gh` for GitHub PR operations before GitHub plugins/connectors.
 - Never create a PR from protected branches: `main`, `master`, or `develop`.
 - Never merge PRs or branches without user approval for that exact merge action, even after a release plan was accepted, unless an active autonomous ledger authorizes the exact mutation and the executor passes all merge validators. The approval text may identify the PR by number (`mergea la PR #96 ahora`), by an unambiguous current PR context already resolved by the workflow (`mergea la PR`), or by a generic approval (`dale`, `ok`, `sí`) only when it is the user's direct answer to an explicit pending merge prompt for that resolved PR. Generic approval to accept a release plan, create/update a PR, request reviewers, or continue non-merge work is not merge approval.
 - Never merge a PR unless GitHub shows human reviewer approval for the PR and no blocking change requests remain. Internal code review, Compound Master review, CI evidence, author approval, or the agent's own judgment cannot substitute for human reviewer approval.

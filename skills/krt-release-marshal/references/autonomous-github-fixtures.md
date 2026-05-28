@@ -22,6 +22,6 @@ Validator coverage:
 | Reviewer already requested | `reviewer_noop.json` | Allows no-op with warning |
 | Parent PR merged but child not refreshed | `stack_after_parent_merge.json` | Blocks retarget/approval/check freshness |
 
-These fixtures intentionally mirror `gh pr view` concepts: `headRefOid`, `isDraft`, `reviewDecision`, `latestReviews`, `statusCheckRollup`, `mergeStateStatus`, base/head refs, branch protection, and merge queue requirement. Live implementations may fetch from `gh`, REST, or GraphQL, but unavailable data must block instead of being inferred.
+These fixtures intentionally mirror `gh pr view` concepts: `headRefOid`, `isDraft`, `reviewDecision`, `latestReviews`, `statusCheckRollup`, `mergeStateStatus`, base/head refs, branch protection, and merge queue requirement. Live implementations should prefer `gh` and `gh api` before plugins/connectors or direct REST/GraphQL clients. Unavailable data must block instead of being inferred.
 
 Historical scenario basis: stacked PR, Jira transition, and CI evidence patterns from `docs/orchestration/archive/compound-master-state/2026-05-11-productpass-delegated-architecture-full-state.md`.

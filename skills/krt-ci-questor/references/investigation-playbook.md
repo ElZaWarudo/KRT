@@ -28,6 +28,7 @@ Use this playbook to diagnose CI failures without turning logs into a swamp.
 
 ### GitHub Actions
 
+- Prefer `gh` for GitHub Actions evidence before GitHub plugins/connectors. Use `gh api` when the normal `gh run` commands do not expose the needed field.
 - Use check annotations and workflow logs before downloading full archives.
 - For unexpected skips/triggers, inspect `on:`, branch/path filters, skip annotations, merge conflicts, and default-branch-only events.
 - For unclear conditions, download log archives and inspect expression evaluation in job system logs when available.
