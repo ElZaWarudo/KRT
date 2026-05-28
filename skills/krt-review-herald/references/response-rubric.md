@@ -8,10 +8,11 @@ Use this rubric to classify and answer PR feedback.
 |---|---|---|
 | Blocking fix | Must change before merge | Fix or ask user if scope changes |
 | Valid improvement | Improves quality without changing scope materially | Fix when reasonable |
+| Nit batch | Optional polish that can be grouped cheaply | Batch only if local and low risk |
 | Clarification needed | Reviewer intent or tradeoff is unclear | Ask a focused question |
 | Discuss/decline | Current approach may be right despite concern | Explain tradeoffs respectfully |
-| Nit/advisory | Optional polish | Batch only if cheap |
 | Already addressed | Later code/comment resolves it | Draft concise pointer |
+| Stale or invalid | Comment no longer applies or premise is false | Verify the underlying concern, then reply briefly |
 
 ## Reply Principles
 
@@ -27,6 +28,8 @@ Use this rubric to classify and answer PR feedback.
 - If a reviewer found a missing test, add the narrowest meaningful test unless the test would be brittle or impossible locally.
 - If feedback is out of scope, say why and offer a follow-up only when it has real value.
 - If multiple comments point to one root problem, fix the root and reply to each thread with the same concise rationale.
+- Treat suggested changes as proposals. Validate them against the codebase before applying.
+- Keep fixes traceable to the thread or root-cause group that justified them.
 
 ## Escalation
 

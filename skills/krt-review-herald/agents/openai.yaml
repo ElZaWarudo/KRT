@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-review-herald"
-  short_description: "Triage PR feedback and prepare clear responses"
-  default_prompt: "Use krt-review-herald to triage PR review feedback, plan fixes, and draft replies."
+  short_description: "Resolve PR feedback with fixes and clear replies"
+  default_prompt: "Use krt-review-herald to triage PR review feedback, apply safe fixes, verify the result, and draft replies."

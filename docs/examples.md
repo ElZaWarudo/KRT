@@ -64,6 +64,12 @@ Triage PR feedback:
 Use $krt:review-herald to classify review comments and draft replies for PR #42.
 ```
 
+Resolve PR feedback:
+
+```text
+Use $krt:review-herald to address review comments on PR #42, apply safe fixes, verify them, and prepare replies.
+```
+
 Investigate CI:
 
 ```text
