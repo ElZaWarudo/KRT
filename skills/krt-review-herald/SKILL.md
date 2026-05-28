@@ -14,6 +14,7 @@ It does not push, create PRs, request reviewers, or transition Jira unless anoth
 - Load `references/response-rubric.md` before classifying comments or drafting replies.
 - Load `references/thread-lifecycle.md` when working through multiple threads, stale comments, or "fix everything" requests.
 - Load `references/fix-policy.md` before editing code for review feedback.
+- Load `references/commit-guidance.md` before proposing commit groups or commit titles for review feedback fixes.
 - Load `references/github-operations.md` when reading from or writing to GitHub through `gh`, REST, GraphQL, or a connector/plugin fallback.
 - Load `references/source-literature.md` when explaining the communication model or when the user asks what the workflow is based on.
 
@@ -52,7 +53,7 @@ Return or execute a plan depending on the user's request:
 - If the user asks to resolve comments, implement safe fixes, run targeted verification when practical, and draft replies.
 - If a comment would change product scope, public API, migration behavior, auth, data semantics, or release risk, ask before changing it.
 
-For each thread, preserve the decision record: classification, action, changed files, verification, reply draft, and whether remote action is still pending. Group fixes into coherent commits or leave them unstaged for `krt-gitflow-knight`, according to the user's requested workflow.
+For each thread, preserve the decision record: classification, action, changed files, verification, reply draft, and whether remote action is still pending. Group fixes into coherent commits or leave them unstaged for `krt-gitflow-knight`, according to the user's requested workflow. Use review-aware commit titles when proposing those groups.
 
 ### Step 4 - Apply Fixes And Verify
 
