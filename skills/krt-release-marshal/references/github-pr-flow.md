@@ -100,6 +100,12 @@ docs: clarify local Jira workflow setup
 
 ## PR Body
 
+Normalize draft copy before validating it:
+
+```bash
+python3 <release-marshal-skill-dir>/scripts/format_pr_body.py --file <draft-body-file> > <tmp-body-file>
+```
+
 Before creation or update, validate the body with:
 
 ```bash
@@ -125,6 +131,7 @@ Rules:
 - Do not mention stacked PR relationships, temporary bases, future retargeting, dependency PRs, reviewer instructions, or merge sequencing.
 - Do not include verification unless the repo template requires it. Treat upstream test results as readiness context, not body content.
 - Keep the body factual.
+- If an upstream agent produced `Summary`, `Verification`, or stacked-context copy, run the formatter and use only its cleaned output.
 
 Example:
 

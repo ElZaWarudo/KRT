@@ -23,6 +23,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - Resolve `<release-marshal-skill-dir>` to the directory containing this `SKILL.md`; in installed runtimes this may be `/home/teb/.agents/skills/krt-release-marshal`, not `skills/krt-release-marshal` inside the target repo.
 - `<release-marshal-skill-dir>/scripts/check_pr_scope.py --base <base>...HEAD` to summarize human/generated/orchestration-doc lines, including untracked files by default, and surface split warnings.
 - Use `--fail-on-blocking` when you need the script to fail for split/oversized-approval conditions while allowing advisory warnings.
+- `<release-marshal-skill-dir>/scripts/format_pr_body.py --file <draft-body-file>` to normalize noisy generated PR copy into the strict public body shape before validation.
 - `<release-marshal-skill-dir>/scripts/check_pr_body.py --file <tmp-body-file>` before PR creation or update.
 - Commit work is delegated to `krt-gitflow-knight`, which must run its deterministic `.krt/env/jira-scribe.env` ignore guard before planning and before each local commit.
 
@@ -190,6 +191,13 @@ If required Jira env vars are missing, stop the Jira phase and ask whether to co
 ### 5. PR Preparation
 
 Load `references/github-pr-flow.md` for base selection, remote branch state, PR content gathering, and body construction.
+
+Build PR body text deterministically:
+
+1. Draft only change lines, plus the immediately relevant Jira URL when present.
+2. Run `<release-marshal-skill-dir>/scripts/format_pr_body.py --file <draft-body-file>` and write the output to the body file used by `gh`.
+3. Run `<release-marshal-skill-dir>/scripts/check_pr_body.py --file <tmp-body-file>`.
+4. If the formatter cannot find change lines or the checker fails, fix the draft body before asking for PR approval. Do not fall back to `Summary`, `Verification`, stacked-context, reviewer, retargeting, or test-command sections.
 
 Before push or PR creation/update, show these fields in the user's language:
 

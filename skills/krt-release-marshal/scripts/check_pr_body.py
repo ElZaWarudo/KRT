@@ -25,6 +25,7 @@ FORBIDDEN_PATTERNS = (
     (re.compile(r"\btests pass\b"), "tests pass"),
     (re.compile(r"\bci\b|\bcontinuous integration\b"), "CI"),
 )
+FORBIDDEN_SECTION_HEADINGS = {"summary", "verification"}
 
 
 def read_body(args: argparse.Namespace) -> str:
@@ -64,6 +65,8 @@ def main() -> int:
     for line in lines:
         if line.startswith("#") or line.startswith("##"):
             errors.append("PR body must not include headings")
+        if line.strip().rstrip(":").lower() in FORBIDDEN_SECTION_HEADINGS:
+            errors.append(f"PR body must not include {line.strip()!r} section headings")
     jira_index = lines.index(jira_lines[-1]) if jira_lines else len(lines)
     change_lines = [line for line in lines[:jira_index] if line]
     if not change_lines:
