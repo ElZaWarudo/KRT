@@ -1,0 +1,13 @@
+{
+  "repository": "acme/widgets",
+  "pull_request": 18,
+  "threads": [
+    {
+      "thread_id": "PRRT_kwDOAAABc123",
+      "decision": "fix",
+      "reply": "Fixed by consolidating the normalizer path and preserving paragraph breaks.",
+      "resolve": true,
+      "verification": "rtk pytest tests/normalize_test.py"
+    }
+  ]
+}

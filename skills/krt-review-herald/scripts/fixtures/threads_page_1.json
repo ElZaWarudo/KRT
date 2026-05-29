@@ -1,0 +1,54 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "id": "PR_kwDOAAAB123",
+        "number": 18,
+        "title": "Preserve paragraph breaks",
+        "url": "https://github.com/acme/widgets/pull/18",
+        "reviewThreads": {
+          "nodes": [
+            {
+              "id": "PRRT_open",
+              "isResolved": false,
+              "isOutdated": false,
+              "path": "src/normalize.ts",
+              "line": 41,
+              "originalLine": 41,
+              "startLine": null,
+              "originalStartLine": null,
+              "diffSide": "RIGHT",
+              "comments": {
+                "totalCount": 2,
+                "nodes": [
+                  {
+                    "id": "PRRC_1",
+                    "body": "normalizeChunkText preserves blank lines but normalizeExtractedText flattens them.",
+                    "createdAt": "2026-05-29T10:00:00Z",
+                    "url": "https://github.com/acme/widgets/pull/18#discussion_r1",
+                    "author": {
+                      "login": "reviewer-a"
+                    }
+                  },
+                  {
+                    "id": "PRRC_2",
+                    "body": "We should keep paragraph breaks in the shared path.",
+                    "createdAt": "2026-05-29T10:05:00Z",
+                    "url": "https://github.com/acme/widgets/pull/18#discussion_r2",
+                    "author": {
+                      "login": "author-a"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": true,
+            "endCursor": "cursor-1"
+          }
+        }
+      }
+    }
+  }
+}

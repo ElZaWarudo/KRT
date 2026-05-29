@@ -1,0 +1,13 @@
+{
+  "repository": "acme/widgets",
+  "pull_request": 18,
+  "threads": [
+    {
+      "thread_id": "PRRT_kwDOAAABc123",
+      "decision": "clarify",
+      "reply": "Can you confirm whether you want to preserve blank paragraphs through extraction as well?",
+      "resolve": true,
+      "resolution_reason": "not enough"
+    }
+  ]
+}

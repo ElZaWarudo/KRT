@@ -1,0 +1,45 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "id": "PR_kwDOAAAB123",
+        "number": 18,
+        "title": "Preserve paragraph breaks",
+        "url": "https://github.com/acme/widgets/pull/18",
+        "reviewThreads": {
+          "nodes": [
+            {
+              "id": "PRRT_resolved",
+              "isResolved": true,
+              "isOutdated": false,
+              "path": "src/parser.ts",
+              "line": 88,
+              "originalLine": 88,
+              "startLine": null,
+              "originalStartLine": null,
+              "diffSide": "RIGHT",
+              "comments": {
+                "totalCount": 1,
+                "nodes": [
+                  {
+                    "id": "PRRC_3",
+                    "body": "This concern was already fixed in the previous commit.",
+                    "createdAt": "2026-05-29T10:10:00Z",
+                    "url": "https://github.com/acme/widgets/pull/18#discussion_r3",
+                    "author": {
+                      "login": "reviewer-b"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "pageInfo": {
+            "hasNextPage": false,
+            "endCursor": null
+          }
+        }
+      }
+    }
+  }
+}

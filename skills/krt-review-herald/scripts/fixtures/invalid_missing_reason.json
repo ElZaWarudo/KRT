@@ -1,0 +1,12 @@
+{
+  "repository": "acme/widgets",
+  "pull_request": 18,
+  "threads": [
+    {
+      "thread_id": "PRRT_kwDOAAABc123",
+      "decision": "fix",
+      "reply": "Fixed in the shared normalizer.",
+      "resolve": true
+    }
+  ]
+}

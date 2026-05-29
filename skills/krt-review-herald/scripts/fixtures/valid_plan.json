@@ -1,0 +1,26 @@
+{
+  "repository": "acme/widgets",
+  "pull_request": 18,
+  "threads": [
+    {
+      "thread_id": "PRRT_kwDOAAABc123",
+      "path": "src/normalize.ts",
+      "line": 41,
+      "classification": "blocking_fix",
+      "decision": "fix",
+      "reply": "Fixed by removing the chunk-specific normalizer and reusing normalizeExtractedText, which now preserves paragraph breaks.",
+      "resolve": true,
+      "verification": "rtk pytest tests/normalize_test.py",
+      "resolution_reason": "The thread concern is covered by the shared normalizer change."
+    },
+    {
+      "thread_id": "PRRT_kwDOAAABc456",
+      "path": "src/parser.ts",
+      "line": 88,
+      "classification": "valid_improvement",
+      "decision": "reply",
+      "reply": "I kept this as-is because the parser still needs the pre-tokenized shape for downstream batching.",
+      "resolve": false
+    }
+  ]
+}
