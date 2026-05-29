@@ -13,7 +13,7 @@ Formal skill IDs use lowercase hyphenated `krt-*` names. Some runtimes may expos
 | `$krt:compound-master` | `krt-compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, reviews, work packages, execution, and release handoff. |
 | `$krt:state-archivist` | `krt-state-archivist` | Keep Compound Master state compact by archiving long historical detail into linked files. |
 | `$krt:release-marshal` | `krt-release-marshal` | Direct commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
-| `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, plan fixes, and draft reviewer replies. |
+| `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, plan fixes, draft reviewer replies, and apply approved thread replies or resolutions. |
 | `$krt:security-sentinel` | `krt-security-sentinel` | Review security-sensitive slices and diagnose systems for cybersecurity risk. |
 | `$krt:ci-questor` | `krt-ci-questor` | Investigate failing CI runs and produce concise cause reports. |
 | `$krt:deploy-summoner` | `krt-deploy-summoner` | Prepare and diagnose Docker, Helm, and Kubernetes deployments. |

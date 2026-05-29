@@ -1,6 +1,6 @@
 ---
 name: krt-review-herald
-description: Triage pull request review feedback, plan response work, apply approved fixes when requested, verify the result, and draft clear reviewer replies. Use when a user asks to address PR comments, summarize review feedback, resolve GitHub review threads, prepare reply text, decide which comments are blocking, apply fixes from review comments, or turn review feedback into commits and responses. Runtime aliases may expose this as krt:review-herald.
+description: Triage pull request review feedback, plan response work, apply approved fixes when requested, verify the result, draft clear reviewer replies, and optionally publish approved review-thread replies or resolutions. Use when a user asks to address PR comments, summarize review feedback, resolve GitHub review threads, prepare reply text, decide which comments are blocking, apply fixes from review comments, or turn review feedback into commits and responses. Runtime aliases may expose this as krt:review-herald.
 ---
 
 # Review Herald
@@ -17,6 +17,8 @@ It does not push, create PRs, request reviewers, or transition Jira unless anoth
 - Load `references/commit-guidance.md` before proposing commit groups or commit titles for review feedback fixes.
 - Load `references/github-operations.md` when reading from or writing to GitHub through `gh`, REST, GraphQL, or a connector/plugin fallback.
 - Load `references/source-literature.md` when explaining the communication model or when the user asks what the workflow is based on.
+- Use `scripts/build_thread_plan.py` when the user provides a repo and PR number and wants a writable thread action plan generated from GitHub.
+- Use `scripts/apply_review_threads.py` after explicit approval when replies are ready to publish and some threads should be resolved on GitHub.
 
 ## Workflow
 
@@ -30,6 +32,14 @@ Collect review context from the source the user provides:
 - current diff and branch when needed to assess validity.
 
 Prefer `gh` for GitHub reads and writes before connector/plugin APIs. Prefer structured sources such as review threads, requested changes, unresolved status, check failures, and file paths. If GitHub access is unavailable, work from pasted comments and say what could not be verified.
+
+When the user wants to work from the live PR state, generate a writable plan skeleton first:
+
+```bash
+rtk python3 skills/krt-review-herald/scripts/build_thread_plan.py --repo <owner/repo> --pr <number> --output thread-plan.json
+```
+
+This produces one entry per review thread, with GitHub metadata prefilled and the decision fields left blank for Review Herald to classify and complete.
 
 ### Step 2 - Classify Threads
 
@@ -78,6 +88,14 @@ Examples:
 - `I think the current approach is safer because it preserves rollback behavior; are you asking for the stricter validation even if it rejects legacy records?`
 
 Keep replies short. Do not argue. When disagreeing, explain tradeoffs and ask whether the reviewer is optimizing for a different constraint.
+
+When approval exists and the thread plan is ready, publish replies and resolve eligible threads with:
+
+```bash
+rtk python3 skills/krt-review-herald/scripts/apply_review_threads.py --plan-file <thread-plan.json> --execute
+```
+
+The plan must include one thread object per reply or resolution candidate. `resolve: true` is only allowed when the plan also includes a reply and either `verification` or `resolution_reason`, so the skill does not silently resolve threads without evidence or rationale.
 
 ### Step 6 - Closeout
 

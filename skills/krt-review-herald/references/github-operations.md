@@ -24,6 +24,20 @@ Use this reference when Review Herald needs to read from or write to GitHub. Pre
 - Top-level PR comments that mention required changes.
 - CI/check failures only enough to know whether `krt-ci-questor` should take over.
 
+To bootstrap that data into a writable action plan, use:
+
+```bash
+rtk python3 skills/krt-review-herald/scripts/build_thread_plan.py --repo <owner/repo> --pr <number> --output thread-plan.json
+```
+
+Behavior:
+
+- Fetches review threads through `gh api graphql`.
+- Paginates across all thread pages.
+- Excludes already resolved threads by default.
+- Use `--include-resolved` when old resolved conversations still need auditing.
+- Leaves `classification`, `decision`, `reply`, `resolve`, `verification`, and `resolution_reason` blank for later completion.
+
 ## Remote Write Policy
 
 Never perform these actions without explicit approval or an enclosing release workflow:
@@ -37,6 +51,40 @@ Never perform these actions without explicit approval or an enclosing release wo
 - merge.
 
 When a remote write is approved, prefer the equivalent `gh` command or `gh api` call before connector/plugin mutation APIs. Use connector/plugin writes only when they are the only available authenticated path or the runtime explicitly requires them.
+
+For review-thread replies and resolution, use:
+
+```bash
+rtk python3 skills/krt-review-herald/scripts/apply_review_threads.py --plan-file <thread-plan.json> --execute
+```
+
+Plan shape:
+
+```json
+{
+  "repository": "owner/repo",
+  "pull_request": 123,
+  "threads": [
+    {
+      "thread_id": "PRRT_xxx",
+      "path": "src/file.ts",
+      "line": 42,
+      "classification": "blocking_fix",
+      "decision": "fix",
+      "reply": "Fixed by reusing the shared normalizer.",
+      "resolve": true,
+      "verification": "rtk pytest tests/normalize_test.py"
+    }
+  ]
+}
+```
+
+Script guardrails:
+
+- `resolve: true` requires a reply.
+- `resolve: true` requires either `verification` or `resolution_reason`.
+- `clarify` and `blocked` decisions cannot auto-resolve.
+- Dry-run is the default; add `--execute` only after approval.
 
 Prepare the exact intended remote actions instead:
 
