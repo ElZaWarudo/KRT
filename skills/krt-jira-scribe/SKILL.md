@@ -65,7 +65,7 @@ Never propose a one-parent/one-child Jira shape. If the plan would create exactl
 
 1. Search for possible parents first using project, type, and meaningful summary/context terms.
 2. Inspect plausible parents by key, including summary, status, description, and existing subtasks.
-3. Prefer reuse when scope fits: if an open parent clearly covers the work, propose creating or reusing a subtask under that parent instead of creating a standalone `Tarea`.
+3. Prefer reuse when scope fits, but only from active work: if a parent in an open or in-progress status clearly covers the work, propose creating or reusing a subtask under that parent instead of creating a standalone `Tarea`. Do not reuse parents already in done/closed-like statuses for commit, PR, or work-package assignment unless the user explicitly asks to reopen or continue that exact issue.
 4. If no parent fits and the work is a pull request/work package with two or more likely sibling tasks, prefer proposing a new parent `Tarea` plus one `Subtarea` per immediate PR/work package. This is the default shape for multi-PR delivery only. The new parent should be added to the active sprint unless the user explicitly says `sin sprint`, `no sprint`, `fuera del sprint`, or equivalent.
 5. Ask when ambiguous: show candidate parents and ask which one to use, whether multiple child tasks justify a new parent with subtasks, or whether the work is truly standalone.
 6. Create a standalone global issue only after ruling out parent fit and sibling-task likelihood. Do not propose a standalone task just because no exact summary match exists.
@@ -74,8 +74,9 @@ Never propose a one-parent/one-child Jira shape. If the plan would create exactl
 
 1. Search candidates with project, issue type, and `summary ~ "text"`.
 2. Show key, status, summary, and URL.
-3. If it exists, ask the user to confirm which one to use.
-4. If it does not exist, present project, type, summary, description, sprint plan, and Jira base URL. Create only after confirmation.
+3. Treat reuse candidates as eligible only when their current status is open or in progress. If search returns done/closed-like matches, show them as historical context only, not as default reuse candidates for assigning commits or PRs.
+4. If an eligible active issue exists, ask the user to confirm which one to use.
+5. If no eligible active issue exists, present project, type, summary, description, sprint plan, and Jira base URL. Create only after confirmation.
 
 For new global issues/parent tasks:
 
@@ -95,15 +96,16 @@ For parent-plus-subtasks creation, include the active sprint plan in the same co
 
 1. Search candidates with `parent = "PARENT_KEY" AND summary ~ "text"`.
 2. Show key, status, summary, and URL.
-3. If it exists, ask the user to confirm which one to use.
-4. If it does not exist, present parent, type, summary, description, and Jira base URL. Create only after confirmation.
+3. Treat reuse candidates as eligible only when their current status is open or in progress. If search returns done/closed-like subtasks, show them as historical context only, not as default reuse candidates for assigning commits or PRs.
+4. If an eligible active subtask exists, ask the user to confirm which one to use.
+5. If no eligible active subtask exists, present parent, type, summary, description, and Jira base URL. Create only after confirmation.
 
 When the user provides a parent key:
 
 1. Get the parent and show summary, status, and URL.
 2. Search existing subtasks.
 3. Show candidates.
-4. Propose reusing an open subtask if there is a clear match, or creating a new one if scope does not fit.
+4. Propose reusing a subtask only if there is a clear match and its current status is open or in progress; otherwise create a new one or ask whether the old subtask should be reopened.
 5. Create only with explicit confirmation.
 
 If Jira returns required-field errors, show missing fields and ask. Do not guess custom field IDs.

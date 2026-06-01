@@ -243,7 +243,7 @@ If Jira context is missing and Jira should be included, first run `python3 <jira
 - If an enclosing workflow supplied English suggested Jira text, translate it to Spanish while preserving the intended scope.
 - If the work domain contains unavoidable English product/API names, keep those terms but write the surrounding title and description in Spanish.
 
-Pass the Spanish summary and description explicitly to `krt-jira-scribe`. Create or reuse Jira issues only after confirmation. Capture the immediately relevant Jira URL for the PR body: the subtask when a real multi-child parent exists, otherwise the standalone task.
+Pass the Spanish summary and description explicitly to `krt-jira-scribe`. When looking for an existing Jira task/subtask to associate with commits, branch work, or PRs, prefer only issues in open or in-progress statuses; treat done/closed-like matches as historical context, not default reuse candidates. Create or reuse Jira issues only after confirmation. Capture the immediately relevant Jira URL for the PR body: the subtask when a real multi-child parent exists, otherwise the standalone task.
 
 If the Jira readiness checker reports missing runtime vars, missing `.krt/env/jira-scribe.env`, "env file exists but was not loaded", or any other `ok: false` diagnosis, stop the Jira phase and ask whether to continue PR creation without Jira links only when `jira-policy:required`. With `jira-policy:optional`, record the exact diagnosis, omit Jira links/backlinks/transitions in the plan, and continue after the normal release-plan approval.
 
