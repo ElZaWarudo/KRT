@@ -102,7 +102,7 @@ Run a PR scope guardrail before building the plan:
 
 - Prefer running `<release-marshal-skill-dir>/scripts/check_pr_scope.py --base <base>...HEAD` after base resolution.
 - Compare changed files against any provided review-unit scope. If the diff includes unrelated review units, stop and ask whether to split or proceed with an explicit mixed-scope override.
-- Treat these `check_pr_scope.py` results as soft blockers before PR creation: lines printed as `BLOCKING:`, functional runtime mixed with orchestration/planning docs, generated/mechanical files dominating functional review, or ~1,000+ human-authored changed lines.
+- Treat these `check_pr_scope.py` results as soft blockers before PR creation: lines printed as `BLOCKING:`, generated/mechanical files dominating functional review, or ~1,000+ human-authored changed lines. Mixed orchestration/planning docs are a warning to assess relevance and noise, not a reason to silently exclude related documentation from the branch or PR.
 - Treat >900 human-authored changed lines as an advisory warning that must be visible in the plan.
 - If a soft blocker appears, do not bury it as a normal warning. The plan must include an explicit `Decisión de tamaño/alcance:` line with exactly one of: `separar antes de PR` or `aprobar PR grande por <rationale>`.
 - The accepted release plan only authorizes an oversized/mixed PR when that `Decisión de tamaño/alcance` line names the rationale and the remote mutations covered by approval include the oversized override.
@@ -142,7 +142,7 @@ Plan these phases:
 - Rebase phase: recommended before PR unless the user explicitly skips.
 - Jira phase: needed if the user wants a Jira link, the project requires it, or optional Jira context/configuration is available enough to create/reuse a task safely; otherwise show "omitida: sin contexto/configuracion Jira" rather than asking a separate question.
 - PR phase: always included.
-- PR scope guardrail: validate that the PR contains one focused review unit; separate docs/orchestration and generated artifacts unless explicitly approved through the size/scope decision line.
+- PR scope guardrail: validate that the PR contains one focused review unit; separate docs/orchestration and generated artifacts only when they materially obscure review. Keep related documentation updates, including catch-up docs for nearby already-landed behavior, in the branch/PR by default unless the user explicitly wants a split.
 - Reviewer phase: after PR creation, request explicit reviewers or infer one clear reviewer when the accepted plan includes automatic reviewer handling; otherwise ask or skip according to user preference.
 - Merge phase: omitted from the normal release flow. A later merge requires a fresh PR-state inspection, visible human reviewer approval, passing required checks, no blocking change requests, and exact user authorization for that PR.
 - Jira PR backlink phase: after a ready PR exists, add the PR URL back to the associated Jira task/subtask when Jira context exists and the accepted plan included that backlink; otherwise ask.
