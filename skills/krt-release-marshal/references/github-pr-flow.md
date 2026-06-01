@@ -38,7 +38,7 @@ Check whether current branch exists on origin:
 git ls-remote --heads origin <current-branch>
 ```
 
-If it does not exist, include this command in the visible release plan:
+If it does not exist, summarize in the visible release plan that the branch will be published on origin:
 
 ```bash
 git push -u origin <current-branch>
@@ -52,7 +52,7 @@ If it exists, inspect ahead/behind:
 git status --porcelain=v1 -b
 ```
 
-If history was rewritten, show this command in the visible release plan and require explicit approval for:
+If history was rewritten, summarize that a `--force-with-lease` push will be required and ask for explicit approval:
 
 ```bash
 git push --force-with-lease origin <current-branch>
@@ -76,7 +76,7 @@ Run the PR scope guardrail before presenting the release plan:
 python3 <release-marshal-skill-dir>/scripts/check_pr_scope.py --base <base>...HEAD --fail-on-blocking
 ```
 
-If it prints `BLOCKING:`, the release plan must ask for an explicit split decision or oversized-PR approval before any PR creation/update. Advisory `WARNING:` output may proceed only when it is visible in the plan.
+If it prints `BLOCKING:`, the release plan must ask for an explicit split decision or oversized-PR approval before any PR creation/update. Advisory `WARNING:` output may proceed only when it is visible in the plan. Documentation-related warnings are not blocking by themselves, and they must not be "resolved" by hiding docs in stash/worktree/side-branch state. In the visible message, summarize the guardrail result in plain language instead of dumping raw script output.
 
 Check for existing PR:
 
@@ -97,6 +97,8 @@ feat: add delegated registry deployment flow
 fix: preserve product filters in registry search
 docs: clarify local Jira workflow setup
 ```
+
+When presenting the title to the user, wrap it inside a short PR proposal that also explains scope and status. The visible message should feel like an editor proposing a PR, not a CLI preview.
 
 ## PR Body
 
@@ -142,6 +144,8 @@ Adds regulatory-api manifest discovery, central-client publishing support, and g
 
 $JIRA_HOST/browse/PDP-93
 ```
+
+Before remote mutation, present the body under a short `**Cuerpo de la PR**` section and summarize validation as a confidence note such as `cuerpo validado` unless the checker is failing.
 
 ## Create PR
 

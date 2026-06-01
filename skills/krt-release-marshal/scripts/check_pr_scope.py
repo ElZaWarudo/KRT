@@ -109,8 +109,6 @@ def main() -> int:
         warnings.append(
             "orchestration/planning docs are mixed with functional files; confirm they are related and not obscuring review"
         )
-        if doc >= human:
-            blocking.append("orchestration/planning docs dominate or substantially obscure functional review")
     if gen and human and gen >= human * 0.5:
         blocking.append("generated/mechanical files dominate or substantially obscure functional review")
 
