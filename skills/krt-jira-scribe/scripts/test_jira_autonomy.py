@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -36,6 +37,86 @@ def run(script: str, mutation: str, fixture: str, *extra: str) -> tuple[int, dic
 
 
 class JiraAutonomyTest(unittest.TestCase):
+    def test_check_jira_env_reports_not_configured(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, text=True, capture_output=True, check=True)
+
+            completed = subprocess.run(
+                [sys.executable, str(ROOT / "check_jira_env.py"), "--root", str(root)],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            result = json.loads(completed.stdout)
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertFalse(result["ok"])
+            self.assertEqual(result["diagnosis"], "jira-env-not-configured")
+            self.assertIn("JIRA_HOST", result["missing_required_vars"])
+
+    def test_check_jira_env_reports_secret_file_not_loaded(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, text=True, capture_output=True, check=True)
+            subprocess.run(
+                [sys.executable, str(ROOT / "setup_jira_env.py"), "--root", str(root)],
+                text=True,
+                capture_output=True,
+                check=True,
+            )
+
+            completed = subprocess.run(
+                [sys.executable, str(ROOT / "check_jira_env.py"), "--root", str(root)],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            result = json.loads(completed.stdout)
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertFalse(result["ok"])
+            self.assertEqual(result["diagnosis"], "env-file-present-but-not-loaded")
+            self.assertTrue(result["project_files"]["secret_env_exists"])
+
+    def test_check_jira_env_strict_fails_when_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, text=True, capture_output=True, check=True)
+
+            completed = subprocess.run(
+                [sys.executable, str(ROOT / "check_jira_env.py"), "--root", str(root), "--strict"],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            result = json.loads(completed.stdout)
+
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertFalse(result["ok"])
+
+    def test_check_jira_env_rejects_vars_without_project_secret_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, text=True, capture_output=True, check=True)
+            env = os.environ.copy()
+            env["JIRA_HOST"] = "jira.example.com"
+            env["JIRA_API_TOKEN"] = "token"
+            env["JIRA_PROJECT_KEY"] = "KRT"
+
+            completed = subprocess.run(
+                [sys.executable, str(ROOT / "check_jira_env.py"), "--root", str(root)],
+                text=True,
+                capture_output=True,
+                check=False,
+                env=env,
+            )
+            result = json.loads(completed.stdout)
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertFalse(result["ok"])
+            self.assertEqual(result["diagnosis"], "env-loaded-without-project-secret-file")
+
     def test_spanish_text_accepts_semantic_copy(self) -> None:
         completed = subprocess.run(
             [sys.executable, str(ROOT / "check_jira_text.py"), "--text", "Crear una tarea para validar el flujo con auditoria"],

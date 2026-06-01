@@ -33,6 +33,6 @@ Skills can bring their own references, templates, scripts, assets, or agent defi
 | `krt-delivery-navigator` | `krt-requirements-weaver` output when available | Turns validated requirements into delivery shape without re-litigating discovery. |
 | `krt-compound-master` | Required: `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal`. Optional: `krt-state-archivist`, `krt-security-sentinel`, `krt-ci-questor` | Full artifact, execution, and release pipeline. Optional specialists are used when present and skipped with a recorded fallback when missing. |
 | `krt-release-marshal` | `krt-gitflow-knight`, `krt-rebase-smith`, `krt-jira-scribe` | Clean commits, clean branch history, Jira, and PR handoff. |
-| `krt-jira-scribe` | Jira env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
+| `krt-jira-scribe` | `.krt/env/jira-scribe.env` loaded into env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
 
-For Jira flows, configure `JIRA_HOST`, `JIRA_API_TOKEN`, and `JIRA_PROJECT_KEY`. Check whether variables exist without printing `JIRA_API_TOKEN`, because secrets are not confetti.
+For Jira flows, configure the active checkout's `.krt/env/jira-scribe.env`, load it into environment variables, and verify readiness with `check_jira_env.py` without printing `JIRA_API_TOKEN`, because secrets are not confetti.

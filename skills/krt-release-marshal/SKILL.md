@@ -26,6 +26,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - `<release-marshal-skill-dir>/scripts/format_pr_body.py --file <draft-body-file>` to normalize noisy generated PR copy into the strict public body shape before validation.
 - `<release-marshal-skill-dir>/scripts/check_pr_body.py --file <tmp-body-file>` before PR creation or update.
 - Commit work is delegated to `krt-gitflow-knight`, which must run its deterministic `.krt/env/jira-scribe.env` ignore guard before planning and before each local commit.
+- Jira readiness belongs to `krt-jira-scribe`'s checkout-local env contract. Before calling Jira available, prefer `python3 <jira-scribe-skill-dir>/scripts/check_jira_env.py --root <repo-root> --strict` and treat Jira as ready only when that checker reports `ok: true`.
 
 ## Mandatory Rules
 
@@ -43,7 +44,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - Treat verification results from upstream workflows as readiness evidence only. Do not include test commands, test output, or verification summaries in the PR body unless the user, repo template, or project convention explicitly requires it.
 - Do not run tests, linters, or formatters unless the user explicitly asks; use verification results supplied by the user or upstream workflow.
 - Before pushing or updating a PR with a CI-fix commit, require evidence that the repo-specific command equivalent to the affected CI job passed locally, or present the missing validation clearly and ask for explicit override before the remote mutation.
-- Do not ask for Jira credentials. If Jira is required and required env vars are missing, block and ask whether to continue without Jira. If Jira is optional, show the no-Jira fallback in the release plan and continue after the normal release-plan approval without a separate Jira-usage question.
+- Do not ask for Jira credentials. Do not assume Jira variables are already present in console context. For local Jira configuration, treat the active checkout's `.krt/env/jira-scribe.env` as the required source, loaded into runtime env vars by `direnv` or an equivalent loader. If Jira is required and that contract is not ready, block and ask whether to continue without Jira. If Jira is optional, show the no-Jira fallback in the release plan and continue after the normal release-plan approval without a separate Jira-usage question.
 - Use `--force-with-lease`, never plain `--force`, when a rewritten branch must be pushed.
 - In autonomous mode, route PR/branch/reviewer/Jira/merge side effects through `scripts/autonomous_mutation.py`; direct `gh`, Jira, or push commands are validation-only/manual-required unless the runtime enforcement boundary is confirmed.
 - Prefer strict PR bodies: one factual change bullet per line, blank line, then the immediately relevant Jira URL. Do not include stack context, retargeting plans, base-branch notes, reviewer instructions, verification, or any operational commentary unless the repo template explicitly requires it.
@@ -90,13 +91,15 @@ Use context already provided by the user or previous skills:
 - Suggested commit grouping from an enclosing workflow, when provided.
 - Autonomous ledger path, allowed mutation classes, latest audit hash, and executor mode from Compound Master, when provided.
 
-If the user asks simply to create a PR and there are uncommitted changes, propose the full flow. Treat missing Jira context as optional by default: include Jira discovery when there is enough signal, otherwise state that Jira will be omitted unless the user requires it.
+If the user asks simply to create a PR and there are uncommitted changes, propose the full flow. Treat missing Jira context as optional by default: include Jira discovery when there is enough signal, otherwise state that Jira will be omitted unless the user requires it. Treat "Jira configured" as false unless the checkout-local `jira-scribe.env` contract passes `krt-jira-scribe`'s readiness check.
 
 ## Workflow
 
 ### 1. Preflight And Phase Plan
 
 Load `references/github-pr-flow.md` for commands. Inspect branch, working tree, remotes, and repository default branch.
+
+When Jira may be relevant, resolve `<jira-scribe-skill-dir>` to the directory containing `krt-jira-scribe`'s `SKILL.md` and run `python3 <jira-scribe-skill-dir>/scripts/check_jira_env.py --root <repo-root>` before deciding that Jira is available, omitted, or blocked. Use the checker's diagnosis in the release plan instead of hand-waving about "missing env vars".
 
 Run a PR scope guardrail before building the plan:
 
@@ -140,7 +143,7 @@ Plan these phases:
 
 - Commit phase: needed if there are staged/unstaged changes or branch hygiene issues.
 - Rebase phase: recommended before PR unless the user explicitly skips.
-- Jira phase: needed if the user wants a Jira link, the project requires it, or optional Jira context/configuration is available enough to create/reuse a task safely; otherwise show "omitida: sin contexto/configuracion Jira" rather than asking a separate question.
+- Jira phase: needed if the user wants a Jira link, the project requires it, or optional Jira context/configuration is available enough to create/reuse a task safely under the checkout-local `jira-scribe.env` contract; otherwise show "omitida: sin contexto/configuracion Jira (`.krt/env/jira-scribe.env` no listo en este checkout)" rather than asking a separate question.
 - PR phase: always included.
 - PR scope guardrail: validate that the PR contains one focused review unit; separate docs/orchestration and generated artifacts only when they materially obscure review. Keep related documentation updates, including catch-up docs for nearby already-landed behavior, in the branch/PR by default unless the user explicitly wants a split.
 - Reviewer phase: after PR creation, request explicit reviewers or infer one clear reviewer when the accepted plan includes automatic reviewer handling; otherwise ask or skip according to user preference.
@@ -173,11 +176,11 @@ Unless the user explicitly skips history cleanup, load and follow `krt-rebase-sm
 
 ### 4. Jira Phase
 
-If Jira context was provided, keep it.
+If Jira context was provided, keep it, but do not treat it as execution-ready until the checkout-local `jira-scribe.env` readiness check passes.
 
 If `jira-policy:skip`, omit Jira lookup, creation, backlinking, and transition.
 
-If Jira context is missing and Jira should be included, load and follow `krt-jira-scribe`. Use Jira Server/Data Center only. For PRs that look like a review unit inside a larger delivery sequence, prefer finding or creating a parent task plus subtasks only when there are two or more likely child tasks. Never propose a single parent task with a single child subtask; use one standalone `Tarea` for that case and attach PR backlink/comments/transition to it. Before proposing creation, derive Spanish Jira text:
+If Jira context is missing and Jira should be included, first run `python3 <jira-scribe-skill-dir>/scripts/check_jira_env.py --root <repo-root>`. If it reports `ok: false`, treat the result as a Jira readiness diagnosis, not as permission to guess. With `jira-policy:optional`, surface the exact diagnosis in the plan and continue without Jira after plan approval. With `jira-policy:required`, stop and ask whether to continue without Jira. If the checker reports `ok: true`, load and follow `krt-jira-scribe`. Use Jira Server/Data Center only. For PRs that look like a review unit inside a larger delivery sequence, prefer finding or creating a parent task plus subtasks only when there are two or more likely child tasks. Never propose a single parent task with a single child subtask; use one standalone `Tarea` for that case and attach PR backlink/comments/transition to it. Before proposing creation, derive Spanish Jira text:
 
 - Summary: concise Spanish action phrase, no branch prefixes, no Conventional Commit type, no Jira key, no Compound Master IDs, and no package/date numbers.
 - Description: 1-3 concise Spanish sentences explaining what must be done and why.
@@ -186,7 +189,7 @@ If Jira context is missing and Jira should be included, load and follow `krt-jir
 
 Pass the Spanish summary and description explicitly to `krt-jira-scribe`. Create or reuse Jira issues only after confirmation. Capture the immediately relevant Jira URL for the PR body: the subtask when a real multi-child parent exists, otherwise the standalone task.
 
-If required Jira env vars are missing, stop the Jira phase and ask whether to continue PR creation without Jira links only when `jira-policy:required`. With `jira-policy:optional`, record the missing configuration, omit Jira links/backlinks/transitions in the plan, and continue after the normal release-plan approval.
+If the Jira readiness checker reports missing runtime vars, missing `.krt/env/jira-scribe.env`, "env file exists but was not loaded", or any other `ok: false` diagnosis, stop the Jira phase and ask whether to continue PR creation without Jira links only when `jira-policy:required`. With `jira-policy:optional`, record the exact diagnosis, omit Jira links/backlinks/transitions in the plan, and continue after the normal release-plan approval.
 
 ### 5. PR Preparation
 

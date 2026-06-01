@@ -34,7 +34,22 @@ Projects that use `direnv` can load the file from their own `.envrc`:
 dotenv_if_exists .krt/env/jira-scribe.env
 ```
 
-Jira Scribe still consumes only environment variables and must not read token files directly.
+Jira Scribe still consumes only environment variables and must not read token files directly, but it must not treat machine-global or ad-hoc shell exports as sufficient context. The active checkout's `.krt/env/jira-scribe.env` is the required source of Jira configuration.
+
+When Jira seems unavailable, prefer the bundled readiness check before concluding that configuration is missing:
+
+```bash
+python3 <jira-scribe-skill-dir>/scripts/check_jira_env.py --root <consumer-project-root> --strict
+```
+
+The checker reports:
+
+- which required Jira variables are present;
+- whether `.krt/env/jira-scribe.env` exists;
+- whether that secret file is actually ignored by Git; and
+- whether the likely problem is "env file exists but was not loaded", "variables appeared without the required project file", or "Jira is not configured yet".
+
+It does not read credentials from project files or print token values. Treat the result as not ready unless both the file exists and the required runtime variables are present.
 
 Normalize host:
 
@@ -56,7 +71,7 @@ if [[ -z "$JIRA_API_TOKEN" || -z "$JIRA_HOST" || -z "$JIRA_PROJECT_KEY" ]]; then
 fi
 ```
 
-Avoid filtered environment searches for this check. Command wrappers such as `rtk` may summarize or filter `env` output and can make Jira variables look missing. Prefer the direct presence check above, or check individual non-secret values with `printenv JIRA_HOST` and `printenv JIRA_PROJECT_KEY`. Never print `JIRA_API_TOKEN`.
+Avoid filtered environment searches for this check. Command wrappers such as `rtk` may summarize or filter `env` output and can make Jira variables look missing. Prefer the direct presence check above, or check individual non-secret values with `printenv JIRA_HOST` and `printenv JIRA_PROJECT_KEY`. Never print `JIRA_API_TOKEN`. Even when those checks pass, do not consider Jira configured unless `.krt/env/jira-scribe.env` exists for the active checkout.
 
 ## Authentication And Project
 

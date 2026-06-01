@@ -23,7 +23,7 @@ For autonomous Jira mutation, use bundled scripts in `scripts/`: text, issue pay
 
 ## Configuration
 
-Use environment variables exclusively:
+Use environment variables exclusively at runtime, but the only supported project-local source of those variables is `.krt/env/jira-scribe.env` for the current checkout:
 
 - `JIRA_HOST`
 - `JIRA_API_TOKEN`
@@ -31,13 +31,15 @@ Use environment variables exclusively:
 - `JIRA_EMAIL` optional metadata only
 - `JIRA_BOARD_ID` optional board override for active sprint resolution
 
-Consumer project checkouts may load these variables from local secret files through `direnv` or an equivalent project-scoped loader. The runtime contract remains environment variables; Jira Scribe must not read credentials directly from project files.
+Do not assume Jira variables are already present in the console context. Jira Scribe must treat the current checkout's `.krt/env/jira-scribe.env` as the only supported source of Jira configuration, loaded through `direnv` or an equivalent project-scoped loader. The runtime contract remains environment variables after that load; Jira Scribe must not read credentials directly from project files.
 
 If the user explicitly asks to set up project-local Jira configuration, run `scripts/setup_jira_env.py` from the consumer project root. The script creates `.krt/env/.gitignore`, verifies `.krt/env/jira-scribe.env` is ignored with `git check-ignore`, refuses to proceed if that secret file is already tracked, writes placeholders only after the ignore check passes, and creates `.krt/env/jira-scribe.env.example` for non-secret documentation. After setup, tell the user to fill `.krt/env/jira-scribe.env` locally.
 
-Never ask for credentials. If `JIRA_HOST`, `JIRA_API_TOKEN`, or `JIRA_PROJECT_KEY` is missing, terminate with an error naming the missing variables. Never print `JIRA_API_TOKEN` or commands containing it.
+Never ask for credentials. If `JIRA_HOST`, `JIRA_API_TOKEN`, or `JIRA_PROJECT_KEY` is missing, or if `.krt/env/jira-scribe.env` is absent for the active checkout, terminate with an error naming the missing runtime variables or missing project-local env file. Never print `JIRA_API_TOKEN` or commands containing it.
 
 When verifying whether Jira variables exist, do not rely on filtered environment searches that may hide variables. Some command wrappers, including `rtk`, can filter or summarize `env`/search output in ways that make Jira variables look absent. Use a direct shell presence check such as `[[ -n "$JIRA_HOST" ]]`, `printenv JIRA_HOST`, or the verification snippet in `references/jira-api.md`; never print token values.
+
+When startup context is ambiguous, run `scripts/check_jira_env.py --root <consumer-project-root>` before declaring Jira unavailable. This checker does not read credentials from project files; it reports whether required runtime variables are present, whether `.krt/env/jira-scribe.env` exists and is ignored, and whether the likely problem is "env file exists but was not loaded", "variables were injected without the required project file", or "Jira is not configured yet".
 
 Normalize `JIRA_HOST` to `JIRA_BASE_URL` by adding `https://` if no scheme exists and trimming trailing `/`.
 
@@ -51,7 +53,7 @@ Use Jira Server/Data Center only:
 
 ### 1. Startup
 
-Load `references/jira-api.md`. Normalize host, verify required env vars, test credentials with `/rest/api/2/myself`, and verify project/issue types for `JIRA_PROJECT_KEY`.
+Load `references/jira-api.md`. Run `scripts/check_jira_env.py --root <consumer-project-root> --strict` when Jira readiness is unknown or the caller may depend on project-local `.krt/env` setup. Normalize host, verify required env vars, test credentials with `/rest/api/2/myself`, and verify project/issue types for `JIRA_PROJECT_KEY`.
 
 ### 2. Resolve Issue Shape Before Creating Anything
 
