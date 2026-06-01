@@ -99,6 +99,7 @@ docs: clarify local Jira workflow setup
 ```
 
 When presenting the title to the user, wrap it inside a short PR proposal that also explains scope and status. The visible message should feel like an editor proposing a PR, not a CLI preview.
+The visible proposal should also include the intended commit grouping and the key files/surfaces touched, so the user can judge whether the PR shape matches the actual change.
 
 ## PR Body
 

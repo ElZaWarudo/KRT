@@ -56,6 +56,7 @@ Goal: all subsequent steps happen on a correctly named feature branch.
   - Allowed types: `feat/`, `fix/`, `docs/`, `chore/`, `refactor/`, `test/`, `perf/`, `build/`, `ci/`
   - Slug: `kebab-case` (letters/digits and hyphens)
   - Example: `feat/tire-family-schema-registry`
+  - Treat orchestration/planning identifiers such as `RDM-001`, `U1`, `RU1`, `frt-004`, package numbers, and date-sequence traceability slugs as off-convention unless the user or repo convention explicitly requires them. Prefer semantic capability names such as `feat/public-dpp-integrity-verification`.
 
 Use `develop`/`main` as branch hygiene and PR-target context. Do not change the commit base unless the working tree is clean and the intended base is clear from the user request or enclosing workflow plan.
 

@@ -136,7 +136,7 @@ Rules:
 
 ## Branch and PR Handoff Inputs
 - Review unit: [RU# and title]
-- Branch name: [feat/review-unit-slug-without-plan-number]
+- Branch name: [feat/semantic-capability-slug-without-plan-or-review-unit-ids]
 - PR base: [develop/main/parent branch]
 - Suggested commit grouping for this review unit:
   - [type(scope): summary] - [repo-relative files or surfaces] - [why this is one logical review unit]
