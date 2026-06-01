@@ -34,7 +34,15 @@ Projects that use `direnv` can load the file from their own `.envrc`:
 dotenv_if_exists .krt/env/jira-scribe.env
 ```
 
-Jira Scribe still consumes only environment variables and must not read token files directly, but it must not treat machine-global or ad-hoc shell exports as sufficient context. The active checkout's `.krt/env/jira-scribe.env` is the required source of Jira configuration.
+Jira Scribe still consumes only environment variables and must not read token files directly in ad hoc shell snippets, but it must not treat machine-global or ad-hoc shell exports as sufficient context. The active checkout's `.krt/env/jira-scribe.env` is the required source of Jira configuration.
+
+If the shell is not preloaded with `direnv`, prefer the bundled loader:
+
+```bash
+python3 <jira-scribe-skill-dir>/scripts/run_with_jira_env.py --root <consumer-project-root> -- <command ...>
+```
+
+Use that helper for Jira verification, `curl`, and any bundled Jira scripts that need runtime variables.
 
 When Jira seems unavailable, prefer the bundled readiness check before concluding that configuration is missing:
 
@@ -47,9 +55,9 @@ The checker reports:
 - which required Jira variables are present;
 - whether `.krt/env/jira-scribe.env` exists;
 - whether that secret file is actually ignored by Git; and
-- whether the likely problem is "env file exists but was not loaded", "variables appeared without the required project file", or "Jira is not configured yet".
+- whether the likely problem is "env file exists but was not loaded", "env file is present but incomplete", "variables appeared without the required project file", or "Jira is not configured yet".
 
-It does not read credentials from project files or print token values. Treat the result as not ready unless both the file exists and the required runtime variables are present.
+By default, the checker loads non-empty Jira values from `.krt/env/jira-scribe.env` into its own process before evaluating readiness. Use `--no-auto-load` only when diagnosing whether the parent shell already loaded the env file. It does not print token values. Treat the result as not ready unless both the file exists and the required runtime variables are present after that load.
 
 Normalize host:
 
@@ -78,21 +86,24 @@ Avoid filtered environment searches for this check. Command wrappers such as `rt
 Test credentials:
 
 ```bash
-curl -sS -f -H "Authorization: Bearer $JIRA_API_TOKEN" \
+python3 <jira-scribe-skill-dir>/scripts/run_with_jira_env.py --root <consumer-project-root> -- \
+  curl -sS -f -H "Authorization: Bearer $JIRA_API_TOKEN" \
   "$JIRA_BASE_URL/rest/api/2/myself"
 ```
 
 List projects:
 
 ```bash
-curl -sS -f -H "Authorization: Bearer $JIRA_API_TOKEN" \
+python3 <jira-scribe-skill-dir>/scripts/run_with_jira_env.py --root <consumer-project-root> -- \
+  curl -sS -f -H "Authorization: Bearer $JIRA_API_TOKEN" \
   "$JIRA_BASE_URL/rest/api/2/project"
 ```
 
 Get project issue types:
 
 ```bash
-curl -sS -f -H "Authorization: Bearer $JIRA_API_TOKEN" \
+python3 <jira-scribe-skill-dir>/scripts/run_with_jira_env.py --root <consumer-project-root> -- \
+  curl -sS -f -H "Authorization: Bearer $JIRA_API_TOKEN" \
   "$JIRA_BASE_URL/rest/api/2/project/$JIRA_PROJECT_KEY"
 ```
 

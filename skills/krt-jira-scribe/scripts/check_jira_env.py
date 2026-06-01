@@ -10,14 +10,15 @@ import subprocess
 import sys
 from pathlib import Path
 
-
-REQUIRED_VARS = ("JIRA_HOST", "JIRA_API_TOKEN", "JIRA_PROJECT_KEY")
-OPTIONAL_VARS = ("JIRA_EMAIL", "JIRA_BOARD_ID")
-
-ENV_DIR = Path(".krt/env")
-IGNORE_PATH = ENV_DIR / ".gitignore"
-SECRET_PATH = ENV_DIR / "jira-scribe.env"
-EXAMPLE_PATH = ENV_DIR / "jira-scribe.env.example"
+from jira_env_runtime import (
+    EXAMPLE_PATH,
+    IGNORE_PATH,
+    OPTIONAL_VARS,
+    REQUIRED_VARS,
+    SECRET_PATH,
+    bool_map,
+    load_env_from_secret,
+)
 
 
 def git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -27,12 +28,6 @@ def git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
         capture_output=True,
         check=False,
     )
-
-
-def bool_map(names: tuple[str, ...]) -> dict[str, bool]:
-    return {name: bool(os.environ.get(name)) for name in names}
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -46,6 +41,11 @@ def main() -> int:
         action="store_true",
         help="Exit non-zero when required Jira variables are missing.",
     )
+    parser.add_argument(
+        "--no-auto-load",
+        action="store_true",
+        help="Disable the default behavior of loading non-empty Jira variables from .krt/env/jira-scribe.env before checking readiness.",
+    )
     args = parser.parse_args()
 
     root = args.root.resolve()
@@ -53,14 +53,26 @@ def main() -> int:
         print(json.dumps({"ok": False, "reason": "root-not-directory"}))
         return 1
 
-    required_present = bool_map(REQUIRED_VARS)
-    optional_present = bool_map(OPTIONAL_VARS)
+    env = dict(os.environ)
+    auto_load_error: str | None = None
+    auto_loaded_vars: list[str] = []
+    secret = root / SECRET_PATH
+
+    auto_load_enabled = not args.no_auto_load
+
+    if auto_load_enabled and secret.exists():
+        try:
+            env, auto_loaded_vars = load_env_from_secret(root, base_env=env)
+        except ValueError as exc:
+            auto_load_error = str(exc)
+
+    required_present = bool_map(env, REQUIRED_VARS)
+    optional_present = bool_map(env, OPTIONAL_VARS)
     missing_required = [name for name, present in required_present.items() if not present]
 
     worktree = git(root, "rev-parse", "--show-toplevel")
     in_git = worktree.returncode == 0
 
-    secret = root / SECRET_PATH
     example = root / EXAMPLE_PATH
     ignore = root / IGNORE_PATH
 
@@ -75,27 +87,43 @@ def main() -> int:
     secret_exists = secret.exists()
     config_ready = secret_exists and not missing_required
 
-    if not secret_exists and not missing_required:
+    if auto_load_error:
+        diagnosis = "env-file-parse-error"
+        next_step = "Fix .krt/env/jira-scribe.env formatting and rerun the check."
+        warnings.append(auto_load_error)
+    elif not secret_exists and not missing_required:
         diagnosis = "env-loaded-without-project-secret-file"
         next_step = "Create .krt/env/jira-scribe.env for this checkout, load it, and rerun the check."
         warnings.append("required-vars-present-without-project-secret-file")
 
     if not config_ready:
         if secret_exists and missing_required and not any(required_present.values()):
-            diagnosis = "env-file-present-but-not-loaded"
-            next_step = (
-                "Load .krt/env/jira-scribe.env into the shell (for example via direnv) "
-                "and rerun the check."
-            )
+            if auto_load_enabled:
+                diagnosis = "env-file-present-but-empty-or-incomplete"
+                next_step = "Fill the required Jira values in .krt/env/jira-scribe.env and rerun the check."
+            else:
+                diagnosis = "env-file-present-but-not-loaded"
+                next_step = (
+                    "Load .krt/env/jira-scribe.env into the shell, or rerun this check without --no-auto-load, "
+                    "and rerun the check."
+                )
         elif secret_exists and missing_required:
-            diagnosis = "partial-env-loaded"
-            next_step = "Reload .krt/env/jira-scribe.env into the shell and rerun the check."
+            if auto_load_enabled:
+                diagnosis = "env-file-present-but-empty-or-incomplete"
+                next_step = "Fill the missing Jira values in .krt/env/jira-scribe.env and rerun the check."
+            else:
+                diagnosis = "partial-env-loaded"
+                next_step = "Reload .krt/env/jira-scribe.env into the shell, or rerun this check without --no-auto-load."
         elif example.exists():
             diagnosis = "example-present-secret-missing"
-            next_step = "Create/fill .krt/env/jira-scribe.env locally, load it, and rerun the check."
+            next_step = "Create/fill .krt/env/jira-scribe.env locally and rerun the check."
         elif missing_required:
-            diagnosis = "jira-env-not-configured"
-            next_step = "Run setup_jira_env.py, fill .krt/env/jira-scribe.env, load it, and rerun the check."
+            if auto_load_enabled:
+                diagnosis = "jira-env-not-configured"
+                next_step = "Run setup_jira_env.py, fill .krt/env/jira-scribe.env, and rerun the check."
+            else:
+                diagnosis = "jira-env-not-configured"
+                next_step = "Run setup_jira_env.py, fill .krt/env/jira-scribe.env, load it or rerun this check without --no-auto-load."
 
         if secret_exists and in_git and not secret_ignored:
             warnings.append("secret-env-file-exists-but-is-not-ignored")
@@ -119,6 +147,8 @@ def main() -> int:
             "example_env_exists": example.exists(),
             "ignore_file_exists": ignore.exists(),
         },
+        "auto_load_attempted": auto_load_enabled,
+        "auto_loaded_vars": auto_loaded_vars,
         "next_step": next_step,
         "warnings": warnings,
     }
