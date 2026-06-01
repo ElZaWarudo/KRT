@@ -95,6 +95,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 - Split broad work packages into review units when review would otherwise be noisy.
 - Target <=500 human-authored changed lines per review-unit PR, warn above 900, and require split/rationale above ~1,000. Count generated artifacts, schema dumps, and orchestration docs separately.
 - Do not silently drop, stash, or defer related documentation only to keep a functional PR cosmetically narrow. If `docs/brainstorms`, `docs/plans`, `docs/work-packages`, `docs/orchestration/compound-master-state.md`, or product/operator/API docs explain the implemented change, clarify stacked context, or backfill nearby stale behavior docs, keep them in the branch by default and usually in the PR unless the user explicitly wants a split.
+- Do not move related documentation into a stash, separate worktree, side branch, or abandoned local diff just to keep the functional PR cleaner. If the user explicitly wants a split, keep both destinations visible in the plan and closeout so the documentation is not orphaned.
 - Put large generated artifacts or mechanical `*.auto.*` outputs in a separate review unit/commit when practical.
 - Keep planning IDs out of human-facing release text.
 - Do not let work invoke PR creation, Jira transitions, or shipping workflows.

@@ -32,4 +32,5 @@ Load this file at the start of execution. It is a router, not the full execution
 - A work package is a delivery container; a review unit is the normal PR/Jira unit.
 - Execute one review unit at a time unless coupling makes that less reviewable and the rationale is recorded.
 - Keep orchestration docs and generated artifacts separate when they would obscure functional review, but do not exclude related documentation from the branch/PR solely to make the diff look cleaner. When the docs explain the change, stack context, or stale adjacent behavior, keep them with the review unit unless the user asks to defer them.
+- Do not "solve" review noise by parking related documentation in stash, another worktree, or a side branch without an explicit user-approved split plan and a visible follow-up path.
 - Keep stack/dependency context in state or handoff notes, not PR body.

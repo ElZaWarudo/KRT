@@ -25,6 +25,7 @@ Review-unit size guardrails:
 - Require an explicit split/rationale above ~1,000 human-authored changed lines.
 - Count generated artifacts, `*.auto.*` dumps, and orchestration docs separately; separate them from functional logic when they dominate review volume.
 - Do not silently drop, stash, or defer related documentation only to keep a PR narrow. If planning/orchestration docs or product/operator/API docs explain the implemented change, clarify stack/base context, or backfill stale docs for nearby landed behavior, keep them in the branch and normally in the PR; split only when they materially obscure review and record the rationale.
+- Do not move related documentation into stash-only state, a side worktree, or an unreferenced branch just to protect PR neatness. When a split is explicitly approved, record where the docs will land and how that follow-up will be shipped.
 
 Work packages must align with origin plan units. A package may combine or split units, but it must make that relationship explicit and justify it. If a plan defines U1-U5, the package must say which of those units are included, excluded, deferred, or split into another package.
 
@@ -96,6 +97,7 @@ Grouping rationale:
 Rules:
 - Review units are the default PR/Jira handoff units.
 - Keep docs/orchestration and large generated artifacts in separate review units only when that improves review more than it harms context. If the docs are part of explaining, operating, or backfilling the shipped behavior, prefer keeping them with the related review unit and split by commit only when that is enough.
+- A separate review unit is still part of the same delivery story, not a dumping ground. Never leave the docs behind in a worktree or local branch without a named follow-up path in the artifact and closeout.
 - If one review unit includes runtime logic plus generated files, require separate commit grouping for generated files and keep PR body sentences focused on user/reviewer-visible changes.
 
 ## Files and Tests
