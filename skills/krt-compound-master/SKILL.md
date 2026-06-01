@@ -115,6 +115,8 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 
 Whenever this skill stops, return a visible closeout with current phase/status, written or updated paths, ready work, blockers or "No blockers", recommended next action, and exact next invocation.
 
+When the next action is a `krt-release-marshal` handoff that will likely produce two or more stacked/sibling PRs, preserve release-ready structure in the closeout: summarize `Estado local`, call out stack/base dependencies explicitly, and hand off enough per-PR scope detail that Release Marshal can emit stable `PR1` / `PR2` / `PR3` blocks without reconstructing the split from scratch.
+
 Do not stop between a passing work/verification/review loop and `krt-release-marshal`; the user-facing approval pause for commits, push, PR creation, reviewer requests, Jira backlinking, and Jira transition belongs inside `krt-release-marshal`. Never treat that pause as merge approval unless an active autonomous ledger and Release Marshal executor make that exact merge mutation eligible.
 
 When a package waits on an open parent PR and the user says "continue", fetch and inspect the integration base before choosing the next review unit. Prefer a stacked PR from the parent review-unit branch only when the base check supports it; record dependency context in state, not PR body.
