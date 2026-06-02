@@ -10,6 +10,14 @@ from typing import Any
 
 
 MERGE_CLASSES = {"pr_merge", "pr_merge_queue", "pr_auto_merge"}
+REVIEW_OPTIONAL_BASE_PREFIXES = (
+    "experimental",
+    "experiment",
+    "spike",
+    "sandbox",
+    "prototype",
+    "playground",
+)
 
 
 def parse_targets(values: list[str]) -> dict[str, str]:
@@ -38,11 +46,21 @@ def review_user(review: dict[str, Any]) -> str:
     return str(user or "")
 
 
+def is_review_optional_base(branch: str) -> bool:
+    lowered = branch.strip().lower()
+    for prefix in REVIEW_OPTIONAL_BASE_PREFIXES:
+        if lowered == prefix or lowered.startswith(f"{prefix}/") or lowered.startswith(f"{prefix}-"):
+            return True
+    return False
+
+
 def check_state(state: dict[str, Any], mutation_class: str, targets: dict[str, str], current_actor: str | None) -> tuple[list[str], dict[str, Any], str | None]:
     reasons: list[str] = []
     pr = state.get("pr", state)
     author = str(pr.get("author", {}).get("login") or pr.get("author") or "")
     head_sha = str(pr.get("headRefOid") or pr.get("head_sha") or "")
+    base_branch = str(pr.get("baseRefName") or targets.get("base_branch") or "")
+    review_optional_base = is_review_optional_base(base_branch)
 
     if mutation_class not in MERGE_CLASSES:
         reasons.append(f"unsupported-mutation-class:{mutation_class}")
@@ -56,12 +74,6 @@ def check_state(state: dict[str, Any], mutation_class: str, targets: dict[str, s
         reasons.append("scope-mismatch:base_branch")
     if targets.get("head_branch") and pr.get("headRefName") != targets["head_branch"]:
         reasons.append("scope-mismatch:head_branch")
-    review_decision = pr.get("reviewDecision")
-    if review_decision is None:
-        reasons.append("review-state-unavailable")
-    elif str(review_decision).upper() != "APPROVED":
-        reasons.append(f"review-decision-not-approved:{review_decision}")
-
     branch_protection = state.get("branch_protection")
     if not branch_protection or branch_protection.get("available") is False:
         reasons.append("branch-protection-unavailable")
@@ -70,7 +82,17 @@ def check_state(state: dict[str, Any], mutation_class: str, targets: dict[str, s
     if branch_protection and branch_protection.get("code_owner_reviews_required") and not branch_protection.get("code_owner_approved"):
         reasons.append("code-owner-review-missing")
 
-    required_count = int((branch_protection or {}).get("required_approving_review_count") or 1)
+    required_count = int((branch_protection or {}).get("required_approving_review_count") or 0)
+    code_owner_required = bool((branch_protection or {}).get("code_owner_reviews_required"))
+    review_required = not review_optional_base or required_count > 0 or code_owner_required
+    minimum_approval_count = max(required_count, 1) if review_required else 0
+    review_decision = pr.get("reviewDecision")
+    if review_required:
+        if review_decision is None:
+            reasons.append("review-state-unavailable")
+        elif str(review_decision).upper() != "APPROVED":
+            reasons.append(f"review-decision-not-approved:{review_decision}")
+
     reviews = list(pr.get("latestReviews") or pr.get("reviews") or [])
     approval_count = 0
     for review in reviews:
@@ -92,7 +114,7 @@ def check_state(state: dict[str, Any], mutation_class: str, targets: dict[str, s
             continue
         approval_count += 1
 
-    if approval_count < required_count:
+    if approval_count < minimum_approval_count:
         reasons.append("current-head-human-approval-missing")
 
     required = set(state.get("required_checks") or [])
@@ -128,9 +150,12 @@ def check_state(state: dict[str, Any], mutation_class: str, targets: dict[str, s
 
     summary = {
         "pr_number": pr.get("number"),
+        "base_branch": base_branch,
         "head_sha": head_sha,
+        "review_optional_base": review_optional_base,
+        "review_required": review_required,
         "approval_count": approval_count,
-        "required_approval_count": required_count,
+        "required_approval_count": minimum_approval_count,
         "merge_queue_required": queue_required,
     }
     return reasons, summary, action

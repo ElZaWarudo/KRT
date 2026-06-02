@@ -35,7 +35,10 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - Use `gh` for GitHub PR operations before GitHub plugins/connectors.
 - Never create a PR from protected branches: `main`, `master`, or `develop`.
 - Never merge PRs or branches without user approval for that exact merge action, even after a release plan was accepted, unless an active autonomous ledger authorizes the exact mutation and the executor passes all merge validators. The approval text may identify the PR by number (`mergea la PR #96 ahora`), by an unambiguous current PR context already resolved by the workflow (`mergea la PR`), or by a generic approval (`dale`, `ok`, `sí`) only when it is the user's direct answer to an explicit pending merge prompt for that resolved PR. Generic approval to accept a release plan, create/update a PR, request reviewers, or continue non-merge work is not merge approval.
-- Never merge a PR unless GitHub shows human reviewer approval for the PR and no blocking change requests remain. Internal code review, Compound Master review, CI evidence, author approval, or the agent's own judgment cannot substitute for human reviewer approval.
+- Never merge a PR unless GitHub shows either:
+  - human reviewer approval for the PR, or
+  - that the PR targets an experimental base branch such as `experimental/*`, `experiment/*`, `spike/*`, `sandbox/*`, `prototype/*`, or `playground/*` and that branch protection/rulesets do not require approving reviews there.
+  Internal code review, Compound Master review, CI evidence, author approval, or the agent's own judgment cannot substitute for GitHub-visible merge eligibility.
 - Prefer `develop` as PR base when it exists; otherwise use the repository default branch unless the user or enclosing workflow provided a base.
 - Never include LLM attribution in PR title/body or commit messages.
 - Never include Compound Master planning IDs or package numbers in PR titles, PR body bullets, branch names, or commit messages unless the user or repo convention explicitly requires them.
@@ -72,7 +75,7 @@ Ask before destructive, irreversible, external, or notification-causing work unl
 
 One explicit release-plan approval may cover reviewer requests, automatic post-PR Jira PR backlinking, and automatic post-PR Jira transition to `En Revisión` if the plan names the behavior and fallback. For Jira PR backlinking, the plan must name the issue and PR link behavior. For Jira transition, the plan must name the issue and target status. For reviewer requests, the plan may name explicit reviewers or authorize automatic lookup and request of a clear inferred human reviewer.
 
-Merge approval cannot be bundled into the release-plan approval. If the user asks to merge, first inspect the PR's review and check state, then ask for merge authorization only after human reviewer approval is visible. The response may be a generic approval when the prompt names the PR and the pending merge action. If approvals or checks are missing, report the missing gate and stop without merging.
+Merge approval cannot be bundled into the release-plan approval. If the user asks to merge, first inspect the PR's review, branch-protection, and check state, then ask for merge authorization only after the visible gate is satisfied: human reviewer approval on normal/protected bases, or GitHub-visible review-optional status on an experimental base. The response may be a generic approval when the prompt names the PR and the pending merge action. If approvals, protection state, or checks are missing, report the missing gate and stop without merging.
 
 Autonomous approval can be bundled only by an active ledger, not by prose in a release plan. The executor must validate ledger scope, payload hash, live state, current-head human approval, branch protection/rulesets, required green checks, audit write, and enforcement boundary before mutation. Missing data blocks.
 

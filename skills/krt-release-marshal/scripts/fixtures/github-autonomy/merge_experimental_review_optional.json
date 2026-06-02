@@ -1,0 +1,25 @@
+{
+  "pr": {
+    "number": 42,
+    "state": "OPEN",
+    "isDraft": false,
+    "baseRefName": "spike/frontend",
+    "headRefName": "feature/autonomous-flow",
+    "headRefOid": "abc123",
+    "author": {"login": "feature-author"},
+    "reviewDecision": "REVIEW_REQUIRED",
+    "latestReviews": [],
+    "statusCheckRollup": [
+      {"name": "test", "conclusion": "SUCCESS"}
+    ],
+    "mergeable": true,
+    "mergeStateStatus": "CLEAN"
+  },
+  "required_checks": ["test"],
+  "branch_protection": {
+    "available": true,
+    "rulesets_available": true,
+    "required_approving_review_count": 0,
+    "code_owner_reviews_required": false
+  }
+}

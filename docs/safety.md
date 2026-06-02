@@ -27,5 +27,5 @@ Each skill owns the detailed guardrails closest to its procedure:
 
 - Remote, destructive, notification-causing, production-impacting, or credential-sensitive actions need explicit approval unless an active autonomous ledger and deterministic validator authorize the exact mutation.
 - Merge approval is not bundled into release-plan approval.
-- Human reviewer approval cannot be replaced by internal agent review.
+- Internal agent review never substitutes for GitHub-visible merge gates. On normal/protected bases that still means human reviewer approval; experimental bases may be review-optional only when branch protection/rulesets visibly allow it.
 - Secrets, tokens, credentials, kubeconfigs, full env dumps, and masked CI values must not be printed, copied into docs, or moved into archives.

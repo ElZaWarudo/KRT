@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent
 FIXTURES = ROOT / "fixtures" / "github-autonomy"
 
 
-def run(script: str, mutation: str, fixture: str, *extra: str) -> tuple[int, dict]:
+def run(script: str, mutation: str, fixture: str, *extra: str, base_branch: str = "main") -> tuple[int, dict]:
     cmd = [
         sys.executable,
         str(ROOT / script),
@@ -25,7 +25,7 @@ def run(script: str, mutation: str, fixture: str, *extra: str) -> tuple[int, dic
         "--target",
         "repository=acme/widgets",
         "--target",
-        "base_branch=main",
+        f"base_branch={base_branch}",
         "--target",
         "head_branch=feature/autonomous-flow",
         *extra,
@@ -59,6 +59,28 @@ class GitHubAutonomyTest(unittest.TestCase):
         code, result = run("check_merge_eligibility.py", "pr_merge", "merge_review_required.json")
         self.assertNotEqual(code, 0)
         self.assertIn("review-decision-not-approved:REVIEW_REQUIRED", result["block_reasons"])
+
+    def test_experimental_base_allows_merge_without_human_approval(self) -> None:
+        code, result = run(
+            "check_merge_eligibility.py",
+            "pr_merge",
+            "merge_experimental_review_optional.json",
+            base_branch="spike/frontend",
+        )
+        self.assertEqual(code, 0, result)
+        self.assertFalse(result["live_state_summary"]["review_required"])
+        self.assertEqual(result["live_state_summary"]["required_approval_count"], 0)
+
+    def test_experimental_base_still_blocks_when_branch_protection_requires_approval(self) -> None:
+        code, result = run(
+            "check_merge_eligibility.py",
+            "pr_merge",
+            "merge_experimental_review_required.json",
+            base_branch="experimental/search",
+        )
+        self.assertNotEqual(code, 0)
+        self.assertIn("review-decision-not-approved:REVIEW_REQUIRED", result["block_reasons"])
+        self.assertIn("current-head-human-approval-missing", result["block_reasons"])
 
     def test_merge_queue_is_distinct_mutation(self) -> None:
         code, result = run("check_merge_eligibility.py", "pr_merge", "merge_queue_required.json")

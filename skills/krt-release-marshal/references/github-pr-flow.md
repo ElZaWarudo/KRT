@@ -222,7 +222,8 @@ Required before merge:
 
 - The user gave merge authorization for this PR after review state was inspected. Generic approval such as `dale`, `ok`, or `sí` is sufficient only when it directly answers an explicit pending merge prompt for the already resolved PR number.
 - The PR is open and not draft.
-- `reviewDecision` is `APPROVED`, with at least one visible human reviewer approval that is not from the PR author/current agent account.
+- On normal/protected bases, `reviewDecision` is `APPROVED`, with at least one visible human reviewer approval that is not from the PR author/current agent account.
+- On experimental bases such as `experimental/*`, `experiment/*`, `spike/*`, `sandbox/*`, `prototype/*`, or `playground/*`, human reviewer approval may be skipped only when branch protection/rulesets are visible and do not require approving reviews there.
 - No unresolved `CHANGES_REQUESTED` review remains after the latest approval.
 - Required checks are passing or the user explicitly overrides a non-required/check-unavailable condition after seeing the state.
 
@@ -258,7 +259,8 @@ python3 <release-marshal-skill-dir>/scripts/check_merge_eligibility.py --mutatio
 The validator must prove:
 
 - PR is open, not draft, on the expected base/head, and has a current head SHA.
-- Human approval is on the current head by a non-author, non-agent, non-bot reviewer.
+- On normal/protected bases, human approval is on the current head by a non-author, non-agent, non-bot reviewer.
+- On experimental bases, reviewless merge is allowed only when the base branch matches the experimental namespace policy and visible branch protection/rulesets show zero required approving reviews there.
 - No unresolved change request remains.
 - Required checks are green; pending, failure, skipped-required, neutral-required, stale, unavailable, or unknown states block.
 - Branch protection and ruleset state are available and satisfied.

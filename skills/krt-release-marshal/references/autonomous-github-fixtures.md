@@ -13,6 +13,8 @@ Validator coverage:
 | Scenario | Fixture | Validator outcome |
 |---|---|---|
 | Immediate merge with current-head human approval and green required checks | `merge_allowed.json` | `check_merge_eligibility.py` allows `pr_merge` |
+| Experimental base does not require approving reviews | `merge_experimental_review_optional.json` | Allows `pr_merge` without human approval |
+| Experimental base still requires approving reviews | `merge_experimental_review_required.json` | Blocks reviewless merge on protected experimental branches |
 | Approval was for an old head SHA | `merge_stale_approval.json` | Blocks `current-head-human-approval-missing` |
 | Required check is pending | `merge_pending_check.json` | Blocks `required-check-not-green:<name>` |
 | Merge queue is required | `merge_queue_required.json` | Blocks `pr_merge`; allows `pr_merge_queue` as `enqueue` |
