@@ -78,6 +78,20 @@ python3 <release-marshal-skill-dir>/scripts/check_pr_scope.py --base <base>...HE
 
 If it prints `BLOCKING:`, the release plan must ask for an explicit split decision or oversized-PR approval before any PR creation/update. Advisory `WARNING:` output may proceed only when it is visible in the plan. Documentation-related warnings are not blocking by themselves, and they must not be "resolved" by hiding docs in stash/worktree/side-branch state. In the visible message, summarize the guardrail result in plain language instead of dumping raw script output.
 
+If the plan includes stacked PRs, also validate stack choreography before presenting or advancing the release plan:
+
+```bash
+python3 <release-marshal-skill-dir>/scripts/check_stack_choreography.py \
+  --parent-merge-method <merge|rebase|squash|unknown> \
+  --parent-branch <parent-branch> \
+  --child-branch <child-branch> \
+  --child-base <current-child-base> \
+  --final-base <integration-base> \
+  --refresh-planned
+```
+
+Use this check especially when the parent PR is expected to merge by squash. If it blocks, the visible plan must name the child refresh step before any PR merge choreography continues.
+
 Check for existing PR:
 
 ```bash
@@ -213,6 +227,23 @@ Required before merge:
 - Required checks are passing or the user explicitly overrides a non-required/check-unavailable condition after seeing the state.
 
 If any required gate is missing, report the missing approval/check/change-request state and stop. Do not run `gh pr merge`, do not enable auto-merge, and do not merge a branch locally.
+
+For stacked PRs after a parent squash merge, also verify downstream refresh before presenting the child as merge-ready:
+
+```bash
+python3 <release-marshal-skill-dir>/scripts/check_stack_choreography.py \
+  --parent-merge-method squash \
+  --parent-state merged \
+  --parent-branch <former-parent-branch> \
+  --child-branch <child-branch> \
+  --child-base <child-base-after-refresh> \
+  --final-base <integration-base> \
+  --child-rebased-onto-final-base \
+  --approvals-refreshed \
+  --checks-refreshed
+```
+
+If the script blocks, do not continue child merge choreography and do not delete the former parent branch yet.
 
 ## Autonomous Merge Gate
 

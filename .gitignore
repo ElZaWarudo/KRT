@@ -6,6 +6,9 @@ docs/*
 !docs/examples.md
 !docs/safety.md
 !docs/skills.md
+!docs/solutions/
+docs/solutions/*
+!docs/solutions/*.md
 docs/raw/
 !docs/harnesses/
 docs/harnesses/*

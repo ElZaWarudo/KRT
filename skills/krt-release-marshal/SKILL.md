@@ -23,6 +23,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - Resolve `<release-marshal-skill-dir>` to the directory containing this `SKILL.md`; in installed runtimes this may be `/home/teb/.agents/skills/krt-release-marshal`, not `skills/krt-release-marshal` inside the target repo.
 - `<release-marshal-skill-dir>/scripts/check_pr_scope.py --base <base>...HEAD` to summarize human/generated/orchestration-doc lines, including untracked files by default, and surface split warnings.
 - Use `--fail-on-blocking` when you need the script to fail for split/oversized-approval conditions while allowing advisory warnings.
+- `<release-marshal-skill-dir>/scripts/check_stack_choreography.py ...` to validate stacked-PR merge choreography, especially when a parent PR may merge by squash and a child PR must be refreshed before continuing.
 - `<release-marshal-skill-dir>/scripts/format_pr_body.py --file <draft-body-file>` to normalize noisy generated PR copy into the strict public body shape before validation.
 - `<release-marshal-skill-dir>/scripts/check_pr_body.py --file <tmp-body-file>` before PR creation or update.
 - Commit work is delegated to `krt-gitflow-knight`, which must run its deterministic `.krt/env/jira-scribe.env` ignore guard before planning and before each local commit.
@@ -45,6 +46,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - Do not run tests, linters, or formatters unless the user explicitly asks; use verification results supplied by the user or upstream workflow.
 - Before pushing or updating a PR with a CI-fix commit, require evidence that the repo-specific command equivalent to the affected CI job passed locally, or present the missing validation clearly and ask for explicit override before the remote mutation.
 - Do not ask for Jira credentials. Do not assume Jira variables are already present in console context. For local Jira configuration, treat the active checkout's `.krt/env/jira-scribe.env` as the required source, loaded into runtime env vars by `direnv`, `krt-jira-scribe`'s bundled loader, or an equivalent project-scoped loader. If Jira is required and that contract is not ready, block and ask whether to continue without Jira. If Jira is optional, show the no-Jira fallback in the release plan and continue after the normal release-plan approval without a separate Jira-usage question.
+- For stacked PRs, treat squash merge as a special choreography case. If PR1 will merge by squash and PR2 is stacked on PR1's branch, PR2 must be rebased or retargeted onto the final base before continuing merge work, and parent branch deletion must wait until that refresh is complete.
 - Use `--force-with-lease`, never plain `--force`, when a rewritten branch must be pushed.
 - In autonomous mode, route PR/branch/reviewer/Jira/merge side effects through `scripts/autonomous_mutation.py`; direct `gh`, Jira, or push commands are validation-only/manual-required unless the runtime enforcement boundary is confirmed.
 - Prefer strict PR bodies: one factual change bullet per line, blank line, then the immediately relevant Jira URL. Do not include stack context, retargeting plans, base-branch notes, reviewer instructions, verification, or any operational commentary unless the repo template explicitly requires it.
@@ -100,6 +102,8 @@ If the user asks simply to create a PR and there are uncommitted changes, propos
 Load `references/github-pr-flow.md` for commands. Inspect branch, working tree, remotes, and repository default branch.
 
 When Jira may be relevant, resolve `<jira-scribe-skill-dir>` to the directory containing `krt-jira-scribe`'s `SKILL.md` and run `python3 <jira-scribe-skill-dir>/scripts/check_jira_env.py --root <repo-root>` before deciding that Jira is available, omitted, or blocked. Use the checker's diagnosis in the release plan instead of hand-waving about "missing env vars".
+
+When the release may produce stacked PRs, use `python3 <release-marshal-skill-dir>/scripts/check_stack_choreography.py ...` to validate the plan before remote mutations. At minimum, use it to verify that any squash-merge parent PR has an explicit downstream refresh plan, and rerun it after parent merge before continuing child merge work or deleting the parent branch.
 
 Run a PR scope guardrail before building the plan:
 
@@ -189,6 +193,13 @@ Si quieres que lo ejecute, responde sí, <acción concreta>.
 ```
 
 Use this multi-PR structure by default when the message needs to explain stacked branches, retargeting after a base PR merge, per-PR commit groupings, or a split between functional and docs scope. Keep each PR block editorial and concrete. Do not hide stacked-PR prerequisites in prose if they materially affect PR body wording, base branch choice, or reviewer understanding.
+For stacked PRs, add one short choreography note when relevant:
+
+- merge method expected for PR1;
+- whether PR2 will be rebased or retargeted after PR1;
+- whether parent branch deletion must wait.
+
+If PR1 is expected to merge by squash and PR2 is stacked on PR1, this note is mandatory in the visible plan.
 
 The plan must be in the final/user-visible response for the gate. Do not only summarize that a plan exists. Do not continue into commit, rebase, Jira creation/update, push, PR creation/update, reviewer request, Jira PR backlink, or Jira transition until the user accepts this visible plan.
 
@@ -292,6 +303,15 @@ Ask for approval before the next remote mutation.
 After approval, push if needed and create the PR with `gh`. Use a temporary body file rather than passing long body text inline.
 
 If an open PR already exists for the branch, stop and ask whether to view/update it instead of creating a duplicate.
+
+### 6.5 Stacked PR Refresh Rule
+
+When a parent PR in a stack merges by squash:
+
+1. Rebase or retarget the child PR onto the final base before continuing merge work on the child.
+2. Treat downstream approvals and checks as stale until GitHub shows them current after the refresh.
+3. Do not delete the parent branch before the child refresh is complete.
+4. Prefer proving this state with `scripts/check_stack_choreography.py` before presenting the next child-merge step.
 
 ### 7. Reviewer Phase
 

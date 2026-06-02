@@ -35,6 +35,10 @@ Impact Scan for release-readiness only:
 - <changed contracts/consumer tests summary or Not required>
 CI risk notes for release-readiness only:
 - <changed CI surface/local equivalent command/result or CI-only gap>
+Stack choreography, when stacked:
+- Parent merge method: <merge|rebase|squash|unknown>
+- Child refresh after parent merge: <rebase|retarget|not needed|unknown>
+- Parent branch deletion timing: <after child refresh|not applicable|unknown>
 
 Use krt-release-marshal exactly. Do not run tests unless the user explicitly asks; use verification and CI notes only to decide readiness. Do not include tests, verification summaries, stack/dependency context, future retargeting notes, or CI risk notes in the PR body unless the user, repo template, or project convention explicitly requires them. Include automatic reviewer handling in the release plan. Treat jira-policy:optional as Jira-preferred but non-blocking: include Jira lookup/creation/backlink/transition when context and configuration are available, and otherwise state the no-Jira fallback in the release plan without asking a separate Jira-usage question. Include automatic post-PR Jira backlinking and Jira transition to En Revisión when Jira context exists. In manual/guarded flow, do not merge, request merge, or treat this handoff as merge approval. In autonomous flow, attempt merge/Jira completion only through the ledger-bound mutation executor when validators pass; otherwise the closeout must leave the PR awaiting the exact missing gate.")
 ```
@@ -46,6 +50,7 @@ Suggested Jira summary/description must be semantic Spanish text. PR title/body 
 - Independent PRs target the integration/default branch.
 - Stacked PRs target the parent review-unit branch.
 - Keep dependency, stack, and future-retarget context in state, Jira/internal notes, or the release plan; do not put it in PR body.
+- If a stacked parent is expected to merge by squash, hand off an explicit child refresh plan. Do not assume GitHub will preserve downstream commit identity automatically.
 - If the current unit waits on a parent PR and the user says continue, fetch and inspect the integration base before picking the next ready unit.
 
 ## Handoff Status
