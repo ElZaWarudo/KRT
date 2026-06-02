@@ -17,6 +17,7 @@ Rules:
 - Prefer changing branches in the current checkout for serial work. Do not create a worktree just to move between review units or bases.
 - With default `worktree-policy:avoid`, do not create worktrees/checkouts. If parallel execution would need them, downgrade to serial execution or ask for an explicit policy change.
 - Independent review units may branch from the integration base.
+- The first executable review unit should use a semantic capability branch, not a planning-only branch. If artifact generation happened on a docs/planning branch, switch back to a fresh integration base for RU1 and carry the related roadmap/brainstorm/plan/work-package/state artifacts on that first implementation branch.
 - Dependent review units wait for merge or become stacked PRs based on parent branch.
 - Overlapping/high-risk/production-sensitive review units run serially unless the user explicitly accepts risk and isolation exists.
 - `parallel:true` with mutating workers requires `worktree-policy:auto|required`, isolated worktrees/checkouts, non-overlapping scopes, safe dependencies, and `autonomy:high`.

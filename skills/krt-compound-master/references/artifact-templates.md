@@ -26,6 +26,7 @@ Review-unit size guardrails:
 - Count generated artifacts, `*.auto.*` dumps, and orchestration docs separately; separate them from functional logic when they dominate review volume.
 - Do not silently drop, stash, or defer related documentation only to keep a PR narrow. If planning/orchestration docs or product/operator/API docs explain the implemented change, clarify stack/base context, or backfill stale docs for nearby landed behavior, keep them in the branch and normally in the PR; split only when they materially obscure review and record the rationale.
 - Do not move related documentation into stash-only state, a side worktree, or an unreferenced branch just to protect PR neatness. When a split is explicitly approved, record where the docs will land and how that follow-up will be shipped.
+- Do not create a dedicated planning/docs branch just to hold these artifacts. Until execution starts, keep them on the active integration branch; when RU1 begins, move forward on the first semantic implementation branch that ships the related capability.
 
 Work packages must align with origin plan units. A package may combine or split units, but it must make that relationship explicit and justify it. If a plan defines U1-U5, the package must say which of those units are included, excluded, deferred, or split into another package.
 
@@ -137,6 +138,7 @@ Rules:
 ## Branch and PR Handoff Inputs
 - Review unit: [RU# and title]
 - Branch name: [feat/semantic-capability-slug-without-plan-or-review-unit-ids]
+- Branch/docs rule: first executable review unit carries related planning artifacts on the same semantic branch; do not ship a separate `docs/*-planning` branch unless explicitly requested
 - PR base: [develop/main/parent branch]
 - Suggested commit grouping for this review unit:
   - [type(scope): summary] - [repo-relative files or surfaces] - [why this is one logical review unit]

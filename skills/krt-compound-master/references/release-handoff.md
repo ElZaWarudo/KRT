@@ -44,6 +44,7 @@ Use krt-release-marshal exactly. Do not run tests unless the user explicitly ask
 ```
 
 Suggested Jira summary/description must be semantic Spanish text. PR title/body bullets, branch name, suggested commit groups, and commit messages must be semantic and follow repo conventions. Do not include roadmap IDs, U-IDs, package numbers, date sequences, or other Compound Master numbering unless the user or repo convention explicitly requires them.
+If the current branch is a planning/docs-only branch, do not hand it off as the shipping branch. Rebase or switch onto the intended fresh integration base first, use a semantic feature branch for the completed review unit, and carry any related planning artifacts there instead of opening a docs-only delivery branch.
 
 ## PR Tree Safety
 
@@ -61,7 +62,7 @@ After handoff, update state with:
 - PR URL if created.
 - Jira URL if created/reused.
 - Reviewer behavior.
-- Merge status: not attempted; requires reviewer approval plus separate exact user merge authorization.
+- Merge status: not attempted; requires the normal GitHub-visible merge gate plus separate exact user merge authorization. On protected/normal bases that means reviewer approval; on experimental bases it may instead be review-optional branch protection.
 - Autonomous merge status when applicable: not requested, validation-only, blocked with reasons, enqueued, auto-merge enabled, or merged with audit event.
 - Jira backlink/transition behavior.
 - CI break-prevention evidence location.

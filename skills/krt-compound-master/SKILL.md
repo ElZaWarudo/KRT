@@ -96,6 +96,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 - Target <=500 human-authored changed lines per review-unit PR, warn above 900, and require split/rationale above ~1,000. Count generated artifacts, schema dumps, and orchestration docs separately.
 - Do not silently drop, stash, or defer related documentation only to keep a functional PR cosmetically narrow. If `docs/brainstorms`, `docs/plans`, `docs/work-packages`, `docs/orchestration/compound-master-state.md`, or product/operator/API docs explain the implemented change, clarify stacked context, or backfill nearby stale behavior docs, keep them in the branch by default and usually in the PR unless the user explicitly wants a split.
 - Do not move related documentation into a stash, separate worktree, side branch, or abandoned local diff just to keep the functional PR cleaner. If the user explicitly wants a split, keep both destinations visible in the plan and closeout so the documentation is not orphaned.
+- Do not create planning-only branches such as `docs/*-planning` as the normal artifact output. Keep roadmap/brainstorm/plan/work-package/state artifacts on the current integration branch during artifact generation; once the first executable review unit starts, carry the related planning artifacts forward on that first semantic implementation branch unless the user explicitly requests a separate docs shipment.
 - Put large generated artifacts or mechanical `*.auto.*` outputs in a separate review unit/commit when practical.
 - Keep planning IDs out of human-facing release text.
 - Do not let work invoke PR creation, Jira transitions, or shipping workflows.
@@ -116,6 +117,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 Whenever this skill stops, return a visible closeout with current phase/status, written or updated paths, ready work, blockers or "No blockers", recommended next action, and exact next invocation.
 
 When the next action is a `krt-release-marshal` handoff that will likely produce two or more stacked/sibling PRs, preserve release-ready structure in the closeout: summarize `Estado local`, call out stack/base dependencies explicitly, and hand off enough per-PR scope detail that Release Marshal can emit stable `PR1` / `PR2` / `PR3` blocks without reconstructing the split from scratch.
+If artifact generation stopped before implementation and no semantic feature branch exists yet, the closeout must not imply that the current planning/docs branch should ship independently. Recommend the first ready review unit invocation from a fresh integration base and state that the related planning artifacts should be carried inside that first implementation branch.
 
 Do not stop between a passing work/verification/review loop and `krt-release-marshal`; the user-facing approval pause for commits, push, PR creation, reviewer requests, Jira backlinking, and Jira transition belongs inside `krt-release-marshal`. Never treat that pause as merge approval unless an active autonomous ledger and Release Marshal executor make that exact merge mutation eligible.
 
