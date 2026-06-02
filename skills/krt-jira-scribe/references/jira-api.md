@@ -204,7 +204,7 @@ curl -sS -f -X POST -H "Authorization: Bearer $JIRA_API_TOKEN" \
 
 If `JIRA_BOARD_ID` is defined, use it directly. If not and a single board candidate exists, use it. If multiple boards or no active sprint exist, ask or continue without sprint only when the user already approved not blocking.
 
-## PR Backlinks And Comments
+## PR Backlinks And Optional Comments
 
 Add or update a Jira remote link to the GitHub PR:
 
@@ -227,7 +227,7 @@ curl -sS -f -X POST -H "Authorization: Bearer $JIRA_API_TOKEN" \
 
 If the same `globalId` already exists, Jira updates that remote link instead of creating a duplicate. Use a deterministic `globalId` such as `github-pr:$PR_URL`.
 
-Add a Spanish comment with the PR URL:
+Only add a Spanish comment with the PR URL when the user explicitly asked for it:
 
 ```bash
 curl -sS -f -X POST -H "Authorization: Bearer $JIRA_API_TOKEN" \

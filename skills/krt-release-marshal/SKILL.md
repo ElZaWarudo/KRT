@@ -11,7 +11,7 @@ The marshal directs component skills instead of duplicating them:
 
 - `krt-gitflow-knight` (`krt:gitflow-knight`) owns branch hygiene, staging, and commit planning.
 - `krt-rebase-smith` (`krt:rebase-smith`) owns clean branch history and safe rebase decisions.
-- `krt-jira-scribe` (`krt:jira-scribe`) owns Jira issue/subtask lookup, creation proposals, sprint handling, PR backlinks, comments, and transitions.
+- `krt-jira-scribe` (`krt:jira-scribe`) owns Jira issue/subtask lookup, creation proposals, sprint handling, PR backlinks, and transitions.
 - `gh` owns GitHub remote state, push/PR operations, and reviewer requests after release-plan confirmation. Prefer `gh` before GitHub plugins/connectors; use connector/plugin APIs only as fallback when `gh` is unavailable, unauthenticated, or lacks required data.
 - The bundled autonomous mutation executor owns ledger-bound autonomous PR, branch, reviewer, Jira, and merge side effects after deterministic validators pass.
 
@@ -138,7 +138,6 @@ Build and show a phase plan in the user's language. The visible message should r
 
 Adapt the labels when another short shape is clearer, but keep the same idea: summarize the release decision, not the tool choreography. Use exact branch names and concrete Jira/PR intent when known, but do not force every internal phase or command into the visible plan. Summarize checker/script outcomes in plain language instead of pasting raw diagnostics. In manual/guarded flow, make clear that merge is not part of this step and that the PR will wait for human review plus later merge authorization. In autonomous flow, summarize merge posture in one sentence instead of dumping validator details unless the user needs them. If a value is not known yet, say what local read-only step will resolve it inside the accepted plan.
 When commit work is needed, the visible plan should include the proposed commit messages plus the main files or surfaces for each commit. Do not summarize commits as just "necesarios" or "uno o varios commits"; show the intended grouping when it can be inferred safely.
-
 When the release plan spans two or more stacked or sibling PRs, do not compress them into one generic phase summary. Prefer this visible structure instead:
 
 ```markdown
@@ -247,7 +246,7 @@ If Jira context was provided, keep it, but do not treat it as execution-ready un
 
 If `jira-policy:skip`, omit Jira lookup, creation, backlinking, and transition.
 
-If Jira context is missing and Jira should be included, first run `python3 <jira-scribe-skill-dir>/scripts/check_jira_env.py --root <repo-root>`. If it reports `ok: false`, treat the result as a Jira readiness diagnosis, not as permission to guess. With `jira-policy:optional`, surface the exact diagnosis in the plan and continue without Jira after plan approval. With `jira-policy:required`, stop and ask whether to continue without Jira. If the checker reports `ok: true`, load and follow `krt-jira-scribe`. When the shell is not already preloaded, run Jira verification and Jira API commands via `python3 <jira-scribe-skill-dir>/scripts/run_with_jira_env.py --root <repo-root> -- <command ...>`. Use Jira Server/Data Center only. For PRs that look like a review unit inside a larger delivery sequence, prefer finding or creating a parent task plus subtasks only when there are two or more likely child tasks. Never propose a single parent task with a single child subtask; use one standalone `Tarea` for that case and attach PR backlink/comments/transition to it. Before proposing creation, derive Spanish Jira text:
+If Jira context is missing and Jira should be included, first run `python3 <jira-scribe-skill-dir>/scripts/check_jira_env.py --root <repo-root>`. If it reports `ok: false`, treat the result as a Jira readiness diagnosis, not as permission to guess. With `jira-policy:optional`, surface the exact diagnosis in the plan and continue without Jira after plan approval. With `jira-policy:required`, stop and ask whether to continue without Jira. If the checker reports `ok: true`, load and follow `krt-jira-scribe`. When the shell is not already preloaded, run Jira verification and Jira API commands via `python3 <jira-scribe-skill-dir>/scripts/run_with_jira_env.py --root <repo-root> -- <command ...>`. Use Jira Server/Data Center only. For PRs that look like a review unit inside a larger delivery sequence, prefer finding or creating a parent task plus subtasks only when there are two or more likely child tasks. Never propose a single parent task with a single child subtask; use one standalone `Tarea` for that case and attach PR backlink/transition to it. Before proposing creation, derive Spanish Jira text:
 
 - Summary: concise Spanish action phrase, no branch prefixes, no Conventional Commit type, no Jira key, no Compound Master IDs, and no package/date numbers.
 - Description: 1-3 concise Spanish sentences explaining what must be done and why.
@@ -295,7 +294,6 @@ Then show:
 Keep this proposal editorial and review-oriented. Summarize the push mode instead of dumping every command unless a rewritten push needs explicit approval. Summarize PR body validation as a short confidence note such as "cuerpo validado" or "ajusté el cuerpo para cumplir el formato", not raw checker output, unless the checker is failing and the failure itself needs discussion. If Jira backlinking or transition will happen automatically after PR creation, mention that briefly in the proposal only when it affects the user's approval decision.
 When there are multiple PRs in scope, emit one `PR1` / `PR2` / `PR3` block per branch instead of one merged proposal, and add a short `Estado local:` section above them with the current stack/base relationships and any non-blocking validation warnings. Keep the block labels stable so users can approve "abre las dos PR" against a concrete structure.
 If the current branch name includes planning/review-unit identifiers or otherwise reads like traceability instead of capability, treat that as branch hygiene debt. When the branch has not been pushed yet, propose a semantic rename in the visible plan. When it has already been pushed, call out the mismatch in the plan and ask before renaming.
-
 Ask for approval before the next remote mutation.
 
 ### 6. Push And Create PR
@@ -327,7 +325,7 @@ If no reviewers were provided, infer candidates from recent merged PR approvals 
 
 After PR creation, return PR number, URL, base branch, head branch, Jira link if included, and draft/ready state.
 
-If Jira context was included, the PR is ready for review, and the approved plan included Jira PR backlinking, use `krt-jira-scribe` to add the PR URL back to the associated Jira issue without asking again in manual/guarded flow. In autonomous flow, call the mutation executor with the Jira Scribe backlink validator; Jira Scribe supplies validation/API guidance, but Release Marshal owns the audited mutation. Prefer a Jira remote link plus a concise Spanish comment. If the issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic backlinking, ask or report the deferred action instead of updating Jira silently.
+If Jira context was included, the PR is ready for review, and the approved plan included Jira PR backlinking, use `krt-jira-scribe` to add the PR URL back to the associated Jira issue without asking again in manual/guarded flow. In autonomous flow, call the mutation executor with the Jira Scribe backlink validator; Jira Scribe supplies validation/API guidance, but Release Marshal owns the audited mutation. Prefer a Jira remote link only. If the issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic backlinking, ask or report the deferred action instead of updating Jira silently.
 
 If Jira context was included, the PR is ready for review, and the approved plan included review transition, use `krt-jira-scribe` to inspect real transitions and move the associated Jira issue to `En Revisión` without asking again in manual/guarded flow. In autonomous flow, call the mutation executor with the Jira Scribe transition validator. If `En Revisión` is unavailable, the issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic transition, ask before transitioning.
 

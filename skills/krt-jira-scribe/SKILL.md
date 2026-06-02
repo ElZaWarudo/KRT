@@ -1,6 +1,6 @@
 ---
 name: krt-jira-scribe
-description: Manages Jira Server/Data Center issues on a Spanish-language instance. Verifies existing global issues and subtasks, checks whether new work belongs under an existing parent, proposes Spanish issue/subtask creation when missing, handles active sprint placement, adds PR backlinks/comments, and manages Spanish transitions. Runtime aliases may expose this as krt:jira-scribe.
+description: Manages Jira Server/Data Center issues on a Spanish-language instance. Verifies existing global issues and subtasks, checks whether new work belongs under an existing parent, proposes Spanish issue/subtask creation when missing, handles active sprint placement, adds PR backlinks, and manages Spanish transitions. Runtime aliases may expose this as krt:jira-scribe.
 ---
 
 # Jira Scribe
@@ -61,7 +61,7 @@ Load `references/jira-api.md`. Run `scripts/check_jira_env.py --root <consumer-p
 
 Before proposing a new global issue, decide whether the requested work should be a subtask under an existing issue or under a new parent issue.
 
-Never propose a one-parent/one-child Jira shape. If the plan would create exactly one parent `Tarea` and exactly one child `Subtarea` with no likely sibling tasks, collapse it into one standalone `Tarea` and put the PR backlink, comments, and transition on that task.
+Never propose a one-parent/one-child Jira shape. If the plan would create exactly one parent `Tarea` and exactly one child `Subtarea` with no likely sibling tasks, collapse it into one standalone `Tarea` and put the PR backlink and transition on that task.
 
 1. Search for possible parents first using project, type, and meaningful summary/context terms.
 2. Inspect plausible parents by key, including summary, status, description, and existing subtasks.
@@ -116,7 +116,7 @@ When a PR exists and the associated Jira issue/subtask should point back to it:
 
 1. Verify the issue key and fetch the issue summary/status.
 2. Prefer creating a Jira remote link to the PR with a stable `globalId` based on the PR URL.
-3. Add a concise Spanish comment such as `PR lista para revisión: <PR_URL>` when the user or accepted `krt-release-marshal` plan approved comments/backlinking.
+3. Add a Jira comment only when the user explicitly asked for one. The default backlink path is the Jira remote link alone.
 4. Do not edit the issue description or custom fields to store the PR URL unless the user explicitly asks; avoid guessing Jira custom field IDs.
 5. If the PR is still draft and the caller asked to update Jira only when the PR is ready for review, report the backlink as deferred instead of updating Jira.
 
@@ -124,8 +124,8 @@ If called by `krt-release-marshal` after PR creation and the accepted release pl
 
 1. Require an unambiguous issue/subtask key and a concrete PR URL.
 2. Add or update the Jira remote link without asking a second time.
-3. Add the Spanish PR-ready comment without asking a second time if the plan named comment/backlink behavior.
-4. Report issue key, PR URL, remote link result, comment result, and whether any step was deferred.
+3. Do not add a Jira comment unless the user explicitly requested it outside the release flow.
+4. Report issue key, PR URL, remote link result, and whether any step was deferred.
 
 ### 6. Confirm Final Status
 
