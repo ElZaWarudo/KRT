@@ -39,6 +39,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - Prefer `develop` as PR base when it exists; otherwise use the repository default branch unless the user or enclosing workflow provided a base.
 - Never include LLM attribution in PR title/body or commit messages.
 - Never include Compound Master planning IDs or package numbers in PR titles, PR body bullets, branch names, or commit messages unless the user or repo convention explicitly requires them.
+- Prefer branch names that describe the capability or functional behavior being shipped. Treat work-package IDs, review-unit markers, package numbers, and delivery-phase labels as branch-hygiene debt unless the user or repo convention explicitly requires them.
 - Never put both parent and child Jira references in commit messages. If repo convention requires a Jira reference or link in a commit, use only the immediately relevant issue: usually the subtask/work-package issue; use the parent only when no child issue exists.
 - Jira issue and subtask summaries/descriptions created or proposed by Release Marshal must be in Spanish. Translate English branch names, commit summaries, PR titles, or upstream suggested Jira text into concise Spanish before passing them to `krt-jira-scribe`.
 - Never include secrets, tokens, credentials, or internal environment dumps in the PR body.
@@ -138,6 +139,7 @@ Build and show a phase plan in the user's language. The visible message should r
 
 Adapt the labels when another short shape is clearer, but keep the same idea: summarize the release decision, not the tool choreography. Use exact branch names and concrete Jira/PR intent when known, but do not force every internal phase or command into the visible plan. Summarize checker/script outcomes in plain language instead of pasting raw diagnostics. In manual/guarded flow, make clear that merge is not part of this step and that the PR will wait for human review plus later merge authorization. In autonomous flow, summarize merge posture in one sentence instead of dumping validator details unless the user needs them. If a value is not known yet, say what local read-only step will resolve it inside the accepted plan.
 When commit work is needed, the visible plan should include the proposed commit messages plus the main files or surfaces for each commit. Do not summarize commits as just "necesarios" or "uno o varios commits"; show the intended grouping when it can be inferred safely.
+When branch work is needed, the visible plan should include the proposed branch name. Prefer semantic branch names derived from the shipped capability, not from work-package labels, review-unit numbering, or planning traceability.
 When the release plan spans two or more stacked or sibling PRs, do not compress them into one generic phase summary. Prefer this visible structure instead:
 
 ```markdown
@@ -294,6 +296,7 @@ Then show:
 Keep this proposal editorial and review-oriented. Summarize the push mode instead of dumping every command unless a rewritten push needs explicit approval. Summarize PR body validation as a short confidence note such as "cuerpo validado" or "ajusté el cuerpo para cumplir el formato", not raw checker output, unless the checker is failing and the failure itself needs discussion. If Jira backlinking or transition will happen automatically after PR creation, mention that briefly in the proposal only when it affects the user's approval decision.
 When there are multiple PRs in scope, emit one `PR1` / `PR2` / `PR3` block per branch instead of one merged proposal, and add a short `Estado local:` section above them with the current stack/base relationships and any non-blocking validation warnings. Keep the block labels stable so users can approve "abre las dos PR" against a concrete structure.
 If the current branch name includes planning/review-unit identifiers or otherwise reads like traceability instead of capability, treat that as branch hygiene debt. When the branch has not been pushed yet, propose a semantic rename in the visible plan. When it has already been pushed, call out the mismatch in the plan and ask before renaming.
+For semantic renames, prefer the primary user-visible or architectural capability in the slug, for example `feat/drive-watch-renewal` over `feat/wp3-watch`, or `fix/release-plan-jira-backlink` over `fix/ru2-jira`.
 Ask for approval before the next remote mutation.
 
 ### 6. Push And Create PR

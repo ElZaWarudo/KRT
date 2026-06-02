@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-release-marshal"
   short_description: "Drive focused PR, Jira, and backlink flow"
-  default_prompt: "Use krt-release-marshal to coordinate review-unit scope checks, commit planning, safe rebasing, Jira handling, GitHub PR creation, and bidirectional PR/Jira links."
+  default_prompt: "Use krt-release-marshal to coordinate review-unit scope checks, semantic branch naming, commit planning, safe rebasing, Jira handling, GitHub PR creation, and bidirectional PR/Jira links."

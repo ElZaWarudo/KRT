@@ -57,12 +57,15 @@ Goal: all subsequent steps happen on a correctly named feature branch.
   - Slug: `kebab-case` (letters/digits and hyphens)
   - Example: `feat/tire-family-schema-registry`
   - Treat orchestration/planning identifiers such as `RDM-001`, `U1`, `RU1`, `frt-004`, package numbers, and date-sequence traceability slugs as off-convention unless the user or repo convention explicitly requires them. Prefer semantic capability names such as `feat/public-dpp-integrity-verification`.
+  - Derive the slug from the feature, user-visible behavior, or functional surface being changed. Prefer names like `feat/drive-sync-renewal` or `fix/mcp-search-language-filter`, not abstract delivery labels like `feat/ru1-drive-sync`, `feat/work-package-3`, or `feat/foundation-phase`.
 
 Use `develop`/`main` as branch hygiene and PR-target context. Do not change the commit base unless the working tree is clean and the intended base is clear from the user request or enclosing workflow plan.
 
 If the current branch is protected, detached, empty, or off-convention:
 
 1. Propose a branch name based on the user request (or ask the user to provide one).
+   - Prefer `<type>/<capability-slug>`, where `capability-slug` names what the code does, not which planning artifact requested it.
+   - Strip work-package numbering, review-unit markers, planning prefixes, Jira parent/task fan-out markers, and date-sequence traceability fragments unless the repo explicitly requires them.
 2. Include the exact branch name in the commit plan acceptance gate. If running under an already accepted `krt-release-marshal` plan and the branch name is clear, proceed without a separate branch-name gate.
 3. After the relevant plan gate, switch to it safely:
    - If there are uncommitted changes, create from current HEAD: `git switch -c <branch>`
