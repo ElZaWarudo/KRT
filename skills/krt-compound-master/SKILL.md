@@ -39,7 +39,7 @@ Load only what the current phase needs:
 
 | Phase | Load |
 |---|---|
-| Preflight, roles, arguments, paths | `references/role-and-runtime.md` |
+| Preflight, roles, arguments, paths | `references/role-and-runtime.md`, `references/fast-contract.md` |
 | Artifact workflow and gates | `references/workflow-map.md` |
 | Work-package templates and review-unit shape | `references/artifact-templates.md` |
 | Execution routing | `references/execution-flow.md` |
@@ -57,6 +57,8 @@ python3 <compound-master-skill-dir>/scripts/check_work_package.py <work-package.
 ```
 
 Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md`; in installed runtimes this may be `/home/teb/.agents/skills/krt-compound-master`, not `skills/krt-compound-master` inside the target repo.
+
+Before delegating to a weaker or narrower agent, pass the relevant package plus the rules from `references/fast-contract.md` instead of expecting the agent to reconstruct the boundary from the full skill tree.
 
 ## Core Pipeline
 
