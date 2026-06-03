@@ -55,7 +55,9 @@ Use Jira Server/Data Center only:
 
 ### 1. Startup
 
-Load `references/jira-api.md`. Run `scripts/check_jira_env.py --root <consumer-project-root> --strict` when Jira readiness is unknown or the caller may depend on project-local `.krt/env` setup. If the shell is not already loaded, use `scripts/run_with_jira_env.py --root <consumer-project-root> -- <command ...>` for Jira verification, `curl`, and transition/backlink commands. Normalize host, verify required env vars, test credentials with `/rest/api/2/myself`, and verify project/issue types for `JIRA_PROJECT_KEY`.
+Load `references/jira-api.md`. Run `scripts/check_jira_env.py --root <consumer-project-root> --strict` when Jira readiness is unknown or the caller may depend on project-local `.krt/env` setup. **All Jira API calls MUST go through `scripts/run_with_jira_env.py --root <consumer-project-root> -- <command ...>`** unless the shell is already loaded with `direnv`. Never run a bare `curl` to Jira — an accidental anonymous request produces results that look valid but are meaningless. Normalize host, verify required env vars, and verify project/issue types for `JIRA_PROJECT_KEY`.
+
+**Credential verification MUST use the two-endpoint strategy** defined in `references/jira-api.md#credential-verification`. Do not rely on `/rest/api/2/myself` alone: some Jira instances return 401 on `/myself` with Bearer tokens that work perfectly for search, project list, and issue creation. Always cross-check with `/rest/api/2/project` or a simple project-key search before declaring the token broken.
 
 ### 2. Resolve Issue Shape Before Creating Anything
 

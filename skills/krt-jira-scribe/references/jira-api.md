@@ -81,33 +81,69 @@ fi
 
 Avoid filtered environment searches for this check. Command wrappers such as `rtk` may summarize or filter `env` output and can make Jira variables look missing. Prefer the direct presence check above, or check individual non-secret values with `printenv JIRA_HOST` and `printenv JIRA_PROJECT_KEY`. Never print `JIRA_API_TOKEN`. Even when those checks pass, do not consider Jira configured unless `.krt/env/jira-scribe.env` exists for the active checkout.
 
-## Authentication And Project
+## Credential Verification
 
-Test credentials:
+**Do not rely on `/rest/api/2/myself` alone.** Some Jira Server/Data Center instances return 401 on `/myself` with Bearer tokens even when the same token works correctly for search, project list, and issue creation. Always use the two-endpoint strategy below.
 
-```bash
-python3 <jira-scribe-skill-dir>/scripts/run_with_jira_env.py --root <consumer-project-root> -- \
-  curl -sS -f -H "Authorization: Bearer $JIRA_API_TOKEN" \
-  "$JIRA_BASE_URL/rest/api/2/myself"
-```
+### Two-Endpoint Strategy
 
-List projects:
+1. **Primary: `/rest/api/2/project`** — lists all projects visible to the token. A 200 with a non-empty JSON array confirms the token works and has project access. This is the most reliable single check.
 
 ```bash
 python3 <jira-scribe-skill-dir>/scripts/run_with_jira_env.py --root <consumer-project-root> -- \
-  curl -sS -f -H "Authorization: Bearer $JIRA_API_TOKEN" \
+  curl -sS -H "Authorization: Bearer $JIRA_API_TOKEN" \
   "$JIRA_BASE_URL/rest/api/2/project"
 ```
 
-Get project issue types:
+2. **Secondary: `/rest/api/2/myself`** — returns the authenticated user. If it succeeds, the token is definitely valid. But **a 401 here does NOT prove the token is broken**; it only means this specific endpoint rejected it. Cross-check with the primary endpoint before concluding.
 
 ```bash
 python3 <jira-scribe-skill-dir>/scripts/run_with_jira_env.py --root <consumer-project-root> -- \
-  curl -sS -f -H "Authorization: Bearer $JIRA_API_TOKEN" \
+  curl -sS -H "Authorization: Bearer $JIRA_API_TOKEN" \
+  "$JIRA_BASE_URL/rest/api/2/myself"
+```
+
+### Decision Table
+
+| `/rest/api/2/project` | `/rest/api/2/myself` | Verdict |
+|---|---|---|
+| 200 + projects | 200 | Token valid. Proceed. |
+| 200 + projects | 401 | Token valid. `/myself` is broken on this instance — ignore it. |
+| 401/403 | 200 | Token valid but lacks project browse permission. Check project key. |
+| 401/403 | 401/403 | Token invalid or expired. Report auth failure. |
+
+### Verify Specific Project Access
+
+After confirming the token works, verify the target project exists and its issue types are available:
+
+```bash
+python3 <jira-scribe-skill-dir>/scripts/run_with_jira_env.py --root <consumer-project-root> -- \
+  curl -sS -H "Authorization: Bearer $JIRA_API_TOKEN" \
   "$JIRA_BASE_URL/rest/api/2/project/$JIRA_PROJECT_KEY"
 ```
 
+### Auth Presence Sanity Check
+
+After any search that returns `total: 0`, verify the request actually carried auth. The fastest check: if the response includes your user's display name or email from a known-authenticated field, auth was present. If in doubt, re-run the same search through `run_with_jira_env.py` explicitly — an anonymous search returns different (often empty) results than an authenticated one, and confusing the two is a common debugging trap.
+
+Never interpret `total: 0` from a search as "project doesn't exist" or "no access" without first confirming auth was applied to that specific request. When a search returns zero results, immediately check: was `run_with_jira_env.py` used? Does the response body contain authenticated-user fields? If uncertain, re-run with the wrapper and compare.
+
 ## Search
+
+### JQL Syntax Rules
+
+JQL keywords (`AND`, `OR`, `NOT`, `ORDER BY`, `EMPTY`, `NULL`, `IS`, `WAS`, `CHANGED`, `IN`, `NOT IN`) are **always** in English regardless of Jira locale. Field names and operators use the Jira system language. Values must match the Jira instance's locale for status names, issue type names, etc.
+
+**Common pitfalls that cause misleading errors:**
+
+1. **`project = KEY` not `project=KEY`** — always include a space around operators. `project=PDP` may parse but can produce confusing errors on some Jira versions.
+2. **Quote multi-word values** — `status = "In Progress"`, not `status = In Progress`. Single quotes also work: `status = 'In Progress'`.
+3. **Status names are localized** — on a Spanish Jira instance, use `"En Progreso"` not `"In Progress"`. Always fetch actual status names from the API before writing JQL.
+4. **`IN` operator needs parentheses** — `status IN ("Open", "En Progreso")` not `status in (Open, "En Progreso")`. Values inside `IN` must be quoted strings.
+5. **Case-insensitive field names, case-sensitive values** — `PROJECT = PDP` works, but `project = pdp` does not if the project key is uppercase.
+6. **JQL parse errors vs. "not found" errors are different** — if Jira says a project or field "does not exist", check JQL syntax first before concluding the project is missing. A malformed query can make Jira misinterpret a project key as something else.
+
+**Debugging JQL errors:** When Jira returns an error about a project or field not existing, the first step is to simplify the JQL to the bare minimum (`project = "PDP"`) and re-run. If the simplified query works, the problem was JQL syntax, not project access.
 
 Search by JQL:
 
@@ -273,6 +309,13 @@ Autonomous completion to `Hecho` requires an exact ledger-bound Jira key, a one-
 
 - Use `curl -sS -f` for reads where any error should stop the flow.
 - For `POST`, capture and inspect status/body on failure.
-- If `401` or `403` appears, report authentication/authorization failure without printing tokens.
+- **401 on `/rest/api/2/myself` is NOT definitive.** Cross-check with `/rest/api/2/project` or a project-key search before declaring the token broken. See Credential Verification section.
+- If `401` or `403` appears on `/rest/api/2/project` or `/rest/api/2/search`, the token is likely invalid or lacks permissions. Report authentication/authorization failure without printing tokens.
 - If `400` appears with required fields, show Jira's message and ask for missing fields.
 - Never guess custom field IDs.
+
+### Anti-Patterns That Caused Past Incidents
+
+1. **Confirmation bias in auth debugging.** Forming the hypothesis "token is broken" from a single 401 on `/myself`, then interpreting every subsequent error (JQL parse failures, anonymous search results) as confirmation of that hypothesis, instead of doing the obvious test: `project = "PDP"` with the token via `run_with_jira_env.py`.
+2. **Confusing JQL parse errors with access errors.** When Jira says a value "does not exist", it may mean the JQL syntax made Jira misinterpret a project key. Always simplify to the minimal query before concluding the project or token is bad.
+3. **Mixing authenticated and anonymous requests.** Running some `curl` calls through `run_with_jira_env.py` and others without it produces incomparable results. An anonymous search returning `total: 0` looks identical to an authenticated search returning `total: 0` but means something completely different. Always use the wrapper for every Jira API call, or at minimum verify auth presence before interpreting results.
