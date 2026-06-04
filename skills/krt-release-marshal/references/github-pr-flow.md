@@ -150,6 +150,12 @@ Rules:
 - Keep the body factual.
 - If an upstream agent produced `Summary`, `Verification`, or stacked-context copy, run the formatter and use only its cleaned output.
 
+Anti-patterns:
+
+- Never create or update a PR with `## Summary`, `## Changes`, `## Verification`, `## Testing`, or any markdown heading sections unless the repository template explicitly requires them.
+- Never skip `format_pr_body.py` and `check_pr_body.py`. If the draft body has not passed both scripts, the PR must not be created or updated.
+- Never "improve" a validated strict body by adding operational context after validation; re-run the formatter and checker after any body edit.
+
 Example:
 
 ```md

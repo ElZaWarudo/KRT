@@ -59,6 +59,8 @@ The checker reports:
 
 By default, the checker loads non-empty Jira values from `.krt/env/jira-scribe.env` into its own process before evaluating readiness. Use `--no-auto-load` only when diagnosing whether the parent shell already loaded the env file. It does not print token values. Treat the result as not ready unless both the file exists and the required runtime variables are present after that load.
 
+If `check_jira_env.py` reports `ok: true`, the required runtime variables are effectively present for that checkout. A later Jira API failure is not a missing-credentials diagnosis. Keep using `Authorization: Bearer $JIRA_API_TOKEN` and diagnose the actual failure: wrong auth scheme, expired/revoked token, wrong host, network/firewall, or project permission. Never ask the user to provide or configure Jira credentials after the checker reports `ok: true`.
+
 Normalize host:
 
 ```bash
