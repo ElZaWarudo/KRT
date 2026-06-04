@@ -1,11 +1,11 @@
 ---
 name: krt-state-archivist
-description: Compact Compound Master state artifacts while preserving full historical detail in linked archive files. Use when compound-master-state.md or other Compound Master orchestration state has grown too large for efficient context loading, when krt-compound-master is about to resume from a long state file, after major Compound Master gates, before long closeouts, or when the user asks to clean, compact, archive, trim, or curate Compound Master generated documents.
+description: Compact Compound Master state artifacts while preserving full historical detail in linked archive files. Use when compound-master-state.md or other Compound Master orchestration state has grown too large for efficient context loading, when Compound Master live-context entrypoints such as SKILL/router docs have become diluted, when krt-compound-master is about to resume from a long state file, after major Compound Master gates, before long closeouts, or when the user asks to clean, compact, archive, trim, or curate Compound Master generated documents.
 ---
 
 # State Archivist
 
-State Archivist keeps Compound Master state usable as a resume entrypoint. It preserves the full record, but moves old narrative and evidence out of the live context path.
+State Archivist keeps Compound Master state usable as a resume entrypoint. It preserves the full record, but moves old narrative and evidence out of the live context path. The same pattern applies to explicit Compound Master instruction compaction: keep the live router short and move phase-specific detail into loaded references instead of deleting it.
 
 ## Load References
 
@@ -17,7 +17,15 @@ State Archivist keeps Compound Master state usable as a resume entrypoint. It pr
 
 Prefer `docs/orchestration/compound-master-state.md`. If the user points to another file, use that path. If only `compound-master-state.md` exists at the repo root, use it and keep all generated archive paths repo-relative.
 
-Do not compact unrelated project documentation. This skill is for Compound Master orchestration state and adjacent generated state artifacts.
+Do not compact unrelated project documentation. This skill is for Compound Master orchestration state, adjacent generated state artifacts, and explicit Compound Master live-context entrypoints when the user asks to reduce context load.
+
+For Compound Master instruction compaction, do not run the state script. Apply the same live/archive split manually:
+
+- Keep `SKILL.md` as a short router: purpose, arguments, progressive-loading map, core pipeline, universal hard rules, and stop discipline.
+- Move phase-specific PR, Jira, execution, review, CI, autonomous, and delegation detail into the reference file loaded by that phase.
+- Keep guardrails next to the action they prevent; checker-trust rules belong both in the orchestrator handoff and in the owning skill reference.
+- Preserve behavior by moving or tightening rules, not deleting them. If a rule no longer belongs in live context, link to the reference that now owns it.
+- Validate edited skills with the repository's skill validator before considering compaction complete.
 
 ### Step 2 - Run The Structural Harness
 

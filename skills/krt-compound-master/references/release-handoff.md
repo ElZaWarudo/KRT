@@ -4,6 +4,15 @@ Load only when a selected review unit has passed implementation, verification, r
 
 Do not duplicate `krt-release-marshal`; hand off with enough context for it to build the visible release plan. Normal handoff may authorize preparation for review only; it must not authorize or suggest merging a PR. Autonomous handoff may include a merge candidate only when an active ledger allows that exact mutation class, and Release Marshal's executor still owns the merge decision.
 
+## Handoff Hard Rules
+
+- Release handoff is not merge authority. Do not merge PRs or branches, imply merge approval, or pass merge intent in manual/guarded flow. In autonomous flow, pass only a ledger-scoped merge candidate to `krt-release-marshal`; Release Marshal's executor must still validate live state, reviewer approval, required checks, branch protection, exact scope, and audit readiness.
+- Do not open PRs from protected branches. If the current branch is protected or planning/docs-only, create or switch to the semantic implementation branch before handoff.
+- Keep planning IDs out of public release text. PR titles, PR body bullets, commit messages, branch names, and Jira text should be semantic unless the repo convention explicitly requires IDs.
+- Treat verification, Impact Scan, Security Sentinel, CI evidence, and internal review as readiness context, not PR body copy or merge proof.
+- Trust bundled checker results over assumptions. If Jira readiness reports `ok: true`, credentials are present for that checkout; diagnose the real Jira API failure instead of asking for credentials. If PR/body/scope checks pass or fail, act on the checker result and do not invent ad-hoc PR structure.
+- Never ask for Jira credentials. With `jira-policy:optional`, attempt Jira when context/configuration is present; otherwise record the no-Jira fallback and continue after the normal release-plan approval.
+
 ## Handoff Prompt
 
 ```text

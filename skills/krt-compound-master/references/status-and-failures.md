@@ -34,6 +34,9 @@ Track:
 - When a roadmap, brainstorm, planning input, plan, or work package changes status or operational facts, update that artifact in the same turn as the state file. Do not leave one current and the other stale.
 - Before closeout, resume, review handoff, or release handoff, reconcile state and the active artifact set against repo reality: status, blockers, next action, branch/base, dependencies, verification, review/security posture, and PR/Jira references.
 - If implementation or review made adjacent product/operator/API docs stale, update them or record the explicit split/blocker path; never leave the drift implicit.
+- Do not edit CE plan bodies as progress checklists; progress belongs in state, active work-package status, task tracking, commits, Jira, and PRs.
+- If related docs must be split out, keep the destination and next action visible in state/closeout so documentation is not orphaned.
+
 ## Status Values
 
 Use these statuses in state and work-package frontmatter:

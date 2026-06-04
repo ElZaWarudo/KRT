@@ -39,6 +39,12 @@ Missing required shipping roles block before shipping. Missing Jira blocks only 
 
 Autonomous external mutation also requires the `mutation_executor` role and the ledger validator from `krt-compound-master`. If either is missing, autonomous shipping degrades to validation-only/manual-required mode before any PR, branch, reviewer, Jira, or merge side effect.
 
+Portable naming and runtime syntax:
+
+- Treat canonical hyphenated skill names as portable; runtime aliases are optional conveniences.
+- Treat `Skill("<role>", "...")` examples as pseudocode and translate them to the current runtime.
+- Use repo-relative paths in generated artifacts.
+
 ## Runtime Adapter
 
 The portable core is role-based. Subagents are optional runtime adapters.
