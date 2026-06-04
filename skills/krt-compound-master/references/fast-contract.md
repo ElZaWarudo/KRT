@@ -16,6 +16,7 @@ Read this with the repository `AGENTS.md` before acting. If they conflict, stop 
 - A review unit is the default PR/Jira unit. Do not widen it without an explicit rationale.
 - Keep related documentation with the implementation when that documentation explains the change, clarifies stacked context, or backfills nearby stale behavior docs.
 - Do not silently stash, side-branch, defer, or drop required docs to make a diff look cleaner.
+- Keep `docs/orchestration/compound-master-state.md` and the assigned package artifact aligned with reality. Do not end a loop with stale status, blockers, verification, branch/base, or next-step text.
 
 ## Facts
 
@@ -66,4 +67,5 @@ Stop and surface a blocker when:
 - Report assumptions explicitly.
 - Report divergences from the assigned scope explicitly.
 - Report changed files and actual write scope explicitly.
+- Report which orchestration artifacts you refreshed, not just code files.
 - Record whether required docs stayed with the change or why they did not.

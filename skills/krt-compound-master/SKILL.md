@@ -60,6 +60,19 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 
 Before delegating to a weaker or narrower agent, pass the relevant package plus the rules from `references/fast-contract.md` instead of expecting the agent to reconstruct the boundary from the full skill tree.
 
+## File Freshness Discipline
+
+Keep orchestration artifacts current as part of the work, not as deferred cleanup.
+
+Whenever a phase, gate, dependency, blocker, branch/base, or shipping fact changes, update the affected files in the same turn:
+- `docs/orchestration/compound-master-state.md`
+- the active roadmap/brainstorm/planning-input/plan/work-package artifacts
+- state archive links or summary paths when compaction or closeout changed them
+- adjacent product/operator/API docs when the latest implementation or review made them stale
+
+Before delegating, before resume decisions, before review handoff, before release handoff, and before stopping, run a freshness sweep. Current status, blockers, next invocation, active package/review unit, dependency wave, branch/base, verification/review/security state, and PR/Jira references must match repo reality. If they do not, repair the artifacts first.
+
+
 ## Core Pipeline
 
 1. Preflight roles, repo, branch, delegation, Jira posture, production posture, and context.
@@ -93,6 +106,7 @@ Before delegating to a weaker or narrower agent, pass the relevant package plus 
 - Treat `production:live` as compatibility-preserving; breaking existing behavior requires explicit approval and rationale.
 - Use repo-relative paths in generated documents.
 - Do not edit CE plan bodies as progress checklists; progress lives in state, work-package status, task tracking, commits, Jira, and PRs.
+- Do not let state or package artifacts lag behind implementation, review, security, branch, or Jira/PR reality. Update the affected artifact in the same phase transition that changed it.
 - A PR unit is a review unit, not automatically a work package and not every plan bullet.
 - Split broad work packages into review units when review would otherwise be noisy.
 - Target <=500 human-authored changed lines per review-unit PR, warn above 900, and require split/rationale above ~1,000. Count generated artifacts, schema dumps, and orchestration docs separately.

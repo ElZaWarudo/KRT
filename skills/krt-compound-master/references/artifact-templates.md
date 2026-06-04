@@ -28,6 +28,10 @@ Review-unit size guardrails:
 - Do not move related documentation into stash-only state, a side worktree, or an unreferenced branch just to protect PR neatness. When a split is explicitly approved, record where the docs will land and how that follow-up will be shipped.
 - Do not create a dedicated planning/docs branch just to hold these artifacts. Until execution starts, keep them on the active integration branch; when RU1 begins, move forward on the first semantic implementation branch that ships the related capability.
 
+Freshness discipline:
+- Keep the work-package file current. When review-unit selection, dependency order, branch/base, verification, review, security, Jira, PR, or closeout facts change, update this artifact in the same turn as `docs/orchestration/compound-master-state.md`.
+- Do not leave a package in `ready` after execution or review moved it to another state. The live package should tell the next operator what is actually ready, blocked, or handed off.
+
 Work packages must align with origin plan units. A package may combine or split units, but it must make that relationship explicit and justify it. If a plan defines U1-U5, the package must say which of those units are included, excluded, deferred, or split into another package.
 
 ```markdown

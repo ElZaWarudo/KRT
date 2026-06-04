@@ -27,6 +27,13 @@ Track:
 - Blockers and required user decisions.
 - Agent assumptions and safe local decisions that affected implementation, verification, or review.
 
+
+## Freshness Requirements
+
+- Treat `docs/orchestration/compound-master-state.md` as the live resume truth. Update it at every phase/gate transition, blocker or unblock, package/review-unit selection, branch/base change, verification/review/security result, PR/Jira mutation, and next-invocation change.
+- When a roadmap, brainstorm, planning input, plan, or work package changes status or operational facts, update that artifact in the same turn as the state file. Do not leave one current and the other stale.
+- Before closeout, resume, review handoff, or release handoff, reconcile state and the active artifact set against repo reality: status, blockers, next action, branch/base, dependencies, verification, review/security posture, and PR/Jira references.
+- If implementation or review made adjacent product/operator/API docs stale, update them or record the explicit split/blocker path; never leave the drift implicit.
 ## Status Values
 
 Use these statuses in state and work-package frontmatter:
@@ -64,7 +71,7 @@ completed
 
 ## Failure Behavior
 
-Stop and write the blocker into `compound-master-state.md` when:
+Stop and write the blocker into `compound-master-state.md` and the affected active artifact when that artifact is the blocked execution surface:
 
 - Required artifact roles are missing.
 - Execution roles are missing for requested execution.

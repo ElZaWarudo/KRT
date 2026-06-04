@@ -8,6 +8,8 @@ Load `role-and-runtime.md`. Resolve roles, runtime/delegation availability, repo
 
 In `mode:resume`, compact or selectively load state before broad ingestion when state would crowd context.
 
+Before planning new work or resuming old work, reconcile live artifacts. If `docs/orchestration/compound-master-state.md`, the active work package, or linked roadmap/plan artifacts disagree with the current branch/base, dependency state, blocker set, review status, next invocation, or PR/Jira reality, repair those files first and record the correction.
+
 Worktree posture:
 
 - Default to `worktree-policy:avoid`.
@@ -45,6 +47,8 @@ artifact_path: docs/...
 ```
 
 If readiness report, update state and stop with a context-blocked closeout. If roadmap, update state and continue.
+
+After each roadmap/readiness result, refresh state plus any touched orchestration artifact before continuing or stopping. Do not accumulate stale statuses for later cleanup.
 
 ## Step 2 - Roadmap Review
 
@@ -92,10 +96,12 @@ Execute serially unless `parallel:true`, `autonomy:high`, `worktree-policy:auto|
 ## Step 7 - Execute Review Unit
 
 Load `execution-delegation.md`. Invoke `work` in implementation-only/no-shipping mode for the selected review unit. Start Security Watch for high-risk review units. Inspect worker output, update state, run/attempt verification, and continue to review.
+Update `compound-master-state.md` and the active work-package artifact in the same turn as the worker result. Sync implementation status, blockers, changed files/tests, branch/base facts, and the next review action before launching review.
 
 ## Step 8 - Code Review And Fix Loop
 
 Load `review-security-ci.md`. Invoke `code_review`, prefer autofix when safe, retry with report-only/inline only if runtime refuses agent launch. Loop findings at or above threshold through work and review. Stop after three blocked rounds.
+When review findings or fixes change readiness, package scope, verification state, or release inputs, update the state and work-package files before the next review loop or handoff.
 
 ## Step 9 - Security Sentinel Gate
 
@@ -117,6 +123,6 @@ Refresh state, dependencies, and integration base after each PR handoff. If a pa
 
 For autonomous stacked PR delivery, run a merge checkpoint after each PR handoff or resume: scan contract-scoped PRs, order parent before child, hand merge candidates to Release Marshal one at a time, refresh downstream base/check/review/Jira state after each parent merge, and transition Jira to `Hecho` only after the linked PR is proven merged.
 
-## State Archive Hygiene
+## State And Artifact Hygiene
 
-Invoke `state_archivist` after major gates when state grows noisy: roadmap review, artifact set review, implementation/review/security gates, before long closeouts, after PR handoff, and before resume loads large state.
+Keep the live state concise, but keep it current first. Invoke `state_archivist` after major gates when state grows noisy: roadmap review, artifact set review, implementation/review/security gates, before long closeouts, after PR handoff, and before resume loads large state.
