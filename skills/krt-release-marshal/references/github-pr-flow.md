@@ -140,10 +140,10 @@ Default template:
 
 Rules:
 
-- Put only the changes contained in this PR first, one factual markdown bullet per line, and the Jira URL last after a blank line.
+- Put only the changes contained in this PR first, one factual markdown bullet per line, and the Jira URL(s) last after a blank line.
 - Omit headings.
 - Do not distinguish parent vs subtask unless the user asks.
-- Include only the immediately relevant Jira URL: the standalone task for one-PR work, or the subtask only when a real multi-child parent exists. Do not include both parent and child links unless the user or repo template asks.
+- Include the immediately relevant Jira URL(s): the standalone task for single-review-unit work, or, when the PR groups several review units, every covered review-unit subtask under the shared parent. Do not include both parent and child links unless the user or repo template asks.
 - Omit Jira URL if Jira context is missing.
 - Do not mention stacked PR relationships, temporary bases, future retargeting, dependency PRs, reviewer instructions, or merge sequencing.
 - Do not include verification unless the repo template requires it. Treat upstream test results as readiness context, not body content.
@@ -282,5 +282,5 @@ When a ledger allows autonomous merge for a stack:
 2. Validate and merge/enqueue/auto-merge at most one PR at a time through the executor.
 3. After each successful parent merge, refresh downstream base, head SHA, review decision, required checks, branch protection/rulesets, and Jira binding.
 4. Treat downstream approvals/checks as stale until live state proves they are current after retarget/rebase.
-5. Run `jira_transition_done` only after GitHub evidence or same-contract audit proves the linked PR merged.
+5. Run `jira_transition_done` only after GitHub evidence or same-contract audit proves the linked PR merged. For a grouped PR covering several review-unit subtasks under a shared parent, the merged PR must be remote-linked to the parent and to each covered subtask; complete the parent and let the subtasks inherit by transitioning every covered subtask too, validating each issue individually (matching remote link + merged PR + exact done transition). Leave any issue whose remote link or done transition is missing or ambiguous for manual completion and record the gap.
 6. Stop the stack on the first blocker and record whether independent PR/Jira work may continue according to Compound Master's autonomous flow matrix.
