@@ -30,6 +30,9 @@ Load this file at the start of execution. It is a router, not the full execution
 ## Review-Unit Discipline
 
 - A work package is a delivery container; a review unit is the normal PR/Jira unit.
+- Optimize boundaries for human reviewability and independent mergeability, not atomicity or Jira-fit (Reviewability Gate). Prefer a coarser independently-mergeable capability slice over micro-PRs whose only justification is tidiness or Jira shape.
+- Keep open stacked PRs within the cap (target <=2, hard max 3). At the cap, wait for the parent to merge into the integration base or collapse the pending chain onto it; never build a deep unmerged chain and never resolve one by abandoning it for a single mega-consolidation PR.
+- When a later unit fixes a surface an earlier still-open PR flagged, record a downstream-fix note (`addresses finding from PR #X`) in state and the release handoff so the prior review is not lost.
 - Execute one review unit at a time unless coupling makes that less reviewable and the rationale is recorded.
 - Keep orchestration docs and generated artifacts separate when they would obscure functional review, but do not exclude related documentation from the branch/PR solely to make the diff look cleaner. When the docs explain the change, stack context, or stale adjacent behavior, keep them with the review unit unless the user asks to defer them.
 - Do not "solve" review noise by parking related documentation in stash, another worktree, or a side branch without an explicit user-approved split plan and a visible follow-up path.

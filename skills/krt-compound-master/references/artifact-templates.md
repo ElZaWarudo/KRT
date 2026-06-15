@@ -16,6 +16,8 @@ Use a work package as a delivery container. Its review units are the default ato
 
 Default `jira_policy` to `optional`: review units should carry Jira-ready summaries and descriptions because Jira is important delivery traceability, but lack of Jira role/config/context should not block package creation or execution. Use `required` only when the user, repo, or active delivery contract explicitly makes Jira mandatory; use `skip` only when the user explicitly opts out.
 
+Reviewability primacy: choose review-unit boundaries for how usable the review is for a human, not for atomicity or one-to-one Jira fit. Prefer the coarsest independently-mergeable capability slice that still verifies on its own. A split must earn its keep through independent value, verification, or risk for the reviewer; "atomic is tidier" and "one PR per Jira subtask" are not sufficient reasons. Keep at most 2-3 open unmerged PRs in one stacked chain (target <=2): at the cap, wait for the parent to merge into the integration base or collapse the pending chain onto it, and never resolve an over-deep stack by abandoning it for one mega-consolidation PR. The Reviewability Gate (workflow-map Step 5b) must pass before execution.
+
 Split review units when units have independent value, minimal file overlap, separate risk domains, clean independent verification, large generated artifacts, large schema dumps, or orchestration docs that would obscure functional review. Combine only when units share migrations/API contracts/core files, depend tightly on each other, or would create noisier stacked PRs than a single review. A package may implement the full roadmap item in one integrated PR only when the plan units have strong integration/dependency coupling; this must be explicit in the grouping rationale.
 
 Review-unit size guardrails:
@@ -48,6 +50,7 @@ unit_alignment: complete|partial|split
 review_units: [RU1, RU2]
 base_branch: [integration branch or parent branch]
 pr_strategy: [independent|stacked]
+max_open_stack: [2-3 when stacked; n/a when independent]
 jira_policy: [required|optional|skip]
 production_posture: [unknown|live|preprod|prototype]
 autonomy: [manual|guarded|high]
@@ -100,10 +103,20 @@ Grouping rationale:
 | RU1 | [focused reviewable change] | [runtime/tests/generated/docs/etc.] | [develop/parent branch] | [new/reuse/skip] | [line estimate, generated/docs separated yes/no, split rationale if broad] |
 
 Rules:
-- Review units are the default PR/Jira handoff units.
+- Review units are the default PR/Jira handoff units, but optimize their boundaries for human reviewability and independent mergeability, not atomicity or Jira-fit. Record the reviewer-experience rationale in the grouping section.
+- Keep open stacked PRs within the cap (target <=2, hard max 3). Record the at-cap action: wait for the parent to merge into the integration base, or collapse the pending chain onto it. Never plan a deep unmerged chain or a deferred mega-consolidation PR.
+- When a later review unit fixes a surface an earlier still-open PR flagged, carry a downstream-fix note (`addresses finding from PR #X`) so the prior review is not lost.
 - Keep docs/orchestration and large generated artifacts in separate review units only when that improves review more than it harms context. If the docs are part of explaining, operating, or backfilling the shipped behavior, prefer keeping them with the related review unit and split by commit only when that is enough.
 - A separate review unit is still part of the same delivery story, not a dumping ground. Never leave the docs behind in a worktree or local branch without a named follow-up path in the artifact and closeout.
 - If one review unit includes runtime logic plus generated files, require separate commit grouping for generated files and keep PR body sentences focused on user/reviewer-visible changes.
+
+## Reviewability Diagnosis
+- Reviewer-experience check: [is each PR understandable, verifiable, and mergeable on its own, without a deep mental stack? yes/no + why]
+- Granularity chosen because: [reviewer-experience rationale, not atomicity or Jira-fit]
+- Open-stack plan: [chain depth vs cap (target <=2, max 3); at-cap action: wait-for-parent-merge | collapse-to-integration-base | independent PRs]
+- Jira mapping: [single-review-unit PR -> standalone Tarea | grouped PR -> parent + one subtask per covered review unit, PR backlinks all]
+- Downstream-fix trace: [none | addresses finding from PR #X: surface]
+- Failure-mode check: [confirm not a deep micro-PR stack and not a deferred mega-consolidation PR]
 
 ## Files and Tests
 [Repo-relative files and expected tests]
@@ -157,6 +170,7 @@ Rules:
 - Jira policy: [required|optional|skip]
 - Suggested issue type: Tarea
 - Suggested subtask behavior: create/reuse subtask when a real parent already exists or when this package has two or more sibling review units/work packages that should share one parent. Never plan a single parent task with a single child subtask; if there is only one Jira child, collapse to one standalone `Tarea` and attach PR backlink/comments/transition there. If a new parent is justified by multiple children, add the parent to the active sprint unless explicitly skipped
+- PR-to-Jira mapping: the Jira unit is the review unit, even when the Reviewability Gate or the stack cap groups several review units into one PR. A single-review-unit PR maps to one standalone `Tarea`. A grouped PR that covers two or more review units keeps one subtask per review unit under a shared parent; the single PR backlinks every covered subtask, and the PR-driven transitions (En Revisión on open, Hecho on merge) fan out to all of them. Do not collapse review-unit subtasks just because they ship in one PR, and still never create a parent with a single child.
 - Jira summary: [Spanish semantic title without roadmap/package numbers]
 - Jira description: [Spanish concise scope/reason without roadmap/package numbers]
 - Optional-policy fallback: if Jira role/config/context is missing, record "Jira omitted: <reason>" in state/release closeout and continue without asking solely whether Jira should be used
@@ -179,7 +193,7 @@ Keep internal planning identifiers out of public/reviewer-facing text:
 - Jira summaries should be in Spanish and read like work items a teammate would understand without the orchestration plan.
 - Jira descriptions should be in Spanish and explain scope and reason in concise prose, not restate roadmap IDs or package numbers.
 - PR titles and commit messages should be value-oriented and conventional; put traceability in artifact metadata, PR dependency notes, or Jira links instead of the title.
-- When commit messages or PR bodies include Jira traceability, include only the immediately relevant issue link/key. Use a subtask only when a real multi-child parent exists; otherwise use the standalone task. Do not include both parent and child unless the user or repo convention explicitly asks.
+- When commit messages or PR bodies include Jira traceability, link the issue(s) the change actually delivers: a single standalone `Tarea` for a single-review-unit PR, or every covered review-unit subtask for a grouped PR. Use subtasks only under a real multi-child parent; do not include both parent and child unless the user or repo convention explicitly asks.
 - Keep IDs only in internal fields such as `roadmap_item`, `units`, origin paths, dependency tables, and state.
 
 ## Artifact Closeout

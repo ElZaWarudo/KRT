@@ -87,6 +87,20 @@ Each package must:
 
 If `mode:artifacts`, stop after artifact closeout with exact next invocation, including `review-unit:<RU#>` when known.
 
+## Step 5b - Reviewability Gate
+
+Before locking review-unit/PR boundaries, diagnose the proposed decomposition from the reviewer's seat. This gate optimizes for a usable human review, not for maximal atomicity or one-to-one Jira fit. Atomicity and Jira shape are inputs, not goals.
+
+For the proposed sequence, confirm:
+
+- Each PR can be understood, verified, and merged on its own, without holding a deep mental stack of sibling PRs.
+- The open stacked-PR chain stays within the cap: target <=2, hard max 3 open unmerged PRs (see Step 12 governance).
+- Each split earns its keep through independent value, verification, or risk for the reviewer. "Atomic is tidier" and "one PR per Jira subtask" are not sufficient reasons; prefer the coarsest independently-mergeable capability slice that still verifies on its own.
+- Feedback stays traceable: a later unit that fixes a surface an earlier still-open PR flagged is recorded as a downstream-fix note, not silently buried.
+- The plan avoids both failure modes at once: a deep stack of micro-PRs, and a deferred mega-consolidation PR that swallows an abandoned stack.
+
+Record the chosen granularity, the reviewer-experience rationale, and the open-stack plan in the work package and state. If the only justification for a split is atomicity or Jira shape, coarsen to the independently-mergeable capability slice. If reviewability cannot be met within the cap, restructure the packages before execution.
+
 ## Step 6 - Execution Wave Planning
 
 Load `execution-flow.md`, then `execution-delegation.md`. Resolve autonomy/delegation and classify packages and review units as independent, dependent, overlapping, high-risk, and production-sensitive.
@@ -121,7 +135,15 @@ When an active autonomous ledger exists, include the ledger path, allowed mutati
 
 Refresh state, dependencies, and integration base after each PR handoff. If a parent PR is pending, fetch and inspect the integration base before continuing from the parent review-unit branch. Record stack/dependency context in state, not PR body.
 
+Open-stack governance: keep at most 2-3 open unmerged PRs in one stacked chain (target <=2). When the chain reaches the cap, do not extend it. Either wait for the parent PR to merge into the integration base and re-base the next unit on the refreshed base, or collapse the pending chain onto the integration base and continue from there. Never accumulate a deep chain of unmerged stacked PRs, and never resolve an over-deep chain by abandoning it for one mega-consolidation PR.
+
+Collapsing merges PRs, not Jira: when a grouped or collapsed PR covers several review units, keep one Jira subtask per review unit under a shared parent and backlink them all from that PR. Jira stays at review-unit granularity for traceability even though the PR is the coarser reviewable slice.
+
+Downstream-fix trace: maintain a per-open-PR register of at/above-threshold review findings in state. When a later review unit changes a surface that an earlier still-open PR's reviewer flagged, record `addresses finding from PR #X` in state and carry it into that PR's review/release notes so the earlier review is not lost.
+
 For autonomous stacked PR delivery, run a merge checkpoint after each PR handoff or resume: scan contract-scoped PRs, order parent before child, hand merge candidates to Release Marshal one at a time, refresh downstream base/check/review/Jira state after each parent merge, and transition Jira to `Hecho` only after the linked PR is proven merged.
+
+Autonomous `Hecho` requires, per issue, a Jira remote link matching the merged PR plus an exact done transition. For a grouped PR covering several review-unit subtasks under a shared parent, remote-link the merged grouped PR to the parent and to every covered subtask, then complete the parent and let the subtasks inherit: the executor transitions the parent to `Hecho` and fans `Hecho` out to each covered subtask, with every transition still validated individually (matching remote link + merged PR + exact done transition). Leave any issue whose remote link or done transition is missing or ambiguous for manual completion, record the gap, and do not force it. Manual/guarded backlink and `En Revisión` transition already fan out to every covered subtask.
 
 ## State And Artifact Hygiene
 

@@ -31,6 +31,14 @@ Review pass requirements:
 - Impact Scan complete when required.
 - Security Watch notes, if any, have an owner or gate input.
 
+## Cross-PR Finding Trace
+
+At agentic speed a stacked chain can fix an earlier reviewer's finding before they re-read it. Keep that visible:
+
+- Record each at/above-threshold finding in state keyed to its open PR.
+- Before reviewing a new stacked unit, check whether it changes a surface flagged by an earlier still-open PR. If it fixes that surface, record `addresses finding from PR #X` and surface it in the earlier PR's review/release notes so the prior reviewer sees it is handled.
+- Do not let a later unit silently resolve an earlier flagged issue; an unsurfaced downstream fix is a review-traceability gap, not a clean review.
+
 ## Security Watch During Work
 
 Enable by default when a review unit touches auth, authorization, tenant isolation, secrets, PII, audit logs, destructive actions, public APIs, external integrations, deployment exposure, CI/CD permissions, dependencies, generated clients, or supply-chain surfaces.

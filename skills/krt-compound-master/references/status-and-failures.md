@@ -18,6 +18,10 @@ Track:
 - Review status for each gate artifact: roadmap, planning input, plan, and work package. Track `pending`, `passed`, `fix-needed`, or `blocked` separately from artifact creation status.
 - Plan implementation units included in the selected package, with per-unit status: pending, in-progress, implemented, verified, skipped, or blocked.
 - Dependency waves.
+- Reviewability Gate result: chosen granularity, reviewer-experience rationale, and whether the decomposition passed before execution.
+- Open stacked-PR depth per chain, the cap (target <=2, max 3), and the at-cap action taken: wait-for-parent-merge or collapse-to-integration-base.
+- Per-open-PR review-finding register and downstream-fix notes (`addresses finding from PR #X`) so cross-PR feedback stays traceable.
+- PR-to-Jira unit mapping: for each PR, the review units it covers, whether Jira is a standalone `Tarea` or a parent plus per-review-unit subtasks, the subtask keys backlinked, and the transition fan-out applied.
 - Branch names and base branches.
 - Impact Scan status: required yes/no, changed contracts, scan patterns, consumers found, contract-drift tests searched, required consumer tests, run/skipped results.
 - Surface-aware verification results, code-review status, Security Watch notes, security review status, review fan-out roles, deduplicated findings, and advisory findings.
@@ -89,6 +93,8 @@ Stop and write the blocker into `compound-master-state.md` and the affected acti
 - Review blockers remain after three loops.
 - Security review is required after the work-review loop and P0/P1 findings remain unresolved, or a P2 finding affects auth, tenant isolation, secrets, public API security, PII, supply chain, or deployment exposure.
 - Branch base is ambiguous or would degrade the git tree.
+- A stacked chain would exceed the open-PR cap and neither a parent merge into the integration base nor a collapse onto it is available.
+- The Reviewability Gate cannot be met within the cap and the packages cannot be restructured without a user decision.
 - Jira is required but role, context, or configuration needed for safe mutation is missing.
 - Autonomous external mutation is requested but the ledger is missing, expired, revoked, superseded, scope-mismatched, missing issuer binding, or has a contract/audit hash mismatch.
 - Autonomous external mutation is requested but the executor, validator, live-state input, runtime enforcement boundary, or pre-execution audit write is unavailable.

@@ -55,7 +55,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 1. Preflight roles, repo, branch, Jira, production, delegation, and context.
 2. Generate exactly one roadmap/readiness report; stop if context is insufficient.
 3. Review roadmap, run one brainstorm per roadmap item, review it, plan it, and review the plan.
-4. Derive and review work packages with focused review units; review units are the default PR/Jira units.
+4. Derive and review work packages, then pass the Reviewability Gate: choose review-unit/PR boundaries for human reviewability and independent mergeability, not atomicity or Jira-fit, and cap open stacked PRs at 2-3.
 5. Execute each ready review unit with the resolved work role in implementation-only/no-shipping mode.
 6. Run Impact Scan, verification, code review, Security Watch/Sentinel as required, and CI break-prevention evidence.
 7. Hand finished review units to `krt-release-marshal`; it owns commits, rebase, Jira, PRs, reviewers, transitions, and ledger-bound autonomous merge execution.
@@ -68,6 +68,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 - Do not invent product behavior, auth/data contracts, Jira transitions, release constraints, branch bases, dependency edges, or production posture. Use `production:unknown` unless evidence says otherwise; `production:live` is compatibility-preserving.
 - Escalate product behavior, auth/data contracts, destructive operations, public contract removal, branch/base strategy, required Jira/PR workflow decisions, and production compatibility breakage.
 - Keep state and active artifacts current in the same phase transition that changes their truth; reconcile state before delegation, resume, review handoff, release handoff, or stop.
+- Optimize review-unit/PR boundaries for human reviewability and independent mergeability, not atomicity or Jira-fit. Keep at most 2-3 open unmerged PRs in one stacked chain; at the cap, wait for the parent to merge into the integration base or collapse the pending chain onto it, and never resolve an over-deep stack by abandoning it for one mega-consolidation PR. When a later review unit fixes a surface an earlier still-open PR's reviewer flagged, record and surface a downstream-fix note so the prior review is not lost. Jira stays at review-unit granularity: a grouped PR covering several review units backlinks one subtask per review unit under a shared parent, never a single collapsed task.
 - Do not let work roles ship. Internal review, Security Sentinel, CI evidence, and release-plan acceptance are readiness signals only, not merge authorization.
 - `autonomy:high` without an active ledger is local autonomy only; it never authorizes PR, branch, reviewer, Jira, or merge side effects.
 - Trust bundled checkers over assumptions. If a checker reports a result, act on it and diagnose the real failure; never ask for Jira credentials.

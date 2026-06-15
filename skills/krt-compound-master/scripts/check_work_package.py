@@ -84,6 +84,27 @@ def main() -> int:
         if "PR body sentences" in handoff:
             errors.append("use PR body bullets, not PR body sentences")
 
+    reviewability = section(text, "Reviewability Diagnosis")
+    if not reviewability:
+        warnings.append(
+            "missing ## Reviewability Diagnosis section; record reviewer-experience "
+            "rationale and the open-stack plan (Reviewability Gate)"
+        )
+
+    stacked = re.search(r"^pr_strategy:\s*stacked\s*$", text, re.M)
+    if stacked:
+        stack_signal = (
+            re.search(r"^max_open_stack:\s*\S", text, re.M)
+            or "wait-for-parent-merge" in text
+            or "collapse-to-integration-base" in text
+        )
+        if not stack_signal:
+            errors.append(
+                "pr_strategy: stacked requires open-stack governance: set max_open_stack "
+                "(target <=2, max 3) and an at-cap action (wait-for-parent-merge or "
+                "collapse-to-integration-base)"
+            )
+
     files_tests = section(text, "Files and Tests")
     review_scope = f"{files_tests}\n{review_units}\n{handoff}"
     mixed_docs = [p for p in DOC_SECTIONS if p in files_tests]
