@@ -90,7 +90,7 @@ Stop and write the blocker into `compound-master-state.md` and the affected acti
 - Product decisions cannot be inferred.
 - Plans lack units/dependencies/tests after review.
 - A package changes an API contract, endpoint, binding, shared helper, schema, payload, auth/tenant/ownership behavior, or test fixture contract and lacks a complete Impact Scan.
-- Review blockers remain after three loops.
+- Roadmap, plan, or code review blockers remain after three loops.
 - Security review is required after the work-review loop and P0/P1 findings remain unresolved, or a P2 finding affects auth, tenant isolation, secrets, public API security, PII, supply chain, or deployment exposure.
 - Branch base is ambiguous or would degrade the git tree.
 - A stacked chain would exceed the open-PR cap and neither a parent merge into the integration base nor a collapse onto it is available.

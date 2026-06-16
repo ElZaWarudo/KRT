@@ -13,6 +13,7 @@ Autonomous mode is a ledger-bound exception to normal human-gated shipping. `aut
 - Write an audit event before execution. If the pre-execution audit write fails, do not mutate.
 - Write an audit event after execution. If a side effect happened but post-execution audit fails, stop later external mutation until reconciliation.
 - Continue safe independent work only when `autonomous-flow-matrix.md` allows it.
+- Do not batch-generate brainstorms, plans, work packages, or PRs ahead of their verification gates. With no human in the loop, process each item through its review/verification gate before producing the next, and honor the open-stack cap so production never outruns verification.
 
 ## Merge Exception
 

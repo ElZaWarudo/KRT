@@ -52,7 +52,7 @@ After each roadmap/readiness result, refresh state plus any touched orchestratio
 
 ## Step 2 - Roadmap Review
 
-Review the roadmap with `document_review`. Fix blockers without inventing behavior. Ask only when findings change scope, behavior, dependency order, or PR strategy.
+Review the roadmap with `document_review`. Fix blockers without inventing behavior. Ask only when findings change scope, behavior, dependency order, or PR strategy. Stop after three blocked review rounds and escalate with the blocker and next question.
 
 ## Step 3 - Brainstorm Per Roadmap Item
 
@@ -71,7 +71,7 @@ Review `planning_input_path` before planning. If brainstorm was skipped, record 
 
 ## Step 4 - Plan Per Reviewed Requirements Artifact
 
-Invoke `plan` for each reviewed `planning_input_path`. Verify stable U-IDs, dependencies, repo-relative paths, test scenarios, and verification criteria. Review plans until no blocking findings remain.
+Invoke `plan` for each reviewed `planning_input_path`. Verify stable U-IDs, dependencies, repo-relative paths, test scenarios, and verification criteria. Review plans until no blocking findings remain or three blocked review rounds elapse, then escalate with the blocker and next question.
 
 ## Step 5 - Derive Work Packages
 
