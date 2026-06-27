@@ -1,0 +1,113 @@
+# Queue And Dispatch
+
+Use this reference when selecting ready work and planning execution waves.
+
+## Queue Unit Contract
+
+Every queued unit needs:
+
+```yaml
+id: semantic-id
+title: short human title
+source: docs/work-packages/... | github issue | linear issue | backlog file
+status: planned | ready | running | review-gated | release-ready | handed-off | merged | blocked
+depends_on: []
+scope:
+  included: []
+  excluded: []
+surfaces:
+  code: []
+  contracts: []
+  data: []
+  auth: []
+  docs: []
+risk:
+  production: unknown | prototype | preprod | live
+  security: low | elevated | high
+  overlap: low | elevated | high
+verification:
+  commands: []
+handoff:
+  intended_base: main
+  branch: null
+  pr: null
+notes: []
+```
+
+If a work package already defines review units, use those IDs and paths instead of inventing new ones.
+
+## Ready Criteria
+
+A unit is ready only when:
+
+- dependencies are merged or explicitly available as the intended base
+- scope and non-goals are written
+- acceptance criteria are checkable
+- verification commands or a justified verification gap exist
+- no unresolved product, auth, data, deployment, or public-contract decision blocks implementation
+- branch/base strategy is known
+- overlap with active units is low or explicitly coordinated
+
+## Wave Selection
+
+Default wave size is 1. Raise to 2 when:
+
+- units are dependency-ready
+- changed surfaces do not overlap materially
+- isolation exists
+- verification can run for both
+- the open stacked PR cap remains respected
+
+Raise above 2 only after successful prior waves and explicit user approval.
+
+## Overlap Rules
+
+Treat as conflicting unless there is strong evidence otherwise:
+
+- same migration/data model
+- same auth/permission path
+- same public API contract
+- same generated artifact
+- same central orchestration skill or shared reference
+- same build/dependency/config file
+
+Docs-only overlap can run in parallel if each unit edits distinct docs or one worker is clearly designated owner of the shared doc.
+
+## Wave Plan Shape
+
+Before dispatch, produce:
+
+```text
+Wave: <name>
+Mode: design-only | dispatch | reconcile | resume
+Concurrency: <n>
+Isolation: branch | worktree | cloud | manual
+
+Units:
+- <id>: <title>
+  Source: <path/link>
+  Worker role: <compound-master|implementer|reviewer|documenter|fixer>
+  Intended base: <branch>
+  Expected branch/worktree: <name/path>
+  Verification: <commands or gap>
+  Risks: <short list>
+
+Stop conditions:
+- <condition>
+```
+
+Ask for approval before mutating dispatch unless the user explicitly requested autonomous execution and a valid ledger allows the exact mutation class.
+
+## State Updates
+
+Update queue state immediately when:
+
+- a unit is dispatched
+- a worker reports blockers
+- verification fails or passes
+- review creates at-or-above-threshold findings
+- a unit becomes release-ready
+- release handoff creates PR/Jira links
+- a dependency merges or changes base
+
+Never let markdown state pretend to be live authority. Re-fetch GitHub/Jira state before release decisions.

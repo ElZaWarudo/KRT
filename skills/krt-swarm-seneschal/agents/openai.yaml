@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-swarm-seneschal"
+  short_description: "Orchestrate safe subagent delivery waves"
+  default_prompt: "Use krt-swarm-seneschal to turn ready work packages into safe subagent execution waves."
