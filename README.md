@@ -16,6 +16,7 @@ KRT gives agent runtimes reusable workflows for requirements, harnesses, roadmap
 | Noisy Compound Master state | `krt-state-archivist` |
 | A finished change that needs clean shipping | `krt-release-marshal` |
 | PR review feedback | `krt-review-herald` |
+| Jira Cloud issue management | `krt-jira-cloud-scribe` |
 | Security-sensitive work | `krt-security-sentinel` |
 | A failing CI run | `krt-ci-questor` |
 | Deployment manifests, rollout, or rollback risk | `krt-deploy-summoner` |

@@ -1,0 +1,9 @@
+{
+  "duplicate_candidates": 0,
+  "payload": {
+    "project": "KRT",
+    "issuetype": "Task",
+    "summary": "feat: RDM-001 RU1 merge PR",
+    "description": "PR merge checks 2026-05-22"
+  }
+}

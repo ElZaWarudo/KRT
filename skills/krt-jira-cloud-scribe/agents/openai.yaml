@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-jira-cloud-scribe"
+  short_description: "Manage Jira Cloud issues safely"
+  default_prompt: "Use krt-jira-cloud-scribe to manage Jira Cloud issues, subtasks, PR backlinks, and transitions safely."
