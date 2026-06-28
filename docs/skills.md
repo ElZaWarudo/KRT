@@ -34,7 +34,7 @@ Skills can bring their own references, templates, scripts, assets, or agent defi
 |---|---|---|
 | `krt-delivery-navigator` | `krt-requirements-weaver` output when available | Turns validated requirements into delivery shape without re-litigating discovery. |
 | `krt-compound-master` | Required: `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal`. Optional: `krt-state-archivist`, `krt-security-sentinel`, `krt-ci-questor` | Full artifact, execution, and release pipeline. Optional specialists are used when present and skipped with a recorded fallback when missing. |
-| `krt-swarm-seneschal` | `krt-compound-master`, `krt-release-marshal`, and optional subagent/worktree/cloud runtime support | Meta-orchestrates ready work packages, backlog items, or issue queues into bounded execution waves without changing Compound Master or owning release mutations. |
+| `krt-swarm-seneschal` | `krt-compound-master`, `krt-release-marshal`, `krt-jira-cloud-scribe`, and optional subagent/worktree/cloud runtime support | Meta-orchestrates ready work packages, backlog items, or Jira Cloud issue queues into bounded execution waves without changing Compound Master or owning release mutations. |
 | `krt-release-marshal` | `krt-gitflow-knight`, `krt-rebase-smith`, `krt-jira-scribe` | Clean commits, clean branch history, Jira, and PR handoff. |
 | `krt-jira-scribe` | `.krt/env/jira-scribe.env` loaded into env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
 | `krt-jira-cloud-scribe` | `.krt/env/jira-cloud-scribe.env` loaded into env vars | Jira Cloud issue, subtask, sprint, and transition work via REST API v3. |

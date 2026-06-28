@@ -27,10 +27,12 @@ For each unit:
 
 5. **State gate**
    - Queue status, branch/base facts, blockers, verification evidence, and downstream-fix notes are current.
+   - Jira Cloud issue/subtask state, when relevant, is reconciled through `krt-jira-cloud-scribe`.
 
 6. **Release handoff gate**
    - `krt-release-marshal` receives the completed unit context.
-   - The factory does not commit, push, open PRs, mutate Jira, request reviewers, or merge unless routed through the release skill and an explicit approval/ledger permits it.
+   - The swarm seneschal does not commit, push, open PRs, mutate Jira, request reviewers, or merge unless routed through the release skill and an explicit approval/ledger permits it.
+   - Jira handoff context must name whether it is Jira Cloud or Server/Data Center. Default is Jira Cloud with `krt-jira-cloud-scribe`.
 
 ## Reconciliation Checklist
 
@@ -70,6 +72,7 @@ Intended base: <branch>
 PR grouping: standalone | grouped | stacked
 Covered units: <ids>
 Jira policy: required | optional | skip
+Jira mode: cloud | server-datacenter | none
 Suggested PR title: <semantic title>
 Suggested PR body bullets:
 - <user-facing change>
@@ -84,6 +87,8 @@ Downstream-fix notes:
 ```
 
 Pass this to `krt-release-marshal`. Do not include internal queue mechanics in public PR copy unless repo convention requires it.
+
+When `Jira mode: cloud`, include that Jira lookup, issue/subtask mapping, and readiness came from `krt-jira-cloud-scribe`. Do not silently downgrade to `krt-jira-scribe`.
 
 ## Closeout Shape
 

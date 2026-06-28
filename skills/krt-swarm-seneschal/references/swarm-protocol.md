@@ -43,6 +43,7 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
    - security review when required
    - CI break-prevention evidence
    - release handoff
+   - Jira Cloud reconciliation through `krt-jira-cloud-scribe` when Jira is part of the queue or release trace
 
 ## Non-Negotiables
 
@@ -52,11 +53,13 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
 - No worker performs release actions.
 - No dispatcher creates a deeper stack than humans can review.
 - No backlog item enters the queue until it is written as a contract of work.
+- No Jira operation uses `krt-jira-scribe` unless the user explicitly identifies the target as Jira Server/Data Center. For Jira Cloud, use `krt-jira-cloud-scribe`.
 
 ## Relationship To Existing KRT Skills
 
 - `krt-compound-master` remains the artifact and quality pipeline.
 - `krt-release-marshal` remains the release mutation owner.
+- `krt-jira-cloud-scribe` is the default Jira integration role for Cloud issue lookup, readiness, subtask mapping, and handoff context.
 - `krt-review-herald`, `krt-security-sentinel`, and `krt-ci-questor` remain specialists used when their gates are triggered.
 - This skill coordinates when and how those roles are invoked across multiple units.
 

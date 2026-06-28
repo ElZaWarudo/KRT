@@ -17,6 +17,7 @@ This skill is a meta-orchestrator. It must not edit `krt-compound-master`, bypas
 
 - Treat `krt-compound-master` as the quality pipeline, not the thing being changed.
 - Treat `krt-release-marshal` as the only owner of commits, PR creation, Jira mutation, reviewer requests, and merge-related flow.
+- Treat `krt-jira-cloud-scribe` as the default Jira role for queue intake, Jira readiness checks, issue/subtask lookup, and Jira Cloud handoff context. Use `krt-jira-scribe` only when the user explicitly says the target is Jira Server/Data Center.
 - Treat human approval as required before launching mutating parallel work unless the user supplied an active autonomy ledger that allows the exact mutation class.
 - Prefer small, independently reviewable units over broad backlog sweeps.
 - Cap active mutable work to the smallest safe wave; default to 2 concurrent workers until repo evidence supports more.
@@ -39,6 +40,7 @@ Load only what the current task needs:
    - Confirm the user's requested mode: design-only, wave-plan, dispatch, reconcile, or resume.
    - Inspect repo state and active orchestration artifacts before mutating anything.
    - Identify the source of work: `docs/work-packages/`, GitHub Issues, Linear, a backlog file, or user-provided tasks.
+   - When Jira is involved, resolve Jira posture as Cloud by default and load `krt-jira-cloud-scribe` rules before reading or mutating Jira state. Do not use the Server/Data Center scribe unless explicitly requested.
    - Resolve isolation: worktrees, cloud environments, or manual branches. If isolation is unavailable, plan serial execution.
 
 2. **Normalize Work**
@@ -66,7 +68,8 @@ Load only what the current task needs:
 
 6. **Release Handoff**
    - Hand release-ready units to `krt-release-marshal`; do not duplicate its commit, PR, Jira, reviewer, or merge procedure.
-   - Carry enough context for grouped PRs, stacked PRs, downstream-fix notes, and Jira subtask mapping.
+   - Carry enough context for grouped PRs, stacked PRs, downstream-fix notes, and Jira Cloud subtask mapping.
+   - State that Jira handoff context was prepared under `krt-jira-cloud-scribe` unless the user explicitly selected Jira Server/Data Center.
    - In manual or guarded flow, stop at release-plan approval. In autonomous flow, only pass ledger-scoped mutation candidates.
 
 ## Stop Conditions

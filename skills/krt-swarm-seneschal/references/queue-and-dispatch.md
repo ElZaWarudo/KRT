@@ -9,7 +9,7 @@ Every queued unit needs:
 ```yaml
 id: semantic-id
 title: short human title
-source: docs/work-packages/... | github issue | linear issue | backlog file
+source: docs/work-packages/... | jira cloud issue | github issue | linear issue | backlog file
 status: planned | ready | running | review-gated | release-ready | handed-off | merged | blocked
 depends_on: []
 scope:
@@ -47,6 +47,7 @@ A unit is ready only when:
 - no unresolved product, auth, data, deployment, or public-contract decision blocks implementation
 - branch/base strategy is known
 - overlap with active units is low or explicitly coordinated
+- Jira Cloud source state, when applicable, has been read through `krt-jira-cloud-scribe` and has an unambiguous issue/subtask key
 
 ## Wave Selection
 
@@ -110,4 +111,4 @@ Update queue state immediately when:
 - release handoff creates PR/Jira links
 - a dependency merges or changes base
 
-Never let markdown state pretend to be live authority. Re-fetch GitHub/Jira state before release decisions.
+Never let markdown state pretend to be live authority. Re-fetch GitHub/Jira state before release decisions. For Jira Cloud state, use `krt-jira-cloud-scribe`; use `krt-jira-scribe` only for an explicitly confirmed Server/Data Center target.
