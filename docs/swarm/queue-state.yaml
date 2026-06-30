@@ -1,0 +1,19 @@
+schema_version: 1
+updated_at: "2026-06-30"
+mode: jira-team-flow
+autonomy:
+  mode: manual
+  ledger_path: null
+jira:
+  mode: cloud
+  project_key: null
+  base_url: null
+  last_read_at: null
+source_artifacts: []
+jira_issue_map: {}
+proposed_jira:
+  epics: []
+  parents: []
+  subtasks: []
+units: {}
+wave_history: []

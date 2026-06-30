@@ -1,0 +1,38 @@
+schema_version: 1
+run_id: swarm-overnight-YYYY-MM-DD
+created_at: "YYYY-MM-DD"
+user_mandate: "User requested no human confirmation during this run."
+mode: autonomous-team-flow
+source_artifacts: []
+allowed_mutation_classes:
+  local_files: true
+  local_branches: true
+  local_commits: true
+  jira_seed_create_update: true
+  jira_comments: true
+  jira_pr_backlinks: true
+  jira_transitions_to_review: true
+  push_branches: true
+  create_or_update_prs: true
+  request_reviewers: true
+  merge_prs: true
+deny_rules:
+  - do_not_commit_secrets
+  - do_not_bypass_failing_required_checks
+  - do_not_merge_without_platform_eligibility
+  - do_not_ship_high_risk_compliance_without_resolution
+risk_policy:
+  product: decide_from_artifacts_else_block_unit
+  auth: block_dependents_if_foundational
+  data: block_dependents_if_foundational
+  DIAN: high_risk_blocker_before_production
+  accounting: high_risk_blocker_before_production
+  payroll: high_risk_blocker_before_production
+  security: high_risk_blocker_before_production
+fallback_policy:
+  no_ready_work: close_with_blocker_review
+  failed_verification: mark_needs_fix_and_dispatch_fixer_if_safe
+  scope_creep: mark_split_required
+  missing_external_authority: skip_mutation_record_blocker_continue
+audit:
+  append_only_log: docs/orchestration/autonomy-ledgers/swarm-overnight-YYYY-MM-DD.audit.md

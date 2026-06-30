@@ -9,7 +9,7 @@ For each unit:
 1. **Scope gate**
    - Worker stayed inside included scope.
    - Excluded work remains untouched.
-   - Any necessary scope expansion is recorded and approved.
+   - Any necessary scope expansion is recorded. Manual flow requires approval; autonomous flow marks broad expansion `split-required` unless the ledger allows it.
 
 2. **Verification gate**
    - Required commands passed, or a material verification gap is recorded.
@@ -23,15 +23,16 @@ For each unit:
 
 4. **Security/production gate**
    - Security-sensitive units ran the security specialist or an explicit fallback.
-   - Production-sensitive units preserve compatibility unless the user approved a breaking change.
+   - Production-sensitive units preserve compatibility unless manual approval or autonomy ledger policy explicitly allows a breaking change.
 
 5. **State gate**
    - Queue status, branch/base facts, blockers, verification evidence, and downstream-fix notes are current.
    - Jira Cloud issue/subtask state, when relevant, is reconciled through `krt-jira-cloud-scribe`.
+   - Non-fatal blockers are recorded in `docs/swarm/blockers.yaml`.
 
 6. **Release handoff gate**
    - `krt-release-marshal` receives the completed unit context.
-   - The swarm seneschal does not commit, push, open PRs, mutate Jira, request reviewers, or merge unless routed through the release skill and an explicit approval/ledger permits it.
+   - The swarm seneschal does not commit, push, open PRs, mutate Jira, request reviewers, or merge unless routed through the release skill and a manual approval or autonomy ledger permits it.
    - Jira handoff context must name whether it is Jira Cloud or Server/Data Center. Default is Jira Cloud with `krt-jira-cloud-scribe`.
 
 ## Reconciliation Checklist
@@ -44,7 +45,8 @@ For each worker result:
 - Detect public contract, auth, data, dependency, config, or generated-artifact changes.
 - Record verification commands and outcomes.
 - Record blockers and whether they affect sibling units.
-- Decide: `release-ready`, `needs-fix`, `blocked`, or `split-required`.
+- Decide: `release-ready`, `needs-fix`, `blocked`, `deferred`, or `split-required`.
+- Update `docs/swarm/queue-state.yaml` and `docs/swarm/blockers.yaml` when statuses or blockers change.
 
 ## Conflict Handling
 
@@ -60,6 +62,16 @@ If two workers changed the same surface:
 
 Do not resolve conflicts by creating one large unreviewable PR.
 
+## Blocker Reconciliation
+
+Use `blocker-ledger.md` when a worker reports a blocker.
+
+- If the blocker affects only one unit, record it, mark that unit `blocked` or `deferred`, and continue with unrelated ready units.
+- If the blocker affects a dependency, public contract, auth, data, or central technical foundation, stop dependent dispatch and continue only with independent work.
+- If the blocker affects security, real DIAN compliance, productive accounting, productive payroll, or legal production exposure, record it as high risk and require resolution before production release.
+- In manual flow, ask only when no ready independent work remains or the blocker can make the wave implement the wrong foundation.
+- In autonomous flow, do not ask; record the blocker, stop dependent work, and continue unrelated units until no safe work remains.
+
 ## Release Handoff Packet
 
 For each release-ready unit, prepare:
@@ -67,6 +79,7 @@ For each release-ready unit, prepare:
 ```text
 Work package or source: <path/link>
 Review unit or queue ID: <id>
+Jira key: <key or none>
 Current branch: <branch>
 Intended base: <branch>
 PR grouping: standalone | grouped | stacked
@@ -76,6 +89,8 @@ Jira mode: cloud | server-datacenter | none
 Suggested PR title: <semantic title>
 Suggested PR body bullets:
 - <user-facing change>
+Release notes:
+- <user-facing release note>
 Suggested commit grouping:
 - <type(scope): summary> -- <surfaces> -- <reason>
 Verification results for readiness:
@@ -84,11 +99,13 @@ Impact/CI risk:
 - <summary or not required>
 Downstream-fix notes:
 - <none or PR/finding mapping>
+Suggested Jira transition:
+- <transition name or none>
 ```
 
 Pass this to `krt-release-marshal`. Do not include internal queue mechanics in public PR copy unless repo convention requires it.
 
-When `Jira mode: cloud`, include that Jira lookup, issue/subtask mapping, and readiness came from `krt-jira-cloud-scribe`. Do not silently downgrade to `krt-jira-scribe`.
+When `Jira mode: cloud`, include that Jira lookup, issue/subtask mapping, and readiness came from `krt-jira-cloud-scribe`. Do not silently downgrade to `krt-jira-scribe`. Suggested Jira transitions are context only; Release Marshal and Jira Cloud Scribe own confirmed or ledger-covered execution.
 
 ## Closeout Shape
 
@@ -101,6 +118,8 @@ Completed:
 - <unit>
 Blocked:
 - <unit>: <reason>
+Blockers recorded:
+- <blocker id>: <type>/<owner>/<status>
 Release-ready:
 - <unit>
 Handed off:

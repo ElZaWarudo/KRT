@@ -23,11 +23,13 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
 2. **Executable queue**
    - `docs/work-packages/**`
    - GitHub Issues, Linear issues, or `backlog.yaml`
+   - Jira Cloud issues/subtasks when running `jira-team-flow`
    - each unit must have scope, non-goals, acceptance criteria, dependencies, and verification commands
 
 3. **Dispatcher**
    - selects ready units
    - enforces dependency and overlap rules
+   - reads the blocker ledger before every wave
    - caps concurrency
    - creates worker prompts or launches subagents
 
@@ -54,6 +56,8 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
 - No dispatcher creates a deeper stack than humans can review.
 - No backlog item enters the queue until it is written as a contract of work.
 - No Jira operation uses `krt-jira-scribe` unless the user explicitly identifies the target as Jira Server/Data Center. For Jira Cloud, use `krt-jira-cloud-scribe`.
+- No worker question stops the whole swarm when it can be recorded as a non-fatal blocker and independent work remains.
+- No-confirmation requests become ledger-bound autonomous runs. The swarm should not ask during the run; it should execute covered actions, defer uncovered/risky units, and continue independent work.
 
 ## Relationship To Existing KRT Skills
 
@@ -73,6 +77,17 @@ M1: serial execution with queue state
 M2: two isolated workers in parallel
 M3: bounded worker pool with reconciliation
 M4: ledger-bound autonomous mutation handoff
+M5: unattended overnight team flow with morning packet
 ```
 
 Do not skip straight to high concurrency. Increase concurrency only after repeated waves finish with low conflict, clear review results, and no stale state.
+
+## Jira Team Flow
+
+When Jira Cloud is the backlog source, load `jira-team-flow.md`. The seneschal may seed or read the backlog, maintain `docs/swarm/queue-state.yaml`, maintain `docs/swarm/blockers.yaml`, select safe waves, and prepare release handoff packets.
+
+It must not directly create/update Jira issues, comment, transition, backlink, commit, push, open PRs, request reviewers, or merge. It hands the packet to the owning skill with manual approval or ledger authority.
+
+## Autonomous Team Flow
+
+When the user asks for no confirmations or overnight delivery, load `autonomous-team-flow.md`. Treat task definition as the first deliverable, create or reuse an autonomy ledger, and avoid runtime questions. Record blockers and continue until no independent work remains.

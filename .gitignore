@@ -24,3 +24,7 @@ docs/orchestration/*
 !docs/orchestration/autonomy-ledgers/
 docs/orchestration/autonomy-ledgers/*
 !docs/orchestration/autonomy-ledgers/.gitkeep
+!docs/orchestration/autonomy-ledgers/*.yaml
+!docs/swarm/
+docs/swarm/*
+!docs/swarm/*.yaml
