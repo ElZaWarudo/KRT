@@ -6,6 +6,7 @@ docs/*
 !docs/examples.md
 !docs/safety.md
 !docs/skills.md
+!docs/ux-ui-skill-research.md
 !docs/solutions/
 docs/solutions/*
 !docs/solutions/*.md
