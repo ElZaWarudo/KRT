@@ -4,7 +4,7 @@ Date: 2026-07-06
 
 ## Goal
 
-Create a KRT skill that gives frontend-building agents modern UX/UI guidance that is practical at implementation time. The skill should help agents make strong product-interface decisions, produce accessible and responsive code, avoid generic AI/SaaS visual output, and verify the result in a browser.
+Create a KRT skill that gives frontend-building agents practical UX/UI guidance centered on functionality. The skill should help agents make strong product-interface decisions, preserve task flow, handle states and errors, produce accessible and responsive code, and verify the result in a browser. Visual polish is secondary to comprehension, completion, recovery, and trust.
 
 ## Internal Reference Basis
 
@@ -87,6 +87,18 @@ General usability heuristics translate well into frontend agent instructions:
 - Error recovery: place messages near the source, explain the issue plainly, and give a next action.
 - Help: provide contextual assistance when needed, not tutorial walls.
 
+Additional usability research reinforced that the skill should treat usability as workflow reliability:
+
+- State must be visible near the action or object affected.
+- The interface should speak in the user's domain language, not implementation terms.
+- Users need exits and recovery paths: cancel, undo, retry, edit, save draft, or safe back navigation.
+- Consistency should cover words, controls, state meanings, keyboard behavior, and platform conventions.
+- The best error handling prevents likely mistakes before they happen.
+- Interfaces should reduce memory load by keeping labels, current step, selected filters, and required context visible.
+- Repeated work needs efficiency features such as bulk actions, saved views, shortcuts, defaults, and duplication.
+- Minimalism is functional: remove anything that does not help users decide, act, inspect, compare, recover, or navigate.
+- Forms should ask only necessary questions, branch early when that saves time, and preserve answers through errors.
+
 ### 6. Forms Need Special Treatment
 
 Forms are a common failure mode for generated frontend work. The skill should require:
@@ -143,30 +155,31 @@ Because this skill is for coding agents, it needs explicit constraints that huma
 Recommended folder:
 
 ```text
-skills/krt-frontend-ux-guardia/
+skills/krt-frontend-ux-guardian/
   SKILL.md
   agents/openai.yaml
   references/
-    ux-ui-guidelines.md
+    functional-ux-guidelines.md
+    usability-guidelines.md
     accessibility-verification.md
-    visual-quality-rubric.md
+    functional-quality-rubric.md
     frontend-verification.md
 ```
 
 Recommended metadata:
 
 ```yaml
-name: krt-frontend-ux-guardia
-description: Guard frontend agents toward modern, accessible, responsive, product-specific UX/UI and browser-verified implementation quality.
+name: krt-frontend-ux-guardian
+description: Guard frontend agents toward functional, accessible, responsive, task-centered UX/UI and browser-verified implementation quality.
 ```
 
 Recommended `agents/openai.yaml`:
 
 ```yaml
 interface:
-  display_name: "krt-frontend-ux-guardia"
-  short_description: "Guide modern frontend UX/UI implementation"
-  default_prompt: "Use krt-frontend-ux-guardia to build modern, accessible, responsive frontend interfaces and verify the UX/UI result."
+  display_name: "krt-frontend-ux-guardian"
+  short_description: "Guard functional frontend UX quality"
+  default_prompt: "Use krt-frontend-ux-guardian to build task-centered, accessible, responsive frontend workflows and verify the result."
 ```
 
 ## Proposed SKILL.md Workflow
@@ -192,6 +205,6 @@ interface:
 
 ## Open Decisions
 
-1. Create a new broad skill, `krt-frontend-ux-guardia`, or extend `krt-interface-warden`.
+1. Create a new broad skill, `krt-frontend-ux-guardian`, or extend `krt-interface-warden`.
 2. Decide whether the skill should auto-invoke `krt-interface-warden` for visual direction and `krt-interface-inquisitor` for review, or simply reference them as companions.
 3. Decide whether to include a lightweight browser-verification script later, or keep verification as instructions only.
