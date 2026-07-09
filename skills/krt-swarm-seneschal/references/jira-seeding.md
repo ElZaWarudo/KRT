@@ -2,14 +2,24 @@
 
 Use this reference when `jira-team-flow` needs to seed Jira Cloud from a roadmap, backlog, or work-package file.
 
+## Documentation Gate
+
+Before producing anything beyond a proposed seed plan:
+
+- Read `documentation_gate` from `docs/swarm/queue-state.yaml`.
+- If no gate exists and the source is a rough brief, new initiative, roadmap, Jira program, or swarm startup, return to `document-plan`.
+- If `documentation_gate.status != approved`, do not create, update, comment on, link, or transition Jira issues.
+- In that case, stop with the documentation review packet from `references/documentary-planning.md`.
+- Proceed to Jira mutation only when documentation is approved or the user explicitly authorizes the exact Jira mutation in the current request.
+
 ## Seed Shape
 
-Convert the roadmap into this proposed Jira hierarchy:
+Convert roadmap into proposed Jira hierarchy:
 
 ```text
 Product epic
-  Parent issue by wave/domain
-    Subtask per work package, review unit, or executable queue unit
+Parent issue by wave/domain
+Subtask per work package, review unit, or executable queue unit
 ```
 
 Collapse unnecessary hierarchy. If a parent would have exactly one child and no plausible sibling work, propose a standalone issue instead, following `krt-jira-cloud-scribe` issue-shape rules.
@@ -18,8 +28,8 @@ Collapse unnecessary hierarchy. If a parent would have exactly one child and no 
 
 For every candidate item, capture:
 
-- Roadmap source path and anchor.
-- Work package or review unit ID.
+- Roadmap source path anchor.
+- Work package review unit ID.
 - Domain or wave.
 - Title in Spanish for Jira summary.
 - 1-3 sentence Spanish description.
@@ -32,7 +42,7 @@ For every candidate item, capture:
 
 ## Local Mapping
 
-Before creating or proposing Jira issues, prepare or update the local queue map:
+Before creating or proposing Jira issues, prepare the local queue map:
 
 ```yaml
 jira_issue_map:
@@ -59,7 +69,7 @@ proposed_jira:
     - provisional_id: subtask-wp-01-ru-02
 ```
 
-Replace provisional IDs with real Jira keys only after `krt-jira-cloud-scribe` confirms creation or reuse.
+Replace provisional IDs with real Jira keys only after `krt-jira-cloud-scribe` confirms creation or reuse and documentation approval exists.
 
 ## Blocked Seed Items
 
@@ -71,45 +81,51 @@ blocker_refs:
   - BLK-2026-06-30-001
 ```
 
-Use `references/blocker-ledger.md` to create the blocker record. Examples:
+Use `references/blocker-ledger.md` to create the blocker record.
+
+Examples:
 
 - Product behavior undecided.
 - Auth/permission model unknown.
-- Data source or migration decision missing.
+- Data source migration decision missing.
 - Real DIAN compliance interpretation required.
 - Productive accounting or payroll rule needs expert validation.
 - Security design required.
 
-In manual flow, ask only when the unresolved decision blocks all seed/drain work or risks a wrong foundation. In autonomous flow, do not ask; record the blocker, mark affected units blocked/deferred, and continue seeding or draining independent units.
+In manual flow, ask only when an unresolved decision blocks all seed/drain work or risks the wrong foundation. In autonomous flow after documentation approval, do not ask; record blocker, mark affected units blocked/deferred, and continue seeding/draining independent units.
 
 ## Mutation Guard
 
-In manual flow, the seed plan may propose Jira creates/updates, but it must not execute them without confirmation. Before any Jira Cloud mutation, show:
+Documentation approval is required before Jira mutation. A Jira seed plan may exist while documentation is `draft`, `in_review`, or `changes_requested`, but real Jira creates/updates/comments/links/transitions must not run.
 
-- Jira Cloud project and base URL.
+In manual flow, a seed plan may propose Jira creates/updates, but it must not execute them without confirmation. Before any Jira Cloud mutation, show:
+
+- Jira Cloud project base URL.
 - Proposed epic, parent issues, subtasks, labels, sprint placement, and blocked markers.
 - Reuse candidates and why they match.
 - New issue summaries and Spanish descriptions.
-- The exact mutation classes requested.
+- Exact mutation classes requested.
+- Documentation gate status and approval facts.
 
-In autonomous flow, route covered execution through `krt-jira-cloud-scribe` with the autonomy ledger. If the ledger does not cover a mutation class, skip that mutation, record a blocker or handoff gap, and continue with independent work.
+In autonomous flow, route covered execution through `krt-jira-cloud-scribe` only after the documentation gate is approved. If the ledger does not cover a mutation class, skip mutation, record a blocker or handoff gap, and continue independent approved work.
 
 ## Seed Output
 
-End a seed pass with:
+End seed pass with:
 
 ```text
 Seed status: proposed | confirmed | executed-by-jira-cloud-scribe | autonomous-executed | blocked
+Documentation status: <draft|in_review|approved|changes_requested>
 Roadmap source: <path>
 Jira hierarchy:
 - Epic: <key or provisional>
-- Parents: <keys or provisional IDs>
-- Subtasks: <keys or provisional IDs>
+- Parents: <keys/provisional IDs>
+- Subtasks: <keys/provisional IDs>
 Blocked/deferred units:
 - <unit>: <blocker ref>
 Updated local state:
 - docs/swarm/queue-state.yaml
 - docs/swarm/blockers.yaml
 Next drain invocation:
-Use krt-swarm-seneschal in modo jira-team-flow ...
+- Use krt-swarm-seneschal in modo jira-team-flow ...
 ```

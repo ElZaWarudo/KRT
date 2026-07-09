@@ -4,7 +4,7 @@ Use this reference for `docs/swarm/queue-state.yaml`.
 
 ## Purpose
 
-The queue state file is the seneschal's persistent local memory for Jira issue mapping, executable units, wave history, verification, and release handoff facts.
+The queue state file is Seneschal's persistent local memory for the documentation gate, Jira issue mapping, executable units, wave history, verification, and release handoff facts.
 
 It is not live Jira authority. Re-fetch Jira Cloud through `krt-jira-cloud-scribe` before seed execution, release handoff, backlinks, comments, or transitions.
 
@@ -14,7 +14,7 @@ It is not live Jira authority. Re-fetch Jira Cloud through `krt-jira-cloud-scrib
 docs/swarm/queue-state.yaml
 ```
 
-Create the file when a queue or Jira team flow first needs persistence.
+Create the file when document planning, queue planning, or Jira team flow first needs persistence.
 
 ## Schema
 
@@ -22,6 +22,17 @@ Create the file when a queue or Jira team flow first needs persistence.
 schema_version: 1
 updated_at: "2026-06-30"
 mode: jira-team-flow
+documentation_gate:
+  status: draft
+  approved_by: null
+  approved_at: null
+  source_artifacts:
+    - docs/product/roadmap.md
+    - docs/jira/seed-plan.md
+    - docs/swarm/swarm-startup.md
+    - docs/swarm/queue-state.yaml
+    - docs/swarm/blockers.yaml
+  feedback_log: []
 autonomy:
   mode: manual
   ledger_path: null
@@ -71,7 +82,7 @@ units:
       tests: []
       config: []
       generated: []
-      dependencies: []
+    dependencies: []
     risk:
       production: unknown
       security: low
@@ -101,15 +112,24 @@ wave_history:
     blockers_recorded: []
 ```
 
+## Documentation Gate Rules
+
+- `draft`: documentation packet is being created or incomplete.
+- `in_review`: packet artifacts are ready for human review; Jira mutation, worker dispatch, code mutation, and release handoff remain blocked.
+- `changes_requested`: user requested revisions; only documentation and blocker records may change.
+- `approved`: explicit approval exists; downstream Jira seed/drain, wave planning, dispatch, and release handoff may proceed through their own gates.
+
+Do not create real Jira keys, executable `running` units, implementation wave history, or release handoff packets unless `documentation_gate.status` is `approved` or the user explicitly authorized the exact bypass in the current request.
+
 ## Unit Statuses
 
 - `planned`: known but not ready.
 - `ready`: eligible for wave selection.
-- `running`: dispatched to a worker.
-- `review-gated`: implementation returned and needs review or verification.
+- `running`: dispatched worker.
+- `review-gated`: implementation returned and needs review verification.
 - `release-ready`: passed reconciliation gates and can be handed to `krt-release-marshal`.
-- `needs-fix`: bounded fixes are required before release handoff.
-- `blocked`: cannot proceed until a blocker is resolved.
+- `needs-fix`: bounded fixes required before release handoff.
+- `blocked`: cannot proceed until blocker is resolved.
 - `deferred`: blocked or intentionally postponed, but not fatal to the whole wave.
 - `split-required`: unit was too broad or worker scope exceeded safe review size.
 - `handed-off`: release packet sent to `krt-release-marshal`.
@@ -120,7 +140,7 @@ wave_history:
 - Keep one canonical `queue_unit_id` for each Jira issue key.
 - Prefer one Jira subtask per worker.
 - Standalone Jira issues are allowed when hierarchy would be artificial.
-- Preserve historical handoff and verification facts when live Jira status changes.
+- Preserve historical handoff verification facts when live Jira status changes.
 - Replace provisional Jira IDs only after `krt-jira-cloud-scribe` confirms creation or reuse.
 
 ## Read Before Wave Selection
@@ -128,17 +148,19 @@ wave_history:
 Before every wave, read:
 
 - `docs/swarm/queue-state.yaml`
+- `documentation_gate.status` from queue state
 - `docs/swarm/blockers.yaml`
 - `docs/orchestration/autonomy-ledgers/<run>.yaml` when autonomous flow is active
-- live Jira Cloud issue state, when Jira is the source
+- live Jira Cloud issue state, when Jira is source
 - current git branch/worktree state
 
-Then mark units with open blockers or dependencies on open blockers as ineligible for selection.
+Then mark units with open blockers, dependencies on open blockers, or a non-approved documentation gate as ineligible for execution.
 
 ## Update Moments
 
 Update queue state when:
 
+- Documentation packet is drafted, moved to review, revised, approved, or has feedback recorded.
 - Jira seed plan is proposed, confirmed, or executed by Jira Cloud Scribe.
 - Jira issue keys are mapped or remapped.
 - A wave is planned, dispatched, reconciled, or closed.

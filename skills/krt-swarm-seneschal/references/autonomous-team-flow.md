@@ -1,16 +1,16 @@
 # Autonomous Team Flow
 
-Use this reference for `overnight-team-flow`, `autonomous-team-flow`, or any user instruction equivalent to "do not ask for confirmation".
+Use this reference for `overnight-team-flow`, `autonomous-team-flow`, or any user instruction equivalent to "do not ask confirmation".
 
 ## Goal
 
 Convert an ambitious delivery request into an unattended run:
 
 ```text
-autonomy mandate -> complete task definition -> Jira/queue seed -> safe waves -> reconciliation -> release handoff -> morning packet
+autonomy mandate -> documentation packet -> approved gate -> Jira/queue seed -> safe waves -> reconciliation -> release handoff -> morning packet
 ```
 
-The core rule is no runtime interruption for decisions that can be encoded, deferred, or skipped. The swarm should wake the user with completed work, release-ready units, blockers, and exact remaining decisions.
+The core rule is no runtime interruption after the required gates pass: decisions can be encoded, deferred, or skipped. The documentary planning gate is still mandatory unless already approved or explicitly bypassed by the user's current instruction.
 
 ## Autonomy Mandate
 
@@ -26,9 +26,24 @@ If the user explicitly requests no confirmations, create or reuse a run ledger t
 schema_version: 1
 run_id: swarm-overnight-YYYY-MM-DD
 created_at: "YYYY-MM-DD"
-user_mandate: "User asked for no human confirmation during this run."
+user_mandate: "User asked no human confirmation during run."
 mode: autonomous-team-flow
 source_artifacts: []
+documentation_gate:
+  required: true
+  status: draft
+  queue_state_path: docs/swarm/queue-state.yaml
+allowed_without_review:
+  - create_documentation_packet
+  - revise_documentation_packet
+  - record_blockers
+  - propose_jira_hierarchy
+  - propose_worker_waves
+denied_without_review:
+  - seed_jira
+  - dispatch_workers
+  - mutate_code
+  - release_handoff
 allowed_mutation_classes:
   local_files: true
   local_branches: true
@@ -40,9 +55,10 @@ allowed_mutation_classes:
   push_branches: true
   create_or_update_prs: true
   request_reviewers: true
-  merge_prs: true
+  merge_prs: false
 deny_rules:
   - do_not_commit_secrets
+  - do_not_bypass_documentation_gate
   - do_not_bypass_failing_required_checks
   - do_not_merge_without_platform_eligibility
   - do_not_ship_high_risk_compliance_without_resolution
@@ -55,6 +71,7 @@ risk_policy:
   payroll: high_risk_blocker_before_production
   security: high_risk_blocker_before_production
 fallback_policy:
+  documentation_not_approved: close_with_review_packet
   no_ready_work: close_with_blocker_review
   failed_verification: mark_needs_fix_and_dispatch_fixer_if_safe
   scope_creep: mark_split_required
@@ -63,28 +80,36 @@ audit:
   append_only_log: docs/orchestration/autonomy-ledgers/swarm-overnight-YYYY-MM-DD.audit.md
 ```
 
-The ledger is the replacement for per-action human confirmation. It does not remove quality gates; it defines what the agent may do after gates pass.
+The ledger replaces per-action human confirmation only after required gates pass. It does not remove quality gates and does not authorize bypassing documentation approval.
 
-## Task Definition First
+## Task Definition
 
-For overnight work, spend the first phase making work executable:
+First unattended work is documentary planning:
 
-- Dispatch Planner workers for broad epics, roadmap sections, and Jira parent issues before Implementer workers run.
-- Parse the roadmap/backlog into the smallest useful work packages.
-- Create or update the Jira issue map.
+- Load `references/documentary-planning.md`.
+- Create or revise the documentation packet.
+- Persist `documentation_gate` in `docs/swarm/queue-state.yaml`.
+- Mark documentation `in_review`.
+- Stop with the review packet when no prior approval exists.
+
+After approval, make work executable:
+
+- Dispatch Planner workers for broad epics, roadmap sections, or Jira parent issues before Implementer workers run.
+- Parse roadmap/backlog into the smallest useful work packages.
+- Create or update Jira issue map.
 - Identify acceptance criteria and verification for every unit.
 - Detect dependencies before dispatch.
 - Detect overlapping surfaces before dispatch.
 - Pre-classify high-risk areas: auth, data, public contracts, migrations, central models, lockfiles, DIAN, accounting, payroll, security.
 - Write unclear decisions to the blocker ledger instead of asking immediately.
 
-If task definition is weak, do not improvise a broad platform. Create the backlog map, seed what can be seeded, implement independent foundations, and leave blocked units explicit.
+If task definition is weak, do not improvise a broad platform. Create the documentation packet, propose what could be seeded, leave blocked units explicit, and stop for review unless approval already exists.
 
 ## No-Interruption Rules
 
-During autonomous execution:
+During autonomous execution after the documentation gate is approved:
 
-- Do not ask the user for confirmation.
+- Do not ask user confirmation.
 - Do not stop because one unit is blocked.
 - Do not stop because one external mutation class is not ledger-covered.
 - Do not stop because one worker needs product/legal/accounting/security input.
@@ -93,18 +118,22 @@ During autonomous execution:
 - Dispatch Integrator workers before release handoff when two or more units may interact through dependencies, stack order, contracts, migrations, lockfiles, or shared generated artifacts.
 - Split broad or scope-creeping work instead of forcing one large PR.
 
-Stop only when no independent ready work remains or when every remaining path would violate the ledger deny rules.
+Before documentation approval, no-interruption means "produce the review packet and stop", not "continue into Jira or implementation".
+
+Stop only when no independent ready work remains and every remaining path would violate ledger deny rules or the documentary planning gate.
 
 ## External Mutations
 
-The seneschal still does not directly own release side effects:
+Seneschal still does not directly own release side effects:
 
 - Jira Cloud mutations go through `krt-jira-cloud-scribe`.
 - Commits, pushes, PRs, reviewer requests, Jira PR backlinks, transitions, and merge flow go through `krt-release-marshal`.
 
-In autonomous flow, pass the ledger path to those skills and instruct them to use their autonomous executors/validators where available. If a downstream skill cannot execute a covered mutation autonomously, record the limitation as a blocker or handoff gap and continue other work.
+In autonomous flow, pass ledger path to downstream skills and instruct them to use autonomous executors/validators where available. If a downstream skill cannot execute a covered mutation autonomously, record a blocker or handoff gap and continue other approved work.
 
-Merge PRs only when the ledger explicitly allows merge and platform-visible merge eligibility is satisfied. A user's "no confirmations" preference authorizes unattended work; it does not authorize bypassing branch protection, failing checks, missing credentials, or unsafe production compliance.
+Merge PRs only when the ledger explicitly allows merge and platform-visible merge eligibility is satisfied.
+
+A user's "no confirmations" preference authorizes unattended work after required gates; it does not authorize bypassing documentation approval, branch protection, failing checks, missing credentials, or unsafe production compliance.
 
 ## Morning Packet
 
@@ -112,6 +141,7 @@ End an unattended run with:
 
 ```text
 Autonomous run: <run id>
+Documentation status: <draft|in_review|approved|changes_requested>
 Source backlog: <paths/Jira filters>
 Completed locally:
 - <unit>

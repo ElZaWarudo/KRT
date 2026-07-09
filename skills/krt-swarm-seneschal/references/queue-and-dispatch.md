@@ -27,7 +27,7 @@ surfaces:
   tests: []
   config: []
   generated: []
-  dependencies: []
+dependencies: []
 risk:
   production: unknown | prototype | preprod | live
   security: low | elevated | high
@@ -42,43 +42,43 @@ handoff:
   pr: null
   pr_grouping: standalone
   suggested_jira_transition: null
-notes: []
+  notes: []
 ```
 
-If a work package already defines review units, use those IDs and paths instead of inventing new ones.
-
-For the full persistent schema, load `queue-state-schema.md`.
+If a work package already defines review units, use those IDs and paths instead of inventing new ones. For the full persistent schema, load `queue-state-schema.md`.
 
 ## Ready Criteria
 
 A unit is ready only when:
 
-- dependencies are merged or explicitly available as the intended base
-- scope and non-goals are written
-- acceptance criteria are checkable
-- verification commands or a justified verification gap exist
-- no unresolved product, auth, data, deployment, or public-contract decision blocks implementation
-- branch/base strategy is known
-- overlap with active units is low or explicitly coordinated
-- Jira Cloud source state, when applicable, has been read through `krt-jira-cloud-scribe` and has an unambiguous issue/subtask key
-- no open blocker exists in `docs/swarm/blockers.yaml` for the unit or its dependencies
+- Documentation gate is approved for any Jira seed/drain, worker dispatch, code mutation, or release handoff.
+- Dependencies are merged or explicitly available on the intended base.
+- Scope and non-goals are written.
+- Acceptance criteria are checkable.
+- Verification commands or a justified verification gap exist.
+- No unresolved product, auth, data, deployment, or public-contract decision blocks implementation.
+- Branch/base strategy is known.
+- Overlap with active units is low or explicitly coordinated.
+- Jira Cloud source state, when applicable, has been read through `krt-jira-cloud-scribe` and has an unambiguous issue/subtask key.
+- No open blocker exists in `docs/swarm/blockers.yaml` for the unit or its dependencies.
 
 ## Wave Selection
 
 Default wave size is 1 for uncertain queues. In established Jira team flow, default to 2 workers when:
 
-- units are dependency-ready
-- changed surfaces do not overlap materially
-- isolation exists
-- verification can run for both
-- the open stacked PR cap remains respected
-- blocker ledger has no open blockers affecting either unit
+- Documentation gate is approved.
+- Units are dependency-ready.
+- Changed surfaces do not materially overlap.
+- Isolation exists.
+- Verification can run for both.
+- Open stacked PR cap remains respected.
+- Blocker ledger has no open blockers affecting either unit.
 
 Raise above 2 only after successful prior waves and explicit user approval in manual flow, or when the autonomy ledger permits scaling in autonomous flow. Load `parallel-dispatch-policy.md` for the complete algorithm.
 
 ## Overlap Rules
 
-Treat as conflicting unless there is strong evidence otherwise:
+Treat as conflicting unless strong evidence says otherwise:
 
 - same migration/data model
 - same auth/permission path
@@ -87,7 +87,7 @@ Treat as conflicting unless there is strong evidence otherwise:
 - same central orchestration skill or shared reference
 - same build/dependency/config file
 
-Docs-only overlap can run in parallel if each unit edits distinct docs or one worker is clearly designated owner of the shared doc.
+Docs-only overlap can run in parallel when each unit edits distinct docs or one worker is clearly designated owner of the shared doc.
 
 Never parallelize overlapping auth, migrations, public contracts, central models, or lockfiles. Treat DIAN, productive accounting, productive payroll, legal, and security-sensitive production surfaces as high-risk until proven otherwise.
 
@@ -98,11 +98,11 @@ Before dispatch, produce:
 ```text
 Wave: <name>
 Mode: design-only | dispatch | reconcile | resume
+Documentation status: <draft|in_review|approved|changes_requested>
 Concurrency: <n>
 Isolation: branch | worktree | cloud | manual
 Jira mode: cloud | server-datacenter | none
 Blocker ledger: docs/swarm/blockers.yaml
-
 Units:
 - <id>: <title>
   Jira: <key or none>
@@ -112,24 +112,24 @@ Units:
   Expected branch/worktree: <name/path>
   Verification: <commands or gap>
   Risks: <short list>
-
 Stop conditions:
 - <condition>
 ```
 
-Ask for approval before mutating dispatch in manual flow. In autonomous flow, do not ask; dispatch only ledger-covered mutation classes, record uncovered needs, and continue.
+Ask approval before mutating or dispatching in manual flow. In autonomous flow, do not ask after documentation approval; dispatch only ledger-covered mutation classes, record uncovered needs, and continue.
 
 ## State Updates
 
 Update queue state immediately when:
 
-- a unit is dispatched
-- a worker reports blockers
-- verification fails or passes
-- review creates at-or-above-threshold findings
-- a unit becomes release-ready
-- release handoff creates PR/Jira links
-- a dependency merges or changes base
-- blocker-review or blocker-resolve changes eligibility
+- Documentation gate changes status or receives feedback.
+- A unit is dispatched.
+- A worker reports blockers.
+- Verification fails or passes.
+- Review creates at-or-above-threshold findings.
+- A unit becomes release-ready.
+- Release handoff creates PR/Jira links.
+- A dependency merges or changes base.
+- blocker-review or blocker-resolve changes eligibility.
 
 Never let markdown state pretend to be live authority. Re-fetch GitHub/Jira state before release decisions. For Jira Cloud state, use `krt-jira-cloud-scribe`; use `krt-jira-scribe` only for an explicitly confirmed Server/Data Center target.

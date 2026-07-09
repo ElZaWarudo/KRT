@@ -1,0 +1,132 @@
+# Documentary Planning
+
+Use this reference for `document-plan`, `document-review`, `document-revise`, and `document-approve`.
+
+## Purpose
+
+Create a human-reviewable planning packet before Jira mutation, worker dispatch, code mutation, or release handoff.
+
+```text
+rough brief -> documentation packet -> human review -> approval -> Jira seed/drain -> implementation
+```
+
+Documentation approval is a formal dependency, not a courtesy summary. If the gate is not approved, the swarm may create or revise documentation only.
+
+## Gate State
+
+Persist the gate in `docs/swarm/queue-state.yaml`:
+
+```yaml
+documentation_gate:
+  status: draft
+  approved_by: null
+  approved_at: null
+  source_artifacts:
+    - docs/product/roadmap.md
+    - docs/jira/seed-plan.md
+    - docs/swarm/swarm-startup.md
+    - docs/swarm/queue-state.yaml
+    - docs/swarm/blockers.yaml
+  feedback_log:
+    - at: "YYYY-MM-DDTHH:MM:SSZ"
+      by: user
+      summary: "Requested MVP boundary changes."
+      affected_artifacts:
+        - docs/product/roadmap.md
+```
+
+Statuses:
+
+- `draft`: documentation is being created or is incomplete.
+- `in_review`: all required packet artifacts exist and are ready for user review.
+- `changes_requested`: user requested revisions; do not proceed to Jira or execution.
+- `approved`: user explicitly approved the documentation packet for Jira seed/drain and worker execution.
+
+## Required Artifacts
+
+Produce these artifacts for a new initiative, rough brief, roadmap, Jira program, swarm startup, or autonomous run:
+
+- `docs/product/roadmap.md`: product framing, MVP boundary, phase 2 epics, dependencies, risks, and implementation start criteria.
+- `docs/jira/seed-plan.md`: proposed Jira hierarchy, issue shapes, reuse candidates, blocked/deferred items, labels/statuses/sprint placement, and exact mutation classes that would be needed after approval.
+- `docs/swarm/swarm-startup.md`: source context, operating mode, concurrency policy, worker role caps, isolation approach, verification gates, release handoff policy, and stop conditions.
+- `docs/swarm/queue-state.yaml`: documentation gate, provisional queue units when useful for review, proposed Jira map, wave candidates, and no executable `running` state before approval.
+- `docs/swarm/blockers.yaml`: initial blockers, decisions needed, risk owners, dependent units, and whether each blocker is fatal or non-fatal.
+
+Do not create implementation branches, worktrees, commits, PRs, Jira issues, Jira comments, Jira transitions, or worker dispatch state while producing the packet.
+
+## Ready For Review
+
+Mark the packet `in_review` only when:
+
+- MVP boundary and non-goals are explicit.
+- Phase 2 or deferred epics are separated from MVP.
+- Jira hierarchy is proposed but not executed.
+- Initial blockers are recorded.
+- Concurrency policy and worker caps are written.
+- Implementation start criteria are checkable.
+- Verification and review gates are named.
+- Every artifact listed in `documentation_gate.source_artifacts` exists or the absence is intentionally explained in the review packet.
+
+## Review Packet Output
+
+When planning finishes, stop with:
+
+```text
+Documentation status: in_review
+
+Artifacts:
+- docs/product/roadmap.md
+- docs/jira/seed-plan.md
+- docs/swarm/swarm-startup.md
+- docs/swarm/queue-state.yaml
+- docs/swarm/blockers.yaml
+
+Review focus:
+- MVP boundary
+- Phase 2 epics
+- Proposed Jira hierarchy
+- Initial blockers
+- Concurrency policy
+- Implementation start criteria
+
+Blocked until:
+- User approves the documentation packet or requests changes.
+```
+
+## Feedback And Revision
+
+For `document-revise`:
+
+- Read the user's feedback and update only documentation packet artifacts.
+- Append a short `feedback_log` entry in `documentation_gate`.
+- Set `status: changes_requested` while revisions are incomplete.
+- Set `status: in_review` when revised artifacts are ready for another review.
+- Keep Jira, worker, code, branch, PR, and release state untouched.
+
+## Approval
+
+For `document-approve`:
+
+- Require explicit user approval such as "approve documentation", "approved, seed Jira", or equivalent.
+- Set `documentation_gate.status: approved`.
+- Set `approved_by` to the approving user label when known, otherwise `user`.
+- Set `approved_at` to the current timestamp.
+- Preserve `source_artifacts` and `feedback_log`.
+- After approval, Jira seed/drain, wave planning, dispatch, and release handoff may proceed only through their own gates.
+
+## Forbidden Before Approval
+
+Unless the current user request explicitly authorizes the exact action despite the gate, do not:
+
+- Seed, create, update, comment on, link, or transition Jira issues.
+- Create executable queue state such as `running` units or active wave history.
+- Dispatch Planner, Implementer, Reviewer, Fixer, Integrator, or Documenter workers for execution.
+- Mutate product code, tests, configs, or generated artifacts.
+- Create branches, commits, pushes, PRs, reviewer requests, merge actions, or release handoffs.
+
+Allowed without approval:
+
+- Create or revise documentation packet artifacts.
+- Record blockers and decision needs.
+- Propose Jira hierarchy without executing it.
+- Propose worker waves without dispatching them.

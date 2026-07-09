@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-swarm-seneschal"
   short_description: "Orchestrate safe autonomous Jira-backed delivery waves"
-  default_prompt: "Use krt-swarm-seneschal in autonomous-team-flow to seed Jira Cloud, drain ready work, dispatch safe waves, reconcile blockers, and hand release-ready units to Release Marshal."
+  default_prompt: "Use krt-swarm-seneschal to create or verify the documentation gate, then seed Jira Cloud, drain ready work, dispatch safe waves, reconcile blockers, and hand release-ready units to Release Marshal."
