@@ -100,6 +100,12 @@ gh pr list --head <current-branch> --json number,title,url,state
 
 If an open PR exists for the branch, stop and ask whether to view/update it instead of creating a duplicate.
 
+## GitHub-Visible Language
+
+Write PR titles, body bullets, and reviewer-facing messages in English by default. Write every standalone PR comment authored by Release Marshal in English; do not publish a non-English PR comment. Keep the release proposal and approval conversation in the user's language; keep Jira summaries and descriptions in Spanish under the Jira workflow.
+
+Use another language for titles, bodies, or reviewer-facing messages only when the user explicitly requests it or the repository convention/template requires it. This exception does not apply to PR comments. When translating supplied text, preserve code identifiers, issue keys, URLs, product names, and exact quoted strings.
+
 ## PR Title
 
 Prefer a concise title derived from the shipped capability plus the commits. Use sentence case or Conventional Commit style depending on repo convention. Do not let work-package labels, review-unit markers, branch traceability slugs, Jira parent/task fan-out markers, or date sequences leak into the title unless the repo explicitly requires them. Do not include Jira key unless the repo already does. Do not include Compound Master IDs, package numbers, or date sequences unless the user or repo convention explicitly requires them. Avoid vague titles like `updates`, `fix stuff`, or `changes`.
@@ -207,6 +213,22 @@ gh pr edit <number> --add-reviewer user-a,user-b
 ```
 
 In autonomous mode, reviewer requests must use mutation class `reviewer_request` through the executor. The reviewer validator must prove the reviewer/team is in scope, not the author/current agent/bot, and not already requested except as an audited no-op.
+
+## PR Comments
+
+Post a standalone PR comment only when the user or enclosing workflow explicitly requests it. A PR comment is an external, potentially notifying mutation; show the target PR and exact English text before posting unless an accepted release plan already covered both.
+
+Use a temporary body file so quoting and markdown remain exact:
+
+```bash
+gh pr comment <number> --body-file <tmp-comment-file>
+```
+
+Keep the comment concise and reviewer-facing. Do not include secrets, internal logs, hidden reasoning, raw environment output, or ceremonial status text. Translate every supplied non-English draft to English while preserving technical identifiers. Do not publish a non-English PR comment.
+
+Inline review-thread replies and review-feedback resolution belong to the review-feedback workflow rather than normal release closeout.
+
+In autonomous mode, do not post the comment unless the active validator registry and mutation executor explicitly support a PR-comment mutation class. Otherwise report it as manual-required.
 
 ## Closeout
 

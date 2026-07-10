@@ -12,7 +12,7 @@ The marshal directs component skills instead of duplicating them:
 - `krt-gitflow-knight` (`krt:gitflow-knight`) owns branch hygiene, staging, and commit planning.
 - `krt-rebase-smith` (`krt:rebase-smith`) owns clean branch history and safe rebase decisions.
 - `krt-jira-scribe` (`krt:jira-scribe`) owns Jira issue/subtask lookup, creation proposals, sprint handling, PR backlinks, and transitions.
-- `gh` owns GitHub remote state, push/PR operations, and reviewer requests after release-plan confirmation. Prefer `gh` before GitHub plugins/connectors; use connector/plugin APIs only as fallback when `gh` is unavailable, unauthenticated, or lacks required data.
+- `gh` owns GitHub remote state, push/PR operations, PR comments, and reviewer requests after release-plan confirmation. Prefer `gh` before GitHub plugins/connectors; use connector/plugin APIs only as fallback when `gh` is unavailable, unauthenticated, or lacks required data.
 - The bundled autonomous mutation executor owns ledger-bound autonomous PR, branch, reviewer, Jira, and merge side effects after deterministic validators pass.
 
 Load `references/github-pr-flow.md` for exact `git`/`gh` commands, PR body details, base resolution, remote branch checks, and reviewer lookup.
@@ -41,6 +41,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
   Internal code review, Compound Master review, CI evidence, author approval, or the agent's own judgment cannot substitute for GitHub-visible merge eligibility.
 - Prefer `develop` as PR base when it exists; otherwise use the repository default branch unless the user or enclosing workflow provided a base.
 - Never include LLM attribution in PR title/body or commit messages.
+- Write GitHub-visible PR titles, body bullets, and reviewer-facing messages in English by default. Write every standalone PR comment authored by Release Marshal in English; do not publish a non-English PR comment. Keep user-facing plans in the user's language and Jira summaries/descriptions in Spanish. An explicit user instruction, repository convention, or required template may specify another language for titles, bodies, or reviewer messages, but not for Release Marshal PR comments. Translate supplied prose while preserving code identifiers, product names, issue keys, URLs, and quoted text that must remain exact.
 - Never include Compound Master planning IDs or package numbers in PR titles, PR body bullets, branch names, or commit messages unless the user or repo convention explicitly requires them.
 - Prefer branch names that describe the capability or functional behavior being shipped. Treat work-package IDs, review-unit markers, package numbers, and delivery-phase labels as branch-hygiene debt unless the user or repo convention explicitly requires them.
 - Never put both parent and child Jira references in commit messages. If repo convention requires a Jira reference or link in a commit, use only the immediately relevant issue: usually the subtask/work-package issue; use the parent only when no child issue exists.
@@ -71,9 +72,10 @@ Ask before destructive, irreversible, external, or notification-causing work unl
 - Push or `--force-with-lease` push.
 - PR creation or update.
 - Reviewer requests.
+- PR comments or other reviewer-facing PR messages.
 - Remote branch rewrites.
 
-One explicit release-plan approval may cover reviewer requests, automatic post-PR Jira PR backlinking, and automatic post-PR Jira transition to `En Revisión` if the plan names the behavior and fallback. For Jira PR backlinking, the plan must name the issue and PR link behavior. For Jira transition, the plan must name the issue and target status. For reviewer requests, the plan may name explicit reviewers or authorize automatic lookup and request of a clear inferred human reviewer.
+One explicit release-plan approval may cover reviewer requests, an exact PR comment, automatic post-PR Jira PR backlinking, and automatic post-PR Jira transition to `En Revisión` if the plan names the behavior and fallback. For a PR comment, the plan must name the target PR and show the exact English text to publish. For Jira PR backlinking, the plan must name the issue and PR link behavior. For Jira transition, the plan must name the issue and target status. For reviewer requests, the plan may name explicit reviewers or authorize automatic lookup and request of a clear inferred human reviewer.
 
 Merge approval cannot be bundled into the release-plan approval. If the user asks to merge, first inspect the PR's review, branch-protection, and check state, then ask for merge authorization only after the visible gate is satisfied: human reviewer approval on normal/protected bases, or GitHub-visible review-optional status on an experimental base. The response may be a generic approval when the prompt names the PR and the pending merge action. If approvals, protection state, or checks are missing, report the missing gate and stop without merging.
 
@@ -90,6 +92,7 @@ Use context already provided by the user or previous skills:
 - Suggested Jira summary/description from an enclosing workflow. Treat these as semantic input, not final text; normalize them into Spanish before Jira creation proposals.
 - Target/base branch.
 - PR title/body preference.
+- Optional PR comment intent or draft. Treat it as semantic input, normalize it to concise English by default, and preserve exact technical identifiers.
 - Draft vs ready preference.
 - Explicit reviewers, or "sin reviewers" / "no reviewers".
 - Verification results as internal readiness context only.
@@ -141,6 +144,7 @@ Build and show a phase plan in the user's language. The visible message should r
 ```
 
 Adapt the labels when another short shape is clearer, but keep the same idea: summarize the release decision, not the tool choreography. Use exact branch names and concrete Jira/PR intent when known, but do not force every internal phase or command into the visible plan. Summarize checker/script outcomes in plain language instead of pasting raw diagnostics. In manual/guarded flow, make clear that merge is not part of this step and that the PR will wait for human review plus later merge authorization. In autonomous flow, summarize merge posture in one sentence instead of dumping validator details unless the user needs them. If a value is not known yet, say what local read-only step will resolve it inside the accepted plan.
+When a PR comment is in scope, add the target PR and the exact English comment text to the visible plan. Approval covers only that target and text; present any later edit as a new external mutation.
 When commit work is needed, the visible plan should include the proposed commit messages plus the main files or surfaces for each commit. Do not summarize commits as just "necesarios" or "uno o varios commits"; show the intended grouping when it can be inferred safely.
 When branch work is needed, the visible plan should include the proposed branch name. Prefer semantic branch names derived from the shipped capability, not from work-package labels, review-unit numbering, or planning traceability.
 When the release plan spans two or more stacked or sibling PRs, do not compress them into one generic phase summary. Prefer this visible structure instead:
@@ -327,9 +331,17 @@ If the user provided reviewers and the accepted plan did not already approve rev
 
 If no reviewers were provided, infer candidates from recent merged PR approvals against the same base. Exclude bots, duplicates, and the author/current GitHub user. If no clear reviewers remain, say so and skip assignment. If the accepted plan included automatic inferred reviewer lookup/request, add the single clear reviewer without asking a second time; otherwise ask before adding inferred reviewers.
 
+### 7.5 PR Comment Phase
+
+Post a PR comment only when the user or an enclosing workflow explicitly requests one. Do not add a ceremonial status comment merely because the PR was created.
+
+Draft the comment in concise English, even when the conversation and visible release plan are in Spanish. Preserve code identifiers, issue keys, URLs, product names, and exact quoted text. Translate any supplied non-English draft before presenting or posting it. Do not publish a non-English PR comment.
+
+Show the target PR and exact comment text before posting. Do not ask again when the accepted release plan already approved that exact target and text. Load `references/github-pr-flow.md` for the body-file command. In autonomous mode, treat PR comments as manual-required unless the active validator registry and mutation executor explicitly support a PR-comment mutation class.
+
 ### 8. Closeout, Jira PR Backlink, And Review Transition
 
-After PR creation, return PR number, URL, base branch, head branch, Jira link if included, and draft/ready state.
+After PR creation, return PR number, URL, base branch, head branch, Jira link if included, draft/ready state, and the comment URL when a PR comment was posted.
 
 If Jira context was included, the PR is ready for review, and the approved plan included Jira PR backlinking, use `krt-jira-scribe` to add the PR URL back to the associated Jira issue without asking again in manual/guarded flow. When the PR groups several review units, add the backlink to every covered review-unit subtask, not just one. In autonomous flow, call the mutation executor with the Jira Scribe backlink validator; Jira Scribe supplies validation/API guidance, but Release Marshal owns the audited mutation. For a grouped PR whose subtasks should inherit completion from the parent, also remote-link the grouped PR to the shared parent so the parent is autonomously completable. Prefer a Jira remote link only. If the issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic backlinking, ask or report the deferred action instead of updating Jira silently.
 
