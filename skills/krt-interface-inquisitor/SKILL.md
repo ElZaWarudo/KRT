@@ -1,6 +1,6 @@
 ---
 name: krt-interface-inquisitor
-description: Critique frontend interfaces with adversarial visual rigor, identifying generic AI/SaaS patterns, weak hierarchy, layout drift, and concrete changes another agent can implement.
+description: Independently critique frontend interfaces with adversarial visual rigor, identifying generic AI/SaaS patterns, weak hierarchy, layout drift, and concrete implementation changes. Use for visual audits, review requests, or critique-and-fix workflows; consume krt-frontend-ux-guardian constraints when supplied and produce a brief that krt-interface-warden or any implementation workflow can use, without requiring either companion.
 ---
 
 # krt-interface-inquisitor
@@ -9,22 +9,19 @@ Use this skill to run an adversarial visual critique of a frontend interface and
 
 This skill does not beautify, redesign, or write code by default. It interrogates the interface, identifies what is visually weak or generic, and returns a prioritized change brief that another agent can use to improve the UI.
 
-## Relationship to krt-interface-warden
+## Collaboration Role
 
-- `krt-interface-warden` designs or implements distinctive working-surface interfaces.
-- `krt-interface-inquisitor` critiques an existing or proposed interface from an antagonistic visual-review stance.
+Inquisitor operates independently and owns evidence-based visual diagnosis and prioritization. It must return a useful critique without requiring Guardian or Warden.
 
-Use both when possible: first let the Inquisitor produce a critical brief, then let the Warden implement or redesign from that brief.
+When the companion skills are also active:
 
-## Trigger Conditions
+- Guardian supplies the functional UX contract and owns its verification gate.
+- Inquisitor turns evidence into a prioritized critique brief.
+- Warden owns visual direction and implementation decisions.
 
-Apply this skill when the user asks to:
+When a Guardian UX contract exists, consume it before critiquing. Treat it as a constraint, not another design opinion. If it is absent, infer only the minimum user task and functional constraints needed for the review and label them as assumptions.
 
-- Critique, review, audit, or judge a frontend visually.
-- Make a UI less generic, less AI-looking, less SaaS-template-like, or less card-heavy.
-- Produce feedback for another agent or implementation pass.
-- Inspect screenshots, browser-rendered pages, mockups, HTML/CSS, React/Vue/Svelte components, dashboards, tools, reports, or design drafts.
-- Find why an interface feels bland, unclear, over-decorated, incoherent, or unprofessional.
+For critique-and-fix work, complete the critique brief before implementation. Apply Warden only when it is selected or otherwise in scope; any capable implementation workflow may consume the brief. Inquisitor must not quietly become the implementer. After implementation, re-review once only when requested or when visual identity is a material acceptance criterion.
 
 ## Evidence First
 
@@ -38,6 +35,7 @@ Base critique on concrete evidence:
 - Responsive behavior.
 - Interaction affordances.
 - Accessibility signals.
+- Guardian UX contract or explicit product constraints, when supplied.
 
 If no visual artifact is available, critique the described design or code and clearly label assumptions.
 
@@ -47,23 +45,24 @@ When practical for implemented frontends, inspect the actual page in a browser b
 
 Interrogate the interface in this order:
 
-1. **Identity**: Does it look specific to this product/workflow, or could it belong to any SaaS startup?
-2. **Surface Metaphor**: Is the screen a dossier, map, logbook, control table, workshop, archive, report, or an undefined pile of modules?
-3. **Hierarchy**: Can the eye identify primary action, persistent context, secondary context, and detail zones immediately?
-4. **Layout Integrity**: Are there real bands, rails, margins, tables, layers, or connection systems, or just isolated boxes?
-5. **Generic AI Patterns**: Identify cards, bento grids, decorative gradients, glassmorphism, soft-shadow boxes, filler icons, hero boilerplate, and repeated three-column sections.
-6. **Information Density**: Is the screen too sparse, too crowded, or dense in the wrong places?
-7. **State Language**: Do statuses look like system marks or generic badges?
-8. **Typography**: Does type communicate precision and hierarchy, or default landing-page scale?
-9. **Color Semantics**: Does color encode action/state/risk/navigation, or merely decorate?
-10. **Interaction Readiness**: Do controls feel like tools for inspecting, comparing, marking, filtering, validating, or operating?
-11. **Accessibility Risk**: Flag contrast, focus, keyboard, semantics, table readability, responsive overflow, and color-only signaling issues.
+1. **Constraint Fit**: Does the interface preserve the primary task, completion signal, persistent context, required states, and product mechanics?
+2. **Identity**: Does it look specific to this product/workflow, or could it belong to any SaaS startup?
+3. **Surface Metaphor**: Is the screen a dossier, map, logbook, control table, workshop, archive, report, or an undefined pile of modules?
+4. **Hierarchy**: Can the eye identify primary action, persistent context, secondary context, and detail zones immediately?
+5. **Layout Integrity**: Are there real bands, rails, margins, tables, layers, or connection systems, or just isolated boxes?
+6. **Generic AI Patterns**: Identify cards, bento grids, decorative gradients, glassmorphism, soft-shadow boxes, filler icons, hero boilerplate, and repeated three-column sections.
+7. **Information Density**: Is the screen too sparse, too crowded, or dense in the wrong places?
+8. **State Language**: Do statuses look like system marks or generic badges?
+9. **Typography**: Does type communicate precision and hierarchy, or default landing-page scale?
+10. **Color Semantics**: Does color encode action/state/risk/navigation, or merely decorate?
+11. **Interaction Readiness**: Do controls feel like tools for inspecting, comparing, marking, filtering, validating, or operating?
+12. **Accessibility Risk**: Flag contrast, focus, keyboard, semantics, table readability, responsive overflow, and color-only signaling issues.
 
 ## Severity Model
 
 Use these levels:
 
-- **P0 Visual blocker**: The interface cannot be understood, operated, or trusted visually.
+- **P0 Operability blocker**: The interface cannot be understood, operated, or trusted visually. Mark it as blocking; include it in the Guardian final gate only when Guardian is active.
 - **P1 Identity failure**: The interface strongly reads as generic AI/SaaS, or the layout metaphor is incoherent.
 - **P2 Structural weakness**: Hierarchy, density, states, or layout systems are weak enough to harm use.
 - **P3 Polish debt**: Specific improvements would sharpen craft without changing the structure.
@@ -78,12 +77,14 @@ Return the critique in this structure:
 Verdict: <one sentence>
 Surface diagnosis: <chosen or missing surface metaphor>
 Generic-pattern risk: <low|medium|high>
+UX constraints: <received|inferred>; <constraints or assumptions that matter>
 
 Findings:
 - [P1] <short title>
   Evidence: <specific observation>
   Why it matters: <workflow/user impact>
   Change input: <concrete instruction another agent can implement>
+  Constraint impact: <preserves|supports|risks> <named UX constraint>
 
 Implementation brief:
 1. <highest-leverage change>
@@ -95,6 +96,8 @@ Do not change:
 
 Verification:
 - <how the next agent should verify the fix visually/accessibly>
+
+Handoff: <implementation-ready|needs product clarification>; <scope and permitted visual freedom>
 ```
 
 When reviewing code, include file and line references where available. When reviewing screenshots, reference visible regions such as top band, left rail, main table, inspector panel, empty state, or mobile header.
@@ -102,6 +105,8 @@ When reviewing code, include file and line references where available. When revi
 ## Change Input Rules
 
 Every critical finding must include a concrete implementation input.
+
+Change inputs must preserve supplied or inferred UX constraints. If a visually stronger option would alter the primary task, required state, accessibility behavior, or established product mechanic, describe the tradeoff instead of presenting it as an unconditional instruction.
 
 Good:
 
@@ -135,6 +140,6 @@ Use `references/critique-rubric.md` for detailed review prompts.
 
 ## Collaboration Boundary
 
-This skill produces a critique artifact. It should not implement the changes unless the user explicitly asks for fixes in the same turn.
+This skill produces a critique artifact. It should not implement the changes. When the user asks for fixes in the same turn, finish the artifact and pass it to `krt-interface-warden` when that skill is active, or to the current implementation workflow otherwise.
 
-If asked to run as another agent, keep the output implementation-ready: clear priorities, concrete changes, preserved elements, and verification steps.
+Keep the output implementation-ready: clear priorities, concrete changes, preserved elements, affected constraints, permitted visual freedom, and verification steps. If an implementer defers a finding with a concrete reason, carry it as a recorded decision rather than reopening it without new evidence.

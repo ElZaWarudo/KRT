@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-frontend-ux-guardian"
-  short_description: "Guard functional frontend UX quality"
-  default_prompt: "Use krt-frontend-ux-guardian to build task-centered, accessible, responsive frontend workflows and verify the result."
+  short_description: "Guard functional frontend UX independently"
+  default_prompt: "Use krt-frontend-ux-guardian to define and verify task-centered, accessible, responsive frontend work, coordinating optional visual companions only when useful."

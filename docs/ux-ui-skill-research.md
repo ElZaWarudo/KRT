@@ -203,8 +203,11 @@ interface:
 - Generic "make it clean and modern" language without operational tests.
 - A script unless it provides deterministic verification that agents can actually run in this repo.
 
-## Open Decisions
+## Resolved Integration Decisions
 
-1. Create a new broad skill, `krt-frontend-ux-guardian`, or extend `krt-interface-warden`.
-2. Decide whether the skill should auto-invoke `krt-interface-warden` for visual direction and `krt-interface-inquisitor` for review, or simply reference them as companions.
-3. Decide whether to include a lightweight browser-verification script later, or keep verification as instructions only.
+1. Keep `krt-frontend-ux-guardian` as the broad functional UX baseline instead of extending `krt-interface-warden`.
+2. Keep all three skills independently usable, with no installation, invocation, or runtime dependency between them.
+3. When combined, preserve the specialist roles: Guardian owns the UX contract and final gate, Inquisitor owns adversarial visual diagnosis, and Warden owns visual direction and implementation decisions.
+4. Use a bounded collaboration sequence only when all three concerns are in scope: Guardian contract -> Inquisitor brief -> Warden implementation record -> Guardian final gate. Add one Inquisitor re-review only when visual identity is a material acceptance criterion.
+5. Treat companion skills as optional routes rather than automatic invocation. Each skill infers missing inputs and completes its own responsibility when used alone.
+6. Keep browser verification instructional for now. Add a script only if repeated project usage reveals a deterministic check worth automating.

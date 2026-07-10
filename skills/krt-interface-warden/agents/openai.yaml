@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-interface-warden"
-  short_description: "Guard frontend UI against generic AI style"
-  default_prompt: "Use krt-interface-warden to design distinctive, functional frontend interfaces that avoid generic AI and SaaS visual patterns."
+  short_description: "Implement distinctive working-surface UI"
+  default_prompt: "Use krt-interface-warden to independently implement a distinctive working-surface interface, consuming optional Guardian constraints or an Inquisitor brief when available."

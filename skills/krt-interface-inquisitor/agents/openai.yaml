@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-interface-inquisitor"
   short_description: "Critique interfaces with adversarial rigor"
-  default_prompt: "Use krt-interface-inquisitor to critique frontend UI with adversarial rigor and produce actionable interface change input."
+  default_prompt: "Use krt-interface-inquisitor to independently critique frontend UI against product constraints and produce an implementation-ready visual change brief."
