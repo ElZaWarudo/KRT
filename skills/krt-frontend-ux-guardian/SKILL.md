@@ -39,8 +39,8 @@ Choose the smallest route that fits the request:
 Use the artifacts as handoffs:
 
 1. **UX contract — Guardian**: the fields defined in workflow step 4.
-2. **Critique brief — Inquisitor**: evidence, prioritized findings, concrete change inputs, preserved elements, and verification targets.
-3. **Implementation record — Warden**: selected surface, accepted or deferred findings with reasons, preserved constraints, and verification evidence.
+2. **Critique brief — Inquisitor**: composition audit, evidence, prioritized findings, concrete structural replacements, preserved elements, and verification targets.
+3. **Implementation record — Warden**: composition brief, selected surface metaphor and layout archetype, card/table ledger, accepted or deferred findings with reasons, preserved constraints, and verification evidence.
 4. **Final gate — Guardian**: workflow completion, states, accessibility, responsiveness, and browser evidence.
 
 If a companion is inactive or unavailable, continue without it. Produce Guardian's normal functional result and include only the handoff fields useful to the user's requested workflow.

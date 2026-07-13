@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-interface-warden"
-  short_description: "Implement distinctive working-surface UI"
-  default_prompt: "Use krt-interface-warden to independently implement a distinctive working-surface interface, consuming optional Guardian constraints or an Inquisitor brief when available."
+  short_description: "Compose distinctive editorial product UI"
+  default_prompt: "Use $krt-interface-warden to compose and implement a distinctive Editorial Product UI, justifying its layout and surfaces before writing JSX."
