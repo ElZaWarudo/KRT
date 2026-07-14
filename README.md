@@ -22,6 +22,7 @@ KRT gives agent runtimes reusable workflows for requirements, harnesses, roadmap
 | Deployment manifests, rollout, or rollback risk | `krt-deploy-summoner` |
 | Stale, missing, or noisy docs | `krt-docs-chronicler` |
 | Suspicious repo health | `krt-repo-medic` |
+| A working interface that still feels dead, abrupt, or sluggish | `krt-interaction-polisher` |
 | Text that sounds generic or AI-written | `krt-bicentennial-writer` |
 
 Full catalog: [`docs/skills.md`](docs/skills.md). Prompt examples: [`docs/examples.md`](docs/examples.md).

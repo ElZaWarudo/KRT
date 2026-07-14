@@ -87,3 +87,17 @@ Update durable docs:
 ```text
 Use $krt:docs-chronicler to update docs and ADRs after this incident fix.
 ```
+
+## Frontend Craft
+
+Audit an implemented workflow's interaction feel:
+
+```text
+Use $krt:interaction-polisher to audit this interface's feedback, motion, latency, state transitions, and reduced-motion behavior.
+```
+
+Refine interaction quality after a functional frontend build:
+
+```text
+Use $krt:interaction-polisher to inspect the primary workflow in a browser, implement the highest-value interaction refinements, and verify slow, failed, keyboard, touch, and reduced-motion paths.
+```

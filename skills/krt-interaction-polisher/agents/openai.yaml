@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-interaction-polisher"
+  short_description: "Audit and refine responsive interaction feel"
+  default_prompt: "Use krt-interaction-polisher to audit this interface's feedback, motion, latency, and state transitions, then propose or implement focused refinements."

@@ -27,6 +27,7 @@ Formal skill IDs use lowercase hyphenated `krt-*` names. Some runtimes may expos
 | `$krt:frontend-ux-guardian` | `krt-frontend-ux-guardian` | Guard frontend agents toward functional, accessible, responsive UX/UI and browser-verified workflows. |
 | `$krt:interface-inquisitor` | `krt-interface-inquisitor` | Produce evidence-based adversarial visual critiques and implementation-ready change briefs. |
 | `$krt:interface-warden` | `krt-interface-warden` | Design and implement distinctive working-surface interfaces within product constraints. |
+| `$krt:interaction-polisher` | `krt-interaction-polisher` | Audit and refine feedback, motion, latency, continuity, and state transitions. |
 | `$krt:bicentennial-writer` | `krt-bicentennial-writer` | Draft and revise text so it sounds natural, specific, and less formulaic. |
 
 Skills can bring their own references, templates, scripts, assets, or agent definitions. Keep the main `SKILL.md` readable; put the heavy armor nearby.
@@ -44,6 +45,7 @@ Skills can bring their own references, templates, scripts, assets, or agent defi
 | `krt-frontend-ux-guardian` | Optional: `krt-interface-inquisitor` for adversarial critique; `krt-interface-warden` for visual direction | Works independently; when combined, Guardian defines the UX contract and final functional gate. |
 | `krt-interface-inquisitor` | Optional: `krt-frontend-ux-guardian` constraints and `krt-interface-warden` implementation | Works independently; optional handoffs keep visual criticism product-safe and directly actionable. |
 | `krt-interface-warden` | Optional: `krt-frontend-ux-guardian` constraints and `krt-interface-inquisitor` critique | Works independently; optional inputs help preserve task flow while implementing visual direction. |
+| `krt-interaction-polisher` | Optional: `krt-frontend-ux-guardian` constraints, `krt-interface-inquisitor` critique, and `krt-interface-warden` composition | Works independently; optional inputs keep interaction refinements functionally safe and visually coherent. |
 
 For Jira Server/Data Center flows, configure the active checkout's `.krt/env/jira-scribe.env`, load it into environment variables, and verify readiness with `check_jira_env.py` without printing `JIRA_API_TOKEN`, because secrets are not confetti.
 
