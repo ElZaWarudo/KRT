@@ -6,33 +6,69 @@ KRT gives agent runtimes reusable workflows for requirements, harnesses, roadmap
 
 ## Choose A Skill
 
+Start with the job in front of you. The groups below cover every KRT skill without making the front page wear the full catalog as plate armor.
+
+### Shape The Work
+
 | When you have... | Start with... |
 |---|---|
+| PDF or DOCX source material that agents need as versionable evidence | `krt-document-forge` |
 | A fuzzy brief, prompt, or feature idea | `krt-requirements-weaver` |
 | A repo you do not trust yourself to touch yet | `krt-harness-wise` |
 | Existing context that needs a roadmap or readiness report | `krt-roadmap-cartographer` |
 | Validated requirements that need a delivery plan | `krt-delivery-navigator` |
-| A larger initiative that needs orchestration | `krt-compound-master` |
-| Noisy Compound Master state | `krt-state-archivist` |
+
+### Coordinate Delivery
+
+| When you have... | Start with... |
+|---|---|
+| A larger initiative that needs artifact-first orchestration | `krt-compound-master` |
+| Ready work packages or a backlog that needs bounded agent waves | `krt-swarm-seneschal` |
+| Compound Master state that has become too noisy | `krt-state-archivist` |
+
+### Improve The Product Experience
+
+| When you have... | Start with... |
+|---|---|
+| An application that needs an end-to-end product polish audit | `krt-product-polish-council` |
+| Frontend work that must stay functional, accessible, and responsive | `krt-frontend-ux-guardian` |
+| An interface that needs an adversarial visual critique | `krt-interface-inquisitor` |
+| An interface that needs distinctive design or implementation | `krt-interface-warden` |
+| A working interface that still feels dead, abrupt, or sluggish | `krt-interaction-polisher` |
+| Text that sounds generic or AI-written | `krt-bicentennial-writer` |
+
+### Ship And Collaborate
+
+| When you have... | Start with... |
+|---|---|
+| Pending changes that need branch hygiene and atomic commits | `krt-gitflow-knight` |
+| A child branch that must be rebased cleanly onto its real base | `krt-rebase-smith` |
 | A finished change that needs clean shipping | `krt-release-marshal` |
 | PR review feedback | `krt-review-herald` |
+| Jira Server or Data Center issue management | `krt-jira-scribe` |
 | Jira Cloud issue management | `krt-jira-cloud-scribe` |
-| Security-sensitive work | `krt-security-sentinel` |
+
+### Operate And Maintain
+
+| When you have... | Start with... |
+|---|---|
+| Security-sensitive work or a repository-wide security review | `krt-security-sentinel` |
 | A failing CI run | `krt-ci-questor` |
 | Deployment manifests, rollout, or rollback risk | `krt-deploy-summoner` |
 | Stale, missing, or noisy docs | `krt-docs-chronicler` |
 | Suspicious repo health | `krt-repo-medic` |
-| A working interface that still feels dead, abrupt, or sluggish | `krt-interaction-polisher` |
-| Text that sounds generic or AI-written | `krt-bicentennial-writer` |
 
-Full catalog: [`docs/skills.md`](docs/skills.md). Prompt examples: [`docs/examples.md`](docs/examples.md).
+Full descriptions, aliases, and dependencies: [`docs/skills.md`](docs/skills.md). Prompt examples: [`docs/examples.md`](docs/examples.md).
 
 ## Common Flows
 
 | Flow | Skills |
 |---|---|
+| Document intake | `krt-document-forge` -> `krt-harness-wise` |
 | Discovery | `krt-requirements-weaver` -> `krt-roadmap-cartographer` -> `krt-delivery-navigator` |
 | Execution | `krt-harness-wise` -> `krt-compound-master` -> `krt-release-marshal` |
+| Swarm execution | `krt-swarm-seneschal` -> `krt-compound-master` -> `krt-release-marshal` |
+| Product polish | `krt-product-polish-council` -> targeted `krt-frontend-ux-guardian`, `krt-interface-inquisitor`, or `krt-interaction-polisher` follow-up |
 | Operations | `krt-review-herald`, `krt-ci-questor`, `krt-deploy-summoner`, `krt-docs-chronicler`, `krt-repo-medic`, `krt-security-sentinel` |
 
 `krt-compound-master` treats a **work package** as the PR/Jira unit while preserving the plan's implementation units inside it. One PR may carry the package; the bookkeeping should still know which pieces marched where.
@@ -64,6 +100,19 @@ npx -y skills add ElZaWarudo/krt \
   --skill krt-gitflow-knight \
   --skill krt-rebase-smith \
   --skill krt-jira-scribe \
+  -g
+```
+
+Install the product polish suite:
+
+```bash
+npx -y skills add ElZaWarudo/krt \
+  --skill krt-product-polish-council \
+  --skill krt-frontend-ux-guardian \
+  --skill krt-interface-inquisitor \
+  --skill krt-interface-warden \
+  --skill krt-interaction-polisher \
+  --skill krt-bicentennial-writer \
   -g
 ```
 
