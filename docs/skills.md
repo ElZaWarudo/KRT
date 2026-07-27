@@ -9,6 +9,7 @@ Formal skill IDs use lowercase hyphenated `krt-*` names. Some runtimes may expos
 | `$krt:requirements-weaver` | `krt-requirements-weaver` | Clarify rough software requirements before planning or coding. |
 | `$krt:harness-wise` | `krt-harness-wise` | Create versionable coding harnesses from project docs and agent initialization context, or diagnose and improve an existing harness. |
 | `$krt:document-forge` | `krt-document-forge` | Convert PDF and DOCX source documents into versionable Markdown evidence for harness and planning workflows. |
+| `$krt:word-illuminator` | `krt-word-illuminator` | Create, edit, render, compare, validate, and privacy-scrub professional Word DOCX documents. |
 | `$krt:roadmap-cartographer` | `krt-roadmap-cartographer` | Generate exactly one roadmap or readiness report from existing project context. |
 | `$krt:delivery-navigator` | `krt-delivery-navigator` | Turn validated requirements into a practical project delivery plan. |
 | `$krt:compound-master` | `krt-compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, reviews, work packages, execution, and release handoff. |

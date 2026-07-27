@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-word-illuminator"
+  short_description: "Professional DOCX creation and QA"
+  default_prompt: "Use krt-word-illuminator to create, inspect, render, and validate a professional Word document."

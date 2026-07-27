@@ -16,6 +16,20 @@ Turn requirements into delivery shape:
 Use $krt:delivery-navigator for docs/requirements/billing-export.md.
 ```
 
+## Documents
+
+Create and visually validate a professional Word report:
+
+```text
+Use $krt:word-illuminator to create a grounded technical report from requirements.md and deliver report.docx.
+```
+
+Edit an existing Word document without unrelated formatting changes:
+
+```text
+Use $krt:word-illuminator to update proposal.docx from corrections.md, compare the result, and deliver a clean final version.
+```
+
 ## Harness
 
 Prepare context before touching code:

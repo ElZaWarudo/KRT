@@ -13,6 +13,7 @@ Start with the job in front of you. The groups below cover every KRT skill witho
 | When you have... | Start with... |
 |---|---|
 | PDF or DOCX source material that agents need as versionable evidence | `krt-document-forge` |
+| A professional Word document to create, edit, render, or validate | `krt-word-illuminator` |
 | A fuzzy brief, prompt, or feature idea | `krt-requirements-weaver` |
 | A repo you do not trust yourself to touch yet | `krt-harness-wise` |
 | Existing context that needs a roadmap or readiness report | `krt-roadmap-cartographer` |
@@ -65,6 +66,7 @@ Full descriptions, aliases, and dependencies: [`docs/skills.md`](docs/skills.md)
 | Flow | Skills |
 |---|---|
 | Document intake | `krt-document-forge` -> `krt-harness-wise` |
+| Document production | `krt-word-illuminator` |
 | Discovery | `krt-requirements-weaver` -> `krt-roadmap-cartographer` -> `krt-delivery-navigator` |
 | Execution | `krt-harness-wise` -> `krt-compound-master` -> `krt-release-marshal` |
 | Swarm execution | `krt-swarm-seneschal` -> `krt-compound-master` -> `krt-release-marshal` |
