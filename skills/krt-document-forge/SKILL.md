@@ -18,6 +18,7 @@ Convert source documents into Markdown evidence that can be read, diffed, cited,
 [clean-assets:true|false]
 [check:true|false]
 [summary-dir:<path>]
+[provenance-dir:<path>]
 [install-missing:true|false]
 [handoff:true|false]
 ```
@@ -30,17 +31,20 @@ Defaults:
 - `extract-images:true` when the user wants visual evidence retained; otherwise `false`
 - `clean-assets:false`
 - `check:false`
-- `summary-dir:docs/harnesses/summaries`
+- `summary-dir:docs/harnesses/staging`
+- `provenance-dir:docs/harnesses/provenance`
 - `install-missing:false`
 - `handoff:true`
 
 ## Core Rules
 
-- Preserve provenance. Every generated Markdown file must identify the original source path, file type, conversion method, and conversion timestamp.
+- Preserve detailed provenance only in ignored source artifacts and private sidecars.
 - Never invent text for unreadable pages, image-only PDFs, failed extraction, or corrupt documents. Report the gap and preserve embedded images when requested.
 - Keep generated Markdown close to the source: headings, paragraphs, lists, and tables are useful; broad rewriting belongs in `krt-harness-wise`.
-- Use summaries as the preferred agent-facing layer when they exist. Keep extracted source Markdown for audit and exceptional fallback only.
-- Store extracted images as versionable assets, not base64 blobs. By default, Markdown goes under `docs/harnesses/sources/` and images go under `docs/harnesses/images/<source-stem>/`.
+- Treat sources, images, staging summaries, provenance sidecars, manifests, hashes, and warnings as local-only artifacts.
+- Write the first sanitized summary under `docs/harnesses/staging/`, never directly under the versionable summaries directory.
+- Give each staged summary a random UUID4 `provenance_id` that is not derived from source content or hashes. Keep private traceability in its sidecar.
+- Store extracted images as ignored assets, not base64 blobs. By default, Markdown goes under `docs/harnesses/sources/` and images go under `docs/harnesses/images/<source-stem>/`.
 - Use `--clean-assets` with `--overwrite --extract-images` when regenerating a document whose embedded images may have changed; it removes only that source document's generated image folder.
 - Use `--check` before Harness Wise handoff when a manifest or generated Markdown already exists.
 - Do not perform OCR in this skill. Image-only content remains an image reference for a later human or vision-capable review step.
@@ -77,24 +81,25 @@ Resolve `<document-forge-skill-dir>` to the directory containing this `SKILL.md`
    rtk python3 <document-forge-skill-dir>/scripts/convert_to_markdown.py <inputs> --output-dir docs/harnesses/sources
    ```
 
-   Add `--recursive` for directory trees, `--extract-images` to preserve embedded images as linked assets, `--install-missing` to install optional Python extractors into `.krt/document-forge/venv`, `--manifest docs/harnesses/sources/manifest.json` for reproducibility, and `--overwrite --clean-assets` only when the user approved regeneration.
+   Add `--recursive` for directory trees, `--extract-images` to preserve embedded images as linked assets, `--install-missing` to install optional Python extractors into `.krt/document-forge/venv`, `--manifest docs/harnesses/provenance/conversion-manifest.json` for private reproducibility, and `--overwrite --clean-assets` only when the user approved regeneration.
 4. Inspect the script summary. If any file failed, report the exact source and reason.
-5. When compact context is useful, load `references/summarization-policy.md` and write `docs/harnesses/summaries/<base>.md` from the generated source Markdown. Do not delete or replace the source Markdown.
-6. Run `--check` when a manifest is available or before handing off a converted batch. The check validates summaries when they exist, but conversion without summaries remains valid:
+5. Load `references/summarization-policy.md`, classify sensitive content and warnings, then write `docs/harnesses/staging/<base>.md` plus `docs/harnesses/provenance/<base>.json`. Do not delete or replace the source Markdown.
+6. Run `--check` when a manifest is available or before handing off a converted batch. The check validates staged-summary shape when it exists, but conversion without a summary remains valid:
 
    ```bash
-   rtk python3 <document-forge-skill-dir>/scripts/convert_to_markdown.py <inputs> --output-dir docs/harnesses/sources --summary-dir docs/harnesses/summaries --manifest docs/harnesses/sources/manifest.json --check
+   rtk python3 <document-forge-skill-dir>/scripts/convert_to_markdown.py <inputs> --output-dir docs/harnesses/sources --summary-dir docs/harnesses/staging --manifest docs/harnesses/provenance/conversion-manifest.json --check
    ```
 
 7. Read a small sample of each generated Markdown file when feasible to verify the output is not empty or obviously garbled. If images were extracted, verify the linked asset paths exist.
-8. When `handoff:true`, load `references/harness-wise-handoff.md` and summarize how `krt-harness-wise` should consume summaries first and sources only as fallback evidence.
+8. When `handoff:true`, load `references/harness-wise-handoff.md`. Hand off the staged summary and sidecar for deterministic checking and promotion.
 
 ## Output Discipline
 
 For completed conversions, report:
 
 - Generated Markdown path(s).
-- Summary Markdown path(s), if any, as preferred handoff inputs.
+- Staged summary and private sidecar path(s), if any.
+- Promotion result and versionable summary path only after promotion succeeds.
 - Source document path(s).
 - Conversion method(s).
 - Manifest path and check result, when used.

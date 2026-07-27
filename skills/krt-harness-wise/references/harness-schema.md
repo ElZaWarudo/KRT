@@ -57,6 +57,7 @@ Optional sections:
 
 - Use repo-relative paths only.
 - Do not include absolute local filesystem paths.
+- Do not include raw/source/image/staging/provenance paths, hashes, manifests, or private sidecar data.
 - Do not instruct the next agent to invoke `krt-harness-wise`.
 - Do not ask the next agent to read whole directories unless the reason and boundary are explicit.
 - Keep execution guidance high level; do not write implementation code or commit/push instructions.

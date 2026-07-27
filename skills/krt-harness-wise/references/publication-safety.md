@@ -12,8 +12,10 @@ Use this artifact policy:
 |---|---|
 | `docs/raw/` | local only, ignored |
 | `docs/harnesses/sources/` | local only, ignored |
-| `docs/harnesses/images/` | local only, ignored unless explicitly sanitized |
-| `docs/harnesses/summaries/` | versionable only after sanitation |
+| `docs/harnesses/images/` | local only, ignored |
+| `docs/harnesses/staging/` | local-only sanitized candidate |
+| `docs/harnesses/provenance/` | local-only sidecars, manifests, hashes, warnings |
+| `docs/harnesses/summaries/` | versionable only after deterministic promotion |
 | `docs/harnesses/*.md` | versionable canonical harnesses only after sanitation |
 | manifests and conversion hashes | local only unless explicitly scrubbed |
 
@@ -33,12 +35,25 @@ Before writing or updating a versionable harness:
 
 If a detail is needed but sensitive, describe the technical implication without the sensitive value.
 
-## Source And Summary Handling
+## Inspect, Classify, Redact, Promote
 
-- Prefer `docs/harnesses/summaries/*.md` as `Read First` evidence.
-- Treat `docs/harnesses/sources/*.md` as `Inspect If Needed` and local-only fallback evidence.
-- Read generated source Markdown only when the summary marks uncertainty, a required detail is missing, or exact wording is needed.
-- If using a source-only fact, copy only the sanitized implication into the harness.
+1. Inspect ignored source evidence and extraction warnings locally.
+2. Classify secrets, personal data, commercial values, private URLs, source paths, hashes, and uncertainty.
+3. Redact a candidate under `docs/harnesses/staging/` and record private traceability under `docs/harnesses/provenance/`.
+4. Check it:
+
+   ```bash
+   rtk python3 <harness-wise-skill-dir>/scripts/check_evidence.py docs/harnesses/staging/<base>.md --sidecar docs/harnesses/provenance/<base>.json
+   ```
+
+5. Record a classification (`public`, `internal`, `confidential`, `restricted`, or `unknown`), `redaction_status: completed`, and a non-empty publication rationale. Add a non-empty sidecar decision for every warning. Never accept warnings silently.
+6. Promote it:
+
+   ```bash
+   rtk python3 <harness-wise-skill-dir>/scripts/promote_evidence.py docs/harnesses/staging/<base>.md --sidecar docs/harnesses/provenance/<base>.json
+   ```
+
+Use `--overwrite` only with explicit approval. Promotion accepts only a random UUID4 `provenance_id` shared by the staged summary and sidecar, restricts the destination to `docs/harnesses/summaries/`, copies only the summary, writes atomically, and rescans the destination.
 
 ## Versionable Harness Safety Checklist
 
@@ -48,7 +63,7 @@ Before marking a harness `ready`, check for:
 - emails, phone numbers, DNI/passport/national IDs, IBANs, account numbers;
 - exact budgets, prices, or commercial quantities;
 - private URLs, internal domains, IPs, tokens, credentials, and secret-like assignments;
-- source document hashes or direct raw/source paths promoted as normal read targets;
+- source document hashes or any raw/source/staging/provenance paths;
 - client-specific risks that are organizational rather than implementation-relevant.
 
 If any item remains, either sanitize it or mark the harness `review`/`blocked` with a clear reason.

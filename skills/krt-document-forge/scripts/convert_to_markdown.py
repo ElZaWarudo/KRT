@@ -113,8 +113,8 @@ def default_images_dir(output_dir: Path) -> Path:
 
 def default_summary_dir(output_dir: Path) -> Path:
     if output_dir.name == "sources":
-        return output_dir.parent / "summaries"
-    return output_dir / "summaries"
+        return output_dir.parent / "staging"
+    return output_dir / "staging"
 
 
 def expected_output_path(source: Path, output_dir: Path) -> Path:
@@ -654,56 +654,25 @@ def parse_frontmatter(markdown: str) -> dict[str, str]:
     return values
 
 
-def markdown_links(markdown: str) -> list[str]:
-    links = []
-    for match in re.finditer(r"(?<!!)\[[^\]]+\]\(([^)]+)\)", markdown):
-        link = match.group(1).strip()
-        if link and not re.match(r"^(https?:|data:|#)", link):
-            links.append(link.split("#", 1)[0])
-    return links
-
-
-def markdown_section(markdown: str, heading: str) -> str:
-    pattern = rf"^## {re.escape(heading)}\s*$"
-    match = re.search(pattern, markdown, flags=re.MULTILINE)
-    if not match:
-        return ""
-    start = match.end()
-    next_heading = re.search(r"^##\s+", markdown[start:], flags=re.MULTILINE)
-    end = start + next_heading.start() if next_heading else len(markdown)
-    return markdown[start:end]
-
-
-def validate_summary(summary: Path, output: Path) -> list[str]:
+def validate_summary(summary: Path, _output: Path) -> list[str]:
     failures: list[str] = []
     markdown = summary.read_text(encoding="utf-8")
     frontmatter = parse_frontmatter(markdown)
-    output_hash = sha256_file(output)
 
     if not frontmatter:
         failures.append(f"summary frontmatter is missing: {summary}")
-    if frontmatter.get("source_path"):
-        declared_source = (summary.parent / frontmatter["source_path"]).resolve()
-        if declared_source != output.resolve():
-            failures.append(f"summary source_path does not point to output Markdown: {summary}")
-    else:
-        failures.append(f"summary source_path is missing: {summary}")
-
-    if frontmatter.get("source_sha256") != output_hash:
-        failures.append(f"summary source_sha256 differs from output Markdown: {summary}")
-    if not frontmatter.get("source_fallback_policy"):
-        failures.append(f"summary source_fallback_policy is missing: {summary}")
-
-    fallback = markdown_section(markdown, "Fallback Source")
-    if not fallback:
-        failures.append(f"summary Fallback Source section is missing: {summary}")
-    else:
-        linked_sources = [
-            (summary.parent / link).resolve()
-            for link in markdown_links(fallback)
-        ]
-        if output.resolve() not in linked_sources and str(output) not in fallback:
-            failures.append(f"summary Fallback Source does not point to output Markdown: {summary}")
+    if frontmatter.get("summary_type") != "harness-ready":
+        failures.append(f"summary_type must be harness-ready: {summary}")
+    provenance_id = frontmatter.get("provenance_id", "")
+    if not re.fullmatch(
+        r"prov-[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}",
+        provenance_id,
+        re.I,
+    ):
+        failures.append(f"summary provenance_id must be an opaque UUID4: {summary}")
+    for forbidden in ("source_path", "source_sha256", "source_fallback_policy"):
+        if forbidden in frontmatter:
+            failures.append(f"summary contains private source metadata ({forbidden}): {summary}")
 
     return failures
 
@@ -789,7 +758,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("inputs", nargs="+", type=Path, help="PDF/DOCX files or directories to convert")
     parser.add_argument("--output-dir", type=Path, default=Path("docs/harnesses/sources"))
     parser.add_argument("--images-dir", type=Path, help="image asset directory; defaults beside the output sources")
-    parser.add_argument("--summary-dir", type=Path, help="summary directory; defaults beside the output sources")
+    parser.add_argument("--summary-dir", type=Path, help="private staging summary directory; defaults beside the output sources")
     parser.add_argument("--recursive", action="store_true", help="recurse into input directories")
     parser.add_argument("--overwrite", action="store_true", help="replace existing generated Markdown")
     parser.add_argument("--extract-images", action="store_true", help="extract embedded images and link them from Markdown")

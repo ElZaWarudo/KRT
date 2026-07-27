@@ -9,6 +9,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from publication_safety import GENERATED_SOURCE, scan_publication
+
 
 REQUIRED_FRONTMATTER = ("type", "task", "status", "scope", "confidence", "created", "updated")
 ALLOWED = {
@@ -32,15 +34,6 @@ ABSOLUTE_PATH = re.compile(r"(?<![\w.-])(?:/[A-Za-z0-9_.-]+){2,}")
 WINDOWS_PATH = re.compile(r"\b[A-Za-z]:\\")
 BROAD_READ = re.compile(r"\bread (?:the )?(?:whole|entire|all of) [`']?[\w./-]+/?[`']?", re.I)
 SELF_REFERENCE = re.compile(r"\bkrt-harness-wise\b|\$krt:harness-wise\b", re.I)
-EMAIL = re.compile(r"\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b", re.I)
-PHONE = re.compile(r"(?:\+?\d[\d .()-]{7,}\d)")
-IBAN = re.compile(r"\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b")
-SECRET_ASSIGNMENT = re.compile(r"\b(?:api[_-]?key|token|secret|password|passwd|pwd)\s*[:=]\s*['\"]?[^'\"\s]+", re.I)
-CURRENCY_AMOUNT = re.compile(r"(?:\b\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?\s?(?:€|EUR|USD|\$)\b|\b(?:€|EUR|USD|\$)\s?\d{1,3}(?:[.,]\d{3})+)", re.I)
-GENERATED_SOURCE = re.compile(r"docs/harnesses/sources/[^\s)`]+", re.I)
-GENERATED_IMAGE = re.compile(r"docs/harnesses/images/[^\s)`]+", re.I)
-SOURCE_HASH = re.compile(r"\bsource_sha256\b|\b[a-f0-9]{64}\b", re.I)
-PRIVATE_URL = re.compile(r"https?://(?:localhost|127\.0\.0\.1|10\.|172\.(?:1[6-9]|2\d|3[01])\.|192\.168\.|[^/\s]*(?:internal|intranet|corp|local))[^)\s]*", re.I)
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, str], list[str]]:
@@ -101,30 +94,15 @@ def validate(path: Path) -> dict[str, Any]:
         errors.append("self-reference:krt-harness-wise")
     if BROAD_READ.search(text):
         warnings.append("overbroad-read-instruction")
-    if EMAIL.search(text):
-        warnings.append("publication-safety:email")
-    phone_matches = []
-    for match in PHONE.finditer(text):
-        value = match.group(0)
-        digits = re.sub(r"\D", "", value)
-        if len(digits) >= 9 and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", value):
-            phone_matches.append(value)
-    if phone_matches:
-        warnings.append("publication-safety:phone-like-value")
-    if IBAN.search(text):
-        warnings.append("publication-safety:iban-like-value")
-    if SECRET_ASSIGNMENT.search(text):
-        errors.append("publication-safety:secret-like-assignment")
-    if CURRENCY_AMOUNT.search(text):
-        warnings.append("publication-safety:exact-currency-amount")
-    if PRIVATE_URL.search(text):
-        warnings.append("publication-safety:private-url")
-    if SOURCE_HASH.search(text):
-        warnings.append("publication-safety:source-hash-or-raw-digest")
-    if GENERATED_IMAGE.search(text):
-        warnings.append("publication-safety:generated-image-reference")
-    if GENERATED_SOURCE.search(text):
-        warnings.append("publication-safety:generated-source-fallback-reference")
+    publication = scan_publication(text)
+    for finding in publication["blocking"]:
+        tagged = f"publication-safety:{finding}"
+        if finding in {"secret-like-assignment", "secret-like-value"}:
+            errors.append(tagged)
+        else:
+            warnings.append(tagged)
+    warnings.extend(f"publication-safety:{finding}" for finding in publication["warnings"])
+    if "generated-source-fallback-reference" in publication["blocking"]:
         read_first_block = re.search(r"## Source Of Truth Ranking(?P<body>.*?)(?:\n## |\Z)", text, re.S)
         if read_first_block:
             unsafe_source_lines = [
@@ -138,8 +116,8 @@ def validate(path: Path) -> dict[str, Any]:
 
     return {
         "allowed": not errors,
-        "errors": errors,
-        "warnings": warnings,
+        "errors": sorted(set(errors)),
+        "warnings": sorted(set(warnings)),
         "summary": {
             "path": str(path),
             "status": frontmatter.get("status"),

@@ -4,13 +4,15 @@ Use these rules when converting PDFs and DOCX files into harness-ready Markdown.
 
 ## Artifact Location
 
-Default output path:
+Default private artifact paths:
 
 ```text
 docs/harnesses/sources/<source-stem>.md
+docs/harnesses/images/<source-stem>/
+docs/harnesses/provenance/conversion-manifest.json
 ```
 
-Use a different directory when the user provides one or the project already has a clearer harness-source location.
+Keep raw files, generated source Markdown, images, manifests, hashes, and warnings in ignored areas. Never place them directly under `docs/harnesses/summaries/`.
 
 ## Markdown Shape
 
@@ -34,6 +36,8 @@ After provenance, use:
 - Markdown tables for DOCX tables when structure is detectable.
 - Page separators for PDFs when the extraction method provides page boundaries.
 - Linked image references when `--extract-images` is used.
+
+This provenance is private. Do not copy it into a staged or promoted summary.
 
 ## Image Assets
 
@@ -71,7 +75,7 @@ It does not delete source documents or unrelated image folders.
 
 ## Manifest And Check Mode
 
-Use `--manifest <path>` to write a reproducibility manifest. The manifest is a versioned JSON object with:
+Use `--manifest docs/harnesses/provenance/conversion-manifest.json` to write a private reproducibility manifest. It contains:
 
 - converter identity and generation timestamp.
 - output and images directories.

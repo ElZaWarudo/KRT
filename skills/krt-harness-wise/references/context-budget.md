@@ -16,7 +16,7 @@ Load when deciding what evidence belongs in a harness.
 - `Inspect If Needed`: conditional implementation evidence.
 - `Ignore For Now`: nearby but out of scope.
 
-For `krt-document-forge` evidence, classify sanitized summaries as `Read First` and generated sources as `Inspect If Needed`. Do not promote raw/sources evidence to `Read First` unless no summary exists and the harness will remain local-only or be sanitized before versioning.
+For `krt-document-forge` evidence, classify only deterministically promoted summaries as `Read First`. Never put ignored source, image, staging, provenance, manifest, or hash paths in a versionable harness.
 
 Every item must answer why it matters for this task.
 
