@@ -11,6 +11,7 @@ Build from the output of `krt-requirements-weaver` whenever it exists. Do not re
 
 ## Load References
 
+- Load `references/safety.md` before beginning the workflow.
 - Load `references/planning-workflow.md` before structuring the plan or deciding whether planning is ready.
 - Load `references/plan-quality-checklist.md` when reviewing a delivery plan, prioritizing work, or checking whether the plan is credible.
 - Load `references/source-literature.md` when the user asks what the method is based on, wants citations, or challenges the planning model.

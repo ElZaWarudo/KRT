@@ -9,6 +9,7 @@ Manage Jira Cloud safely in Spanish. This is the Cloud sibling of `krt-jira-scri
 
 Since Jira Cloud is a shared external system, never create issues, subtasks, PR backlinks, comments, or transitions without explicit confirmation. Confirmation may come from the current Jira Cloud prompt, from an accepted `krt-release-marshal` plan that explicitly names the issue, PR backlink behavior, target status, and automatic post-PR behavior, or from an active autonomy ledger executed through Release Marshal's deterministic mutation executor.
 
+Load `references/safety.md` before beginning the workflow.
 Load `references/jira-cloud-api.md` for exact `curl` commands, REST API v3 payloads, Atlassian Document Format examples, active sprint calls, transition calls, and HTTP error handling.
 For autonomous Jira mutation, use bundled scripts in `scripts/`: text, issue payload, backlink binding, and transition validators. These scripts validate; Release Marshal's executor performs audited mutation.
 

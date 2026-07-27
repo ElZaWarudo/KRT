@@ -11,6 +11,7 @@ Default posture: **read-only first, plan before action**. It may execute local o
 
 ## Load References
 
+- Load `references/safety.md` before beginning the workflow.
 - Load `references/deployment-rubric.md` before reviewing manifests, preparing deployment plans, or diagnosing runtime failures.
 - Load `references/source-literature.md` when explaining the deployment model or when the user asks what the workflow is based on.
 

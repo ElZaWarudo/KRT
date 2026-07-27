@@ -11,6 +11,7 @@ It may suggest fixes, reruns, or deeper diagnostics. It does not change CI confi
 
 ## Load References
 
+- Load `references/safety.md` before beginning the workflow.
 - Load `references/investigation-playbook.md` before diagnosing a CI failure.
 - Load `references/report-template.md` before writing the final report.
 - Load `references/source-literature.md` when explaining the diagnostic model or when the user asks what the workflow is based on.

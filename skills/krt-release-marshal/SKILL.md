@@ -33,6 +33,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 
 ## Mandatory Rules
 
+- Load `references/safety.md` before beginning the workflow.
 - Use the host runtime's command wrapper only when the current repo requires one.
 - Use `gh` for GitHub PR operations before GitHub plugins/connectors.
 - Never create a PR from protected branches: `main`, `master`, or `develop`.

@@ -21,6 +21,7 @@ the correct base branch.
 
 ## Mandatory rules
 
+- Load `references/safety.md` before beginning the workflow.
 - Never guess the branch to rebase. Use the current branch or enclosing accepted workflow when unambiguous; otherwise ask.
 - Never assume `develop` exists: verify both local and remote.
 - If `develop` does not exist, ask which base branch to use (`main`, `master`, or another).

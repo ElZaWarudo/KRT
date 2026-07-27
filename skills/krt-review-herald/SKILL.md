@@ -11,6 +11,7 @@ It does not push, create PRs, request reviewers, or transition Jira unless anoth
 
 ## Load References
 
+- Load `references/safety.md` before beginning the workflow.
 - Load `references/response-rubric.md` before classifying comments or drafting replies.
 - Load `references/thread-lifecycle.md` when working through multiple threads, stale comments, or "fix everything" requests.
 - Load `references/fix-policy.md` before editing code for review feedback.

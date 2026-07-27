@@ -13,6 +13,7 @@ Default posture: **defensive, evidence-based, non-invasive**. Do not exploit, sc
 
 ## Load References
 
+- Load `references/safety.md` before beginning the workflow.
 - Load `references/security-rubric.md` before reviewing a slice, work package, repository, or system.
 - Load `references/compound-master-integration.md` when invoked by or for Compound Master.
 - Load `references/source-literature.md` when explaining the model or when the user asks what the review is based on.

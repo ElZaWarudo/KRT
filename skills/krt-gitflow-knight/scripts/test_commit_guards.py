@@ -15,6 +15,36 @@ ROOT = Path(__file__).resolve().parent
 
 
 class CommitGuardTest(unittest.TestCase):
+    def test_guard_check_only_reports_would_change_without_writing_read_only_repo(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, text=True, capture_output=True, check=True)
+            root.chmod(0o555)
+            try:
+                completed = subprocess.run(
+                    [
+                        sys.executable,
+                        str(ROOT / "ensure_krt_env_ignore.py"),
+                        "--root",
+                        str(root),
+                        "--check-only",
+                    ],
+                    text=True,
+                    capture_output=True,
+                    check=False,
+                )
+            finally:
+                root.chmod(0o755)
+
+            data = json.loads(completed.stdout)
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue(data["ok"])
+            self.assertTrue(data["check_only"])
+            self.assertFalse(data["changed"])
+            self.assertTrue(data["would_change"])
+            self.assertFalse((root / ".krt").exists())
+
     def test_guard_creates_ignore_and_proves_secret_path_is_ignored(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -30,7 +60,9 @@ class CommitGuardTest(unittest.TestCase):
 
             self.assertEqual(completed.returncode, 0, completed.stderr)
             self.assertTrue(data["ok"])
+            self.assertFalse(data["check_only"])
             self.assertTrue(data["changed"])
+            self.assertTrue(data["would_change"])
             self.assertEqual((root / ".krt/env/.gitignore").read_text(encoding="utf-8"), "*\n!.gitignore\n!*.example\n")
 
             ignored = subprocess.run(
@@ -41,6 +73,37 @@ class CommitGuardTest(unittest.TestCase):
                 check=False,
             )
             self.assertEqual(ignored.returncode, 0)
+
+    def test_guard_check_only_blocks_tracked_secret_without_writing_ignore(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, text=True, capture_output=True, check=True)
+            secret = root / ".krt/env/jira-scribe.env"
+            secret.parent.mkdir(parents=True)
+            secret.write_text("JIRA_API_TOKEN=tracked\n", encoding="utf-8")
+            subprocess.run(["git", "add", "-f", ".krt/env/jira-scribe.env"], cwd=root, text=True, check=True)
+
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "ensure_krt_env_ignore.py"),
+                    "--root",
+                    str(root),
+                    "--check-only",
+                ],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            data = json.loads(completed.stdout)
+
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertFalse(data["ok"])
+            self.assertTrue(data["check_only"])
+            self.assertFalse(data["changed"])
+            self.assertTrue(data["would_change"])
+            self.assertIn("secret-env-tracked:.krt/env/jira-scribe.env", data["block_reasons"])
+            self.assertFalse((root / ".krt/env/.gitignore").exists())
 
     def test_guard_blocks_if_secret_path_is_tracked(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -91,6 +154,10 @@ class CommitGuardTest(unittest.TestCase):
             self.assertEqual(completed.returncode, 0, completed.stderr)
             self.assertTrue(data["ok"])
             self.assertEqual(data["committed_paths"], ["README.md"])
+            self.assertEqual(
+                (root / ".krt/env/.gitignore").read_text(encoding="utf-8"),
+                "*\n!.gitignore\n!*.example\n",
+            )
             log = subprocess.run(["git", "log", "-1", "--pretty=%s"], cwd=root, text=True, capture_output=True, check=True)
             self.assertEqual(log.stdout.strip(), "docs(readme): add project overview")
 

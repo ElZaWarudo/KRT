@@ -30,6 +30,7 @@ Defaults:
 
 ## Core Rules
 
+- Load `references/safety.md` before beginning the workflow.
 - Keep the canonical skill identity `krt-harness-wise`.
 - Build harnesses from documentation, initialization files, and narrowly relevant project evidence. Do not read the whole source tree by default.
 - When the source evidence is still in `.pdf` or `.docx`, use `krt-document-forge` first and consume the generated Markdown artifacts instead of converting binary documents inline.

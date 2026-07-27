@@ -29,12 +29,22 @@ def git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
     )
 
 
-def result(ok: bool, *, reasons: list[str], changed: bool, checked_paths: list[str]) -> int:
+def result(
+    ok: bool,
+    *,
+    reasons: list[str],
+    changed: bool,
+    would_change: bool,
+    check_only: bool,
+    checked_paths: list[str],
+) -> int:
     print(
         json.dumps(
             {
                 "ok": ok,
                 "changed": changed,
+                "would_change": would_change,
+                "check_only": check_only,
                 "ignore_path": str(IGNORE_PATH),
                 "checked_paths": checked_paths,
                 "block_reasons": reasons,
@@ -53,22 +63,40 @@ def main() -> int:
         default=Path.cwd(),
         help="Repository root. Defaults to the current working directory.",
     )
+    parser.add_argument(
+        "--check-only",
+        action="store_true",
+        help="Report whether the ignore guard would change without writing to the repository.",
+    )
     args = parser.parse_args()
 
     root = args.root.resolve()
     if not root.exists() or not root.is_dir():
-        return result(False, reasons=["root-not-directory"], changed=False, checked_paths=[])
+        return result(
+            False,
+            reasons=["root-not-directory"],
+            changed=False,
+            would_change=False,
+            check_only=args.check_only,
+            checked_paths=[],
+        )
 
     worktree = git(root, "rev-parse", "--show-toplevel")
     if worktree.returncode != 0:
-        return result(False, reasons=["not-a-git-worktree"], changed=False, checked_paths=[])
-
-    env_dir = root / ENV_DIR
-    env_dir.mkdir(parents=True, exist_ok=True)
+        return result(
+            False,
+            reasons=["not-a-git-worktree"],
+            changed=False,
+            would_change=False,
+            check_only=args.check_only,
+            checked_paths=[],
+        )
 
     ignore_file = root / IGNORE_PATH
+    would_change = not ignore_file.exists() or ignore_file.read_text(encoding="utf-8") != IGNORE_CONTENT
     changed = False
-    if not ignore_file.exists() or ignore_file.read_text(encoding="utf-8") != IGNORE_CONTENT:
+    if would_change and not args.check_only:
+        ignore_file.parent.mkdir(parents=True, exist_ok=True)
         ignore_file.write_text(IGNORE_CONTENT, encoding="utf-8")
         changed = True
 
@@ -82,11 +110,19 @@ def main() -> int:
         if tracked.returncode == 0:
             reasons.append(f"secret-env-tracked:{path_text}")
 
-        ignored = git(root, "check-ignore", "-q", path_text)
-        if ignored.returncode != 0:
-            reasons.append(f"secret-env-not-ignored:{path_text}")
+        if not (args.check_only and would_change):
+            ignored = git(root, "check-ignore", "-q", path_text)
+            if ignored.returncode != 0:
+                reasons.append(f"secret-env-not-ignored:{path_text}")
 
-    return result(not reasons, reasons=reasons, changed=changed, checked_paths=checked_paths)
+    return result(
+        not reasons,
+        reasons=reasons,
+        changed=changed,
+        would_change=would_change,
+        check_only=args.check_only,
+        checked_paths=checked_paths,
+    )
 
 
 if __name__ == "__main__":

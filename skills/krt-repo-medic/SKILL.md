@@ -11,6 +11,7 @@ It does not implement fixes by default. It may propose concrete patches only whe
 
 ## Load References
 
+- Load `references/safety.md` before beginning the workflow.
 - Load `references/health-rubric.md` before scoring or prioritizing findings.
 - Load `references/source-literature.md` when explaining the reasoning model or when the user asks what the audit is based on.
 

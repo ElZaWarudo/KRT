@@ -11,6 +11,7 @@ Keep the work at the requirements level. Do not jump into architecture, schema d
 
 ## Load References
 
+- Load `references/safety.md` before beginning the workflow.
 - Load `references/requirements-workflow.md` before running the workflow or drafting the main artifact.
 - Load `references/quality-checklist.md` when reviewing requirement quality, rewriting weak statements, or checking readiness for validation.
 - Load `references/gap-question-bank.md` when the input is incomplete, contradictory, or vague and the skill needs to drive clarification by asking questions.

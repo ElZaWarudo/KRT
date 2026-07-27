@@ -22,6 +22,7 @@ It does not orchestrate the rest of Compound Engineering. It does not update Com
 
 ## Load References
 
+- Load `references/safety.md` before beginning the workflow.
 - Load `references/context-readiness.md` before deciding whether roadmap generation is safe.
 - Load `references/artifact-templates.md` before writing either primary artifact.
 

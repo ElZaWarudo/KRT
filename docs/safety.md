@@ -20,6 +20,7 @@ Each skill owns the detailed guardrails closest to its procedure:
 | `krt-docs-chronicler` | [`skills/krt-docs-chronicler/references/safety.md`](../skills/krt-docs-chronicler/references/safety.md) |
 | `krt-gitflow-knight` | [`skills/krt-gitflow-knight/references/safety.md`](../skills/krt-gitflow-knight/references/safety.md) |
 | `krt-rebase-smith` | [`skills/krt-rebase-smith/references/safety.md`](../skills/krt-rebase-smith/references/safety.md) |
+| `krt-jira-cloud-scribe` | [`skills/krt-jira-cloud-scribe/references/safety.md`](../skills/krt-jira-cloud-scribe/references/safety.md) |
 | `krt-jira-scribe` | [`skills/krt-jira-scribe/references/safety.md`](../skills/krt-jira-scribe/references/safety.md) |
 | `krt-repo-medic` | [`skills/krt-repo-medic/references/safety.md`](../skills/krt-repo-medic/references/safety.md) |
 

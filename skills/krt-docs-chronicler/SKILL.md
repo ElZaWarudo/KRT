@@ -11,6 +11,7 @@ It edits docs when asked. When the user asks only for analysis, return a documen
 
 ## Load References
 
+- Load `references/safety.md` before beginning the workflow.
 - Load `references/documentation-rubric.md` before deciding where information belongs or updating docs.
 - Load `references/source-literature.md` when explaining the documentation model or when the user asks what the workflow is based on.
 

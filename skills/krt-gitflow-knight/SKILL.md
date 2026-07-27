@@ -25,15 +25,16 @@ Create clean, user-approved commits following a gitflow-style process: correct b
 - Prefer non-interactive commands. Avoid `git add -p` unless the user explicitly wants an interactive hunk workflow.
 - Use the host runtime's command wrapper only when the current repo requires one. The command examples below use plain `git` for portability.
 - Do not run tests, linters, or formatters unless the user explicitly asks.
-- Before planning commits, run `scripts/ensure_krt_env_ignore.py` from the repository root. This deterministically writes `.krt/env/.gitignore`, proves `.krt/env/jira-scribe.env` is ignored with `git check-ignore`, and blocks if that secret file is already tracked.
+- Before branch, staging, or commit decisions, load `references/safety.md`.
+- Before planning commits, run `scripts/ensure_krt_env_ignore.py --check-only` from the repository root. This reports whether `.krt/env/.gitignore` would change without creating directories or writing files, and still blocks if `.krt/env/jira-scribe.env` is already tracked.
 - Build commit plans from a deterministic, sorted changed-path list.
-- The only allowed way for Gitflow Knight to create a commit is `scripts/create_approved_commit.py --root <repo-root> --message "<approved message>" --path <approved-path>...`. Do not run `git add` or `git commit` directly from this skill. The script validates commit-message shape, requires a clean index unless `--reset-index-approved` was explicitly authorized in the visible plan, stages exactly the approved paths, verifies the staged path set, enforces the KRT env ignore guard, and blocks staged env-secret paths or secret-like environment assignments. `.env.example` and `*.env.example` files are allowed when they contain placeholders rather than real secret values.
+- The only allowed way for Gitflow Knight to create a commit is `scripts/create_approved_commit.py --root <repo-root> --message "<approved message>" --path <approved-path>...`. Do not run `git add` or `git commit` directly from this skill. After the commit-plan gate, the script applies the normal (writing) KRT env ignore guard, validates commit-message shape, requires a clean index unless `--reset-index-approved` was explicitly authorized in the visible plan, stages exactly the approved paths, verifies the staged path set, and blocks staged env-secret paths or secret-like environment assignments. `.env.example` and `*.env.example` files are allowed when they contain placeholders rather than real secret values.
 - When committing a CI fix, record whether the affected CI job's repo-specific equivalent command has passed locally. If it has not, mark the commit as locally unverified for release handoff; do not participate in a push/update-PR flow unless the user explicitly overrides the verification gap.
 
 ### 1) Preflight (do not change anything yet)
 
-- Run `<gitflow-knight-skill-dir>/scripts/ensure_krt_env_ignore.py --root <repo-root>`.
-  - If it reports `changed: true`, include `.krt/env/.gitignore` in the commit plan as a deterministic local-env guardrail change.
+- Run `<gitflow-knight-skill-dir>/scripts/ensure_krt_env_ignore.py --root <repo-root> --check-only`.
+  - If it reports `would_change: true`, include `.krt/env/.gitignore` in the commit plan as a deterministic local-env guardrail change.
   - If it reports any `block_reasons`, stop before staging or committing.
 - Determine current branch: `git branch --show-current`
 - Inspect working tree and staging:

@@ -32,6 +32,7 @@ Load only the current phase. Phase-specific rules live in the owning reference.
 
 | Phase | Load |
 |---|---|
+| All phases, before workflow actions | `references/safety.md` |
 | Preflight, roles, arguments, paths | `references/role-and-runtime.md`, `references/fast-contract.md` |
 | Artifact workflow and gates | `references/workflow-map.md` |
 | Work-package templates/review units | `references/artifact-templates.md` |

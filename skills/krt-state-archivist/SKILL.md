@@ -9,6 +9,7 @@ State Archivist keeps Compound Master state usable as a resume entrypoint. It pr
 
 ## Load References
 
+- Load `references/safety.md` before beginning the workflow.
 - Load `references/state-contract.md` before compacting or reviewing a Compact State scaffold.
 
 ## Workflow

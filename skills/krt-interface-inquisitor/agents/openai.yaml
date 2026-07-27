@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-interface-inquisitor"
   short_description: "Audit editorial product UI composition"
-  default_prompt: "Use $krt-interface-inquisitor to audit this interface's hierarchy, archetype, surfaces, cards, tables, and responsive composition, then produce an implementation-ready brief."
+  default_prompt: "Use krt-interface-inquisitor to audit this interface's hierarchy, archetype, surfaces, cards, tables, and responsive composition, then produce an implementation-ready brief."
