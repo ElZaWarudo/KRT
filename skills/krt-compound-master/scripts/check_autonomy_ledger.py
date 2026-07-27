@@ -31,6 +31,8 @@ MUTATION_CLASSES = {
     "pr_auto_merge",
 }
 
+SUPPORTED_SCHEMA_VERSION = 1
+
 LIFECYCLE_STATES = {
     "pending-authorization",
     "active",
@@ -182,6 +184,10 @@ def validate(
     missing = sorted(REQUIRED_FIELDS - ledger.keys())
     if missing:
         reasons.append(f"schema-error:missing:{','.join(missing)}")
+
+    schema_version = ledger.get("schema_version")
+    if "schema_version" in ledger and schema_version != SUPPORTED_SCHEMA_VERSION:
+        reasons.append(f"schema-error:unsupported-version:{schema_version}")
 
     status = ledger.get("status")
     if status not in LIFECYCLE_STATES:

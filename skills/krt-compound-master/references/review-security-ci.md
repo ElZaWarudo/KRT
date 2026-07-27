@@ -4,24 +4,18 @@ Load for code review loops, high-risk security gates, optional reviewer fan-out,
 
 ## Code Review Loop
 
-Preferred invocation:
+Invoke the current code-review role in its report-only agent mode:
 
 ```text
-Skill("<code_review>", "mode:autofix plan:<origin-plan-path> base:<base-branch>")
-```
-
-Read-only fallback:
-
-```text
-Skill("<code_review>", "mode:report-only plan:<origin-plan-path> base:<base-branch>")
+Skill("<code_review>", "mode:agent plan:<origin-plan-path> base:<base-branch>")
 ```
 
 Loop:
 
 1. Run review.
-2. If safe autofixes were applied, rerun relevant tests.
-3. Leave review-fix changes for `krt-release-marshal` commit planning unless project policy requires immediate commits.
-4. If findings at or above threshold remain, route fixes through work/inline changes and rerun review.
+2. Treat the review result as report-only; the code-review role must not edit.
+3. If findings at or above threshold remain, route every correction through the work loop, run relevant verification, and rerun review.
+4. Leave review-fix changes for `krt-release-marshal` commit planning unless project policy requires immediate commits.
 5. Stop after three blocked rounds with clear blocker and next question.
 
 Review pass requirements:

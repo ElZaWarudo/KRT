@@ -29,12 +29,12 @@ the correct base branch.
 - Determine whether the target branch was branched from another feature branch whose commits should be dropped from the rewritten history. Ask only when this cannot be inferred.
 - Use `rebase --onto` when the target contains parent-branch commits that should not be replayed.
 - If the branch was already pushed, use `--force-with-lease` (never plain `--force`).
-- Show the exact push command and ask for confirmation before any force-with-lease push.
+- Show the exact push command and obtain confirmation before every push, including first publication with `git push -u` and rewritten history with `--force-with-lease`.
 - Do not merge branches or PRs. This skill may recommend a merge strategy, but it must only run a merge after the user explicitly approves that exact merge action.
 - Avoid destructive commands (`reset --hard`, `push --force`) unless explicitly requested.
 - Do not resolve conflicts silently. Present conflicted files and ask for direction unless the fix is obvious and the user asked for autonomous resolution.
 - Use the host runtime's command wrapper only when the current repo requires one. The command examples below use plain `git` for portability.
-- Use a single rebase-plan acceptance gate when acting standalone. If running inside an already accepted `krt-release-marshal` workflow, and target/base/upstream are unambiguous, proceed with local rebase without a second approval gate. Still ask before `--force-with-lease`, conflict resolution choices, stash/drop operations, or any remote mutation.
+- Use a single rebase-plan acceptance gate when acting standalone. If running inside an already accepted `krt-release-marshal` plan, and target/base/upstream are unambiguous, proceed with local rebase without a second local gate. Reuse its remote authorization only when that plan showed the exact push command and the current remote, branch/refspec, and push mode still match. Otherwise ask before any push, conflict-resolution choice, stash/drop operation, or other remote mutation.
 
 ## Workflow
 
@@ -159,14 +159,20 @@ If `<target>` already exists on remote:
 git push --force-with-lease origin <target>
 ```
 
-Before running this command, show it to the user and ask for explicit
-confirmation because it rewrites the remote branch history.
+Before running this command, apply the exact push gate above. An accepted
+`krt-release-marshal` plan satisfies it only when it included this unchanged
+command; otherwise show it and ask for explicit confirmation because it
+rewrites remote branch history.
 
 If it does not exist yet:
 
 ```bash
 git push -u origin <target>
 ```
+
+This first publication is also a remote mutation. Apply the same exact push
+gate: reuse an accepted `krt-release-marshal` plan only when it included this
+unchanged command; otherwise show it and ask for explicit confirmation.
 
 ### 7) Closeout and merge recommendation
 

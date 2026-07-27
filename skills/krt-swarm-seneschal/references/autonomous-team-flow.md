@@ -20,67 +20,19 @@ Before external or irreversible mutations, resolve an autonomy ledger under:
 docs/orchestration/autonomy-ledgers/
 ```
 
-If the user explicitly requests no confirmations, create or reuse a run ledger that captures:
+Use the canonical Compound Master autonomy ledger JSON v1. Read
+`../../krt-compound-master/references/autonomy-ledger-schema.md` and validate the
+ledger with `../../krt-compound-master/scripts/check_autonomy_ledger.py` as resolved
+from the shared skills directory. Swarm must not create a YAML authorization
+contract or redefine allowed mutations, deny rules, scope, expiry, lifecycle,
+or audit semantics.
 
-```yaml
-schema_version: 1
-run_id: swarm-overnight-YYYY-MM-DD
-created_at: "YYYY-MM-DD"
-user_mandate: "User asked no human confirmation during run."
-mode: autonomous-team-flow
-source_artifacts: []
-documentation_gate:
-  required: true
-  status: draft
-  queue_state_path: docs/swarm/queue-state.yaml
-allowed_without_review:
-  - create_documentation_packet
-  - revise_documentation_packet
-  - record_blockers
-  - propose_jira_hierarchy
-  - propose_worker_waves
-denied_without_review:
-  - seed_jira
-  - dispatch_workers
-  - mutate_code
-  - release_handoff
-allowed_mutation_classes:
-  local_files: true
-  local_branches: true
-  local_commits: true
-  jira_seed_create_update: true
-  jira_comments: true
-  jira_pr_backlinks: true
-  jira_transitions_to_review: true
-  push_branches: true
-  create_or_update_prs: true
-  request_reviewers: true
-  merge_prs: false
-deny_rules:
-  - do_not_commit_secrets
-  - do_not_bypass_documentation_gate
-  - do_not_bypass_failing_required_checks
-  - do_not_merge_without_platform_eligibility
-  - do_not_ship_high_risk_compliance_without_resolution
-risk_policy:
-  product: decide_from_artifacts_else_block_unit
-  auth: block_dependents_if_foundational
-  data: block_dependents_if_foundational
-  DIAN: high_risk_blocker_before_production
-  accounting: high_risk_blocker_before_production
-  payroll: high_risk_blocker_before_production
-  security: high_risk_blocker_before_production
-fallback_policy:
-  documentation_not_approved: close_with_review_packet
-  no_ready_work: close_with_blocker_review
-  failed_verification: mark_needs_fix_and_dispatch_fixer_if_safe
-  scope_creep: mark_split_required
-  missing_external_authority: skip_mutation_record_blocker_continue
-audit:
-  append_only_log: docs/orchestration/autonomy-ledgers/swarm-overnight-YYYY-MM-DD.audit.md
-```
-
-The ledger replaces per-action human confirmation only after required gates pass. It does not remove quality gates and does not authorize bypassing documentation approval.
+The canonical JSON ledger replaces per-action human confirmation only after
+required gates pass. It does not remove quality gates and does not authorize
+bypassing documentation approval. If no active JSON v1 ledger exists, continue
+local reversible work only and record external mutations as manual-required.
+On resume, re-read and validate that JSON, compare its contract hash and audit
+head, then replace the queue state's non-authoritative resume snapshot.
 
 ## Task Definition
 
@@ -126,10 +78,10 @@ Stop only when no independent ready work remains and every remaining path would 
 
 Seneschal still does not directly own release side effects:
 
-- Jira Cloud mutations go through `krt-jira-cloud-scribe`.
+- Jira mutations go through the selected Jira provider skill.
 - Commits, pushes, PRs, reviewer requests, Jira PR backlinks, transitions, and merge flow go through `krt-release-marshal`.
 
-In autonomous flow, pass ledger path to downstream skills and instruct them to use autonomous executors/validators where available. If a downstream skill cannot execute a covered mutation autonomously, record a blocker or handoff gap and continue other approved work.
+In autonomous flow, pass the canonical JSON ledger path, expected contract hash, latest audit event, and `jira_provider` to downstream skills. Instruct them to use autonomous executors/validators where available. If a downstream skill cannot execute a covered mutation autonomously, record a blocker or handoff gap and continue other approved work.
 
 Merge PRs only when the ledger explicitly allows merge and platform-visible merge eligibility is satisfied.
 

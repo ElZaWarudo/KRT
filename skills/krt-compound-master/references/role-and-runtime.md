@@ -11,17 +11,18 @@ Resolve these logical roles:
 | `roadmap_generator` | `krt-roadmap-cartographer` | artifact generation |
 | `brainstorm` | `ce-brainstorm` | artifact generation |
 | `plan` | `ce-plan` | artifact generation |
-| `document_review` | `document-review` | artifact generation |
+| `document_review` | `ce-doc-review` | artifact generation |
 | `state_archivist` | `krt-state-archivist` | optional state compaction |
 | `work` | `ce-work` | execution |
-| `code_review` | `ce-review` | execution |
+| `code_review` | `ce-code-review` | execution |
 | `security_review` | `krt-security-sentinel` | high-risk review units |
 | `project_pr` | `krt-release-marshal` | shipping |
 | `mutation_executor` | `krt-release-marshal` | autonomous external mutation |
 | `ci_investigator` | `krt-ci-questor` | optional CI escalation |
 | `gitflow_commit` | `krt-gitflow-knight` | shipping component |
 | `clean_rebase` | `krt-rebase-smith` | shipping component |
-| `jira_workflow` | `krt-jira-scribe` | shipping with required Jira, or preferred Jira when available |
+| `jira_cloud` | `krt-jira-cloud-scribe` | shipping when the resolved provider is Jira Cloud |
+| `jira_server_datacenter` | `krt-jira-scribe` | shipping when the resolved provider is Jira Server/Data Center |
 
 Resolution order:
 
@@ -35,7 +36,7 @@ Missing optional roles do not block:
 - Missing `security_review`: resolve another security-review skill or do direct evidence-based review.
 - Missing `ci_investigator`: do direct evidence-first triage if CI breaks.
 
-Missing required shipping roles block before shipping. Missing Jira blocks only when `jira-policy:required`; with the default optional policy, record the missing role/config/context and continue the no-Jira handoff path.
+Missing required shipping roles block before shipping. Resolve Jira through Release Marshal's deterministic provider resolver; do not choose Cloud or Server/Data Center by default. Missing or ambiguous Jira blocks only when `jira-policy:required`; with the default optional policy, record the diagnosis and continue the no-Jira handoff path.
 
 Autonomous external mutation also requires the `mutation_executor` role and the ledger validator from `krt-compound-master`. If either is missing, autonomous shipping degrades to validation-only/manual-required mode before any PR, branch, reviewer, Jira, or merge side effect.
 
@@ -85,6 +86,7 @@ Record delegation mode, roles used, read-only/mutating status, outcome, confiden
 - `production:unknown|live|preprod|prototype`: default `unknown` unless explicit context or strong repo evidence supports another value.
 - `pr-granularity:auto|review-unit|work-package|roadmap-item|plan-unit`: default `auto`, but review-unit is the normal PR unit.
 - `jira-policy:required|optional|skip`: default `optional`.
+- `jira-provider:auto|cloud|server-datacenter|none`: default `auto`; resolve from explicit input, Jira URL, or exactly one ready provider, never from a silent provider default.
 - `parallel:false|true`: default `false`; `true` requires safe dependencies and isolation.
 - `delegation:auto|ask|inline`: default `auto`.
 - `worktree-policy:avoid|auto|required`: default `avoid`; `parallel:true` does not override it.
@@ -95,13 +97,13 @@ Record delegation mode, roles used, read-only/mutating status, outcome, confiden
 
 Jira policy semantics:
 
-- `optional`: Jira-preferred and non-blocking. During preflight, detect existing Jira keys/URLs, `krt-jira-scribe` availability, and required env var presence without printing secrets. During package and release handoff, include Spanish Jira summary/description and create/reuse guidance. If Jira context, role, or configuration is absent, record the degraded path and continue without asking whether Jira matters.
+- `optional`: Jira-preferred and non-blocking. During preflight, preserve explicit provider/URL context and let Release Marshal resolve provider readiness without printing secrets. During package and release handoff, include `jira_provider`, Spanish Jira summary/description, and create/reuse guidance. If Jira context, role, provider, or configuration is absent or ambiguous, record the degraded path and continue without asking whether Jira matters.
 - `required`: Jira traceability is part of the delivery contract. Missing Jira role, context needed for safe mutation, or required configuration blocks before shipping.
 - `skip`: Do not do Jira lookup, creation, backlinking, or transition; record that Jira was intentionally skipped.
 
 Autonomous ledger semantics:
 
-- The ledger JSON is the authority for allowed mutation classes, target scope, expiry, issuer binding, and audit path.
+- The Compound Master autonomy ledger JSON schema version 1 is the single authority for allowed mutation classes, target scope, expiry, issuer binding, and audit path.
 - Markdown state may link to the ledger and summarize it, but scripts must validate the JSON directly before mutation.
 - Active ledgers require issuer identity or an approval artifact reference/hash. Missing issuer binding blocks autonomous external mutation.
 - Runtime permissions or credential routing must constrain mutation paths to the executor. If they cannot, the run may continue local work but external mutation remains manual-required.

@@ -18,13 +18,18 @@ The executor resolves validators from this registry. Do not accept caller-provid
 | `pr_merge` | `krt-release-marshal` | `scripts/check_merge_eligibility.py` |
 | `pr_merge_queue` | `krt-release-marshal` | `scripts/check_merge_eligibility.py` |
 | `pr_auto_merge` | `krt-release-marshal` | `scripts/check_merge_eligibility.py` |
-| `jira_create` | `krt-jira-scribe` | `scripts/check_jira_issue_mutation.py` |
-| `jira_update` | `krt-jira-scribe` | `scripts/check_jira_issue_mutation.py` |
-| `jira_backlink` | `krt-jira-scribe` | `scripts/check_jira_binding.py` |
-| `jira_transition_review` | `krt-jira-scribe` | `scripts/check_jira_transition.py` |
-| `jira_transition_done` | `krt-jira-scribe` | `scripts/check_jira_transition.py` |
+| `jira_create` | selected Jira provider skill | `scripts/check_jira_issue_mutation.py` |
+| `jira_update` | selected Jira provider skill | `scripts/check_jira_issue_mutation.py` |
+| `jira_backlink` | selected Jira provider skill | `scripts/check_jira_binding.py` |
+| `jira_transition_review` | selected Jira provider skill | `scripts/check_jira_transition.py` |
+| `jira_transition_done` | selected Jira provider skill | `scripts/check_jira_transition.py` |
 
 Resolve validators from the repository first, then from the installed runtime path such as `/home/teb/.agents/skills/<skill>/...`. Do not substitute free-form agent judgment for a missing validator.
+
+Every Jira mutation must pass `--jira-provider cloud|server-datacenter`.
+Resolve Cloud validators from `krt-jira-cloud-scribe` and Server/Data Center
+validators from `krt-jira-scribe`. Missing or ambiguous provider blocks instead
+of defaulting.
 
 Fixture references for reviewing/extending validators:
 

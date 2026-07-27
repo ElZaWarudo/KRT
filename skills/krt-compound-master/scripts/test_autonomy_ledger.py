@@ -112,6 +112,27 @@ class AutonomyLedgerTest(unittest.TestCase):
         self.assertIn("missing-target:head_branch", result["block_reasons"])
         self.assertIn("missing-target:head_sha", result["block_reasons"])
 
+    def test_unsupported_schema_version_blocks(self) -> None:
+        code, result = run_check("unsupported-version.json")
+        self.assertNotEqual(code, 0)
+        self.assertIn("schema-error:unsupported-version:2", result["block_reasons"])
+
+
+class RuntimeRoleContractTest(unittest.TestCase):
+    def test_current_compound_review_roles_are_canonical(self) -> None:
+        role_contract = (ROOT.parent / "references" / "role-and-runtime.md").read_text(encoding="utf-8")
+        self.assertIn("| `document_review` | `ce-doc-review` |", role_contract)
+        self.assertIn("| `code_review` | `ce-code-review` |", role_contract)
+        self.assertNotIn("| `document_review` | `document-review` |", role_contract)
+        self.assertNotIn("| `code_review` | `ce-review` |", role_contract)
+
+    def test_code_review_uses_current_report_only_agent_mode(self) -> None:
+        review_contract = (ROOT.parent / "references" / "review-security-ci.md").read_text(encoding="utf-8")
+        self.assertIn('Skill("<code_review>", "mode:agent ', review_contract)
+        self.assertIn("route every correction through the work loop", review_contract)
+        self.assertNotIn("mode:autofix", review_contract)
+        self.assertNotIn("mode:report-only", review_contract)
+
 
 if __name__ == "__main__":
     unittest.main()

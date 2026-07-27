@@ -9,7 +9,7 @@ Every queued unit needs:
 ```yaml
 id: semantic-id
 title: short human title
-source: docs/work-packages/... | jira cloud issue | github issue | linear issue | backlog file
+source: docs/work-packages/... | jira issue | github issue | linear issue | backlog file
 jira_key: null
 status: planned | ready | running | review-gated | release-ready | needs-fix | handed-off | merged | blocked | deferred | split-required
 depends_on: []
@@ -59,7 +59,7 @@ A unit is ready only when:
 - No unresolved product, auth, data, deployment, or public-contract decision blocks implementation.
 - Branch/base strategy is known.
 - Overlap with active units is low or explicitly coordinated.
-- Jira Cloud source state, when applicable, has been read through `krt-jira-cloud-scribe` and has an unambiguous issue/subtask key.
+- Jira source state, when applicable, has been read through the selected Jira provider skill and has an unambiguous issue/subtask key.
 - No open blocker exists in `docs/swarm/blockers.yaml` for the unit or its dependencies.
 
 ## Wave Selection
@@ -101,7 +101,7 @@ Mode: design-only | dispatch | reconcile | resume
 Documentation status: <draft|in_review|approved|changes_requested>
 Concurrency: <n>
 Isolation: branch | worktree | cloud | manual
-Jira mode: cloud | server-datacenter | none
+jira_provider: cloud | server-datacenter | none
 Blocker ledger: docs/swarm/blockers.yaml
 Units:
 - <id>: <title>
@@ -132,4 +132,4 @@ Update queue state immediately when:
 - A dependency merges or changes base.
 - blocker-review or blocker-resolve changes eligibility.
 
-Never let markdown state pretend to be live authority. Re-fetch GitHub/Jira state before release decisions. For Jira Cloud state, use `krt-jira-cloud-scribe`; use `krt-jira-scribe` only for an explicitly confirmed Server/Data Center target.
+Never let markdown state pretend to be live authority. Re-fetch GitHub/Jira state before release decisions and use only the selected Jira provider skill.

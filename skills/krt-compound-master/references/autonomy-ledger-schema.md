@@ -1,16 +1,16 @@
-# Autonomy Ledger Schema
+# Autonomy Ledger JSON v1
 
 Load when `autonomy:high` or an autonomous shipping request includes `autonomous-ledger:<path>`.
 
 ## Ledger Contract
 
-The ledger is the permission source for autonomous external mutation. Markdown state may link to it and summarize it, but scripts must read the JSON ledger directly.
+The Compound Master ledger JSON schema version `1` is the canonical permission source for autonomous external mutation across Compound Master, Swarm Seneschal, and Release Marshal. Reject any other version. Markdown or YAML state may link to it and keep a non-authoritative resume snapshot, but it must not redefine mutation classes, scope, expiry, deny rules, or lifecycle. Scripts must read and validate the JSON ledger directly.
 
 Required top-level fields:
 
 | Field | Meaning |
 |---|---|
-| `schema_version` | Integer schema version. Start with `1`. |
+| `schema_version` | Exact integer `1`; other versions block until a compatible validator exists. |
 | `contract_id` | Stable unique ID for this authorization. |
 | `issued_at` | ISO timestamp for the visible authorization. |
 | `expires_at` | ISO timestamp after which every external mutation blocks. |
@@ -82,4 +82,4 @@ Treat the run as materially changed and block external mutation when any of thes
 - Expected audit head no longer matches the last immutable event.
 - Live GitHub or Jira state contradicts recorded assumptions.
 
-The state file records `ledger_path`, `contract_id`, `contract_status`, and `latest_audit_event`, but those fields are resume hints only.
+State files may record only a resume snapshot such as `ledger_path`, `schema_version`, `contract_id`, `contract_status`, `contract_hash`, `latest_audit_event`, and `captured_at`. These fields are hints only; re-read the JSON and run `scripts/check_autonomy_ledger.py` before every external mutation and after resume.

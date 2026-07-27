@@ -4,22 +4,27 @@ Use this reference for `jira-team-flow` and `jira-seed-and-drain`.
 
 ## Purpose
 
-Run the swarm like a normal delivery team with Jira Cloud as backlog source:
+Run the swarm like a normal delivery team with the resolved Jira provider as backlog source:
 
 ```text
-approved documentation -> Jira Cloud seed/read -> persistent queue map -> safe waves -> worker reconciliation -> release marshal handoff
+approved documentation -> Jira seed/read -> persistent queue map -> safe waves -> worker reconciliation -> release marshal handoff
 ```
 
 Seneschal coordinates. It does not directly own Jira mutations, commits, pushes, PRs, reviewer requests, merge flow, or issue transitions. In autonomous flow it passes the autonomy ledger to owning skills instead of asking during the run.
 
 ## Required Skill Boundaries
 
-- Jira Cloud issue lookup, create/update proposals, comments, links, and transitions belong to `krt-jira-cloud-scribe`.
+- Jira issue lookup, create/update proposals, comments, links, and transitions belong to the selected Jira provider skill.
 - Commits, PRs, Jira PR backlinks, release transitions, and merge flow belong to `krt-release-marshal`.
 - Quality pipeline, review units, and high-risk work package execution belong to `krt-compound-master`.
 - Seneschal owns documentation gate checks, queue normalization, wave selection, worker dispatch prompts, blocker ledger updates, reconciliation, and release-ready handoff packets.
 
-Use `krt-jira-scribe` only when the user explicitly says the Jira target is Server/Data Center.
+Resolve the provider before Jira reads or mutations. The adapter mapping is:
+
+- `cloud` -> `krt-jira-cloud-scribe`
+- `server-datacenter` -> `krt-jira-scribe`
+
+If the provider is ambiguous or unresolved, do not select either adapter.
 
 ## Persistent Files
 
@@ -28,7 +33,7 @@ Default local files in the consumer repository:
 - `docs/swarm/queue-state.yaml`: documentation gate, queue units, Jira key mapping, dependency graph, wave history, release handoff facts.
 - `docs/swarm/blockers.yaml`: non-fatal high-risk blockers discovered by workers or readiness checks.
 
-Create files when the mode needs them and they do not exist. Do not treat contents as live Jira authority; re-read Jira Cloud through `krt-jira-cloud-scribe` before release decisions or seed proposals.
+Create files when the mode needs them and they do not exist. Do not treat contents as live Jira authority; re-read Jira through the selected Jira provider skill before release decisions or seed proposals.
 
 ## Documentation Gate
 
@@ -43,8 +48,8 @@ Before Jira seed/drain:
 ## Flow
 
 1. **Preflight**
-- Load `krt-jira-cloud-scribe` because Jira Cloud is the default Jira posture.
-- Verify whether Jira Cloud env/config is available only when live Jira reads or mutations are needed.
+- Resolve `jira_provider` from explicit input, Jira URL, or unique readiness through Release Marshal's resolver.
+- Load only the selected Jira provider skill and verify its env/config when live Jira reads or mutations are needed.
 - Read local queue state and blocker ledger if present.
 - Inspect git state and isolation options.
 - Check `documentation_gate.status` before seed, drain, dispatch, or release handoff.
@@ -56,7 +61,7 @@ Before Jira seed/drain:
 - In autonomous flow, use active autonomy ledger covered Jira mutation classes; record uncovered needs and continue approved independent work.
 
 3. **Drain active work**
-- Read active Jira Cloud issues/subtasks using `krt-jira-cloud-scribe`.
+- Read active Jira issues/subtasks using the selected Jira provider skill.
 - Convert each eligible Jira issue into a queue unit with source key, title, scope, acceptance criteria, dependencies, surfaces, verification, and status.
 - Merge live Jira facts into `docs/swarm/queue-state.yaml` without losing local documentation gate, verification, blocker, or handoff history.
 - Use Planner workers to decompose Jira epics or parent issues too broad for one implementer.
@@ -87,7 +92,7 @@ Before Jira seed/drain:
 
 8. **Handoff**
 - Prepare release-ready packets for `krt-release-marshal`.
-- Include Jira key, PR grouping suggestion, verification evidence, release notes, affected surfaces, and suggested Jira transition.
+- Include `jira_provider`, selected skill, Jira key, PR grouping suggestion, verification evidence, release notes, affected surfaces, and suggested Jira transition.
 - Do not execute Jira transitions or PR operations from Seneschal. In autonomous flow, pass the ledger path so `krt-release-marshal` can run its autonomous executor/validators where available.
 
 ## Readiness Rules For Jira Units

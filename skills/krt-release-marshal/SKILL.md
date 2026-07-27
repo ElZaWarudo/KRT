@@ -1,6 +1,6 @@
 ---
 name: krt-release-marshal
-description: "Orchestrate the full delivery flow for the current project repository: direct krt-gitflow-knight for clean commits, krt-rebase-smith for clean branch history, krt-jira-scribe for Jira Server/Data Center issue work, then open a GitHub pull request with bidirectional Jira/PR links. Use when the user asks to create/open a PR, prepare a pull request, ship current work, publish branch changes for review, or run the full gitflow + rebase + Jira + PR workflow. Runtime aliases may expose this as krt:release-marshal."
+description: "Orchestrate the full delivery flow for the current project repository: direct krt-gitflow-knight for clean commits, krt-rebase-smith for clean branch history, resolve Jira Cloud or Server/Data Center explicitly, then open a GitHub pull request with bidirectional Jira/PR links. Use when the user asks to create/open a PR, prepare a pull request, ship current work, publish branch changes for review, or run the full gitflow + rebase + Jira + PR workflow. Runtime aliases may expose this as krt:release-marshal."
 ---
 
 # Release Marshal
@@ -11,7 +11,8 @@ The marshal directs component skills instead of duplicating them:
 
 - `krt-gitflow-knight` (`krt:gitflow-knight`) owns branch hygiene, staging, and commit planning.
 - `krt-rebase-smith` (`krt:rebase-smith`) owns clean branch history and safe rebase decisions.
-- `krt-jira-scribe` (`krt:jira-scribe`) owns Jira issue/subtask lookup, creation proposals, sprint handling, PR backlinks, and transitions.
+- `krt-jira-cloud-scribe` owns Jira Cloud issue/subtask lookup, creation proposals, sprint handling, PR backlinks, and transitions.
+- `krt-jira-scribe` (`krt:jira-scribe`) owns the same workflow for Jira Server/Data Center. Keep both provider skills public and separate.
 - `gh` owns GitHub remote state, push/PR operations, PR comments, and reviewer requests after release-plan confirmation. Prefer `gh` before GitHub plugins/connectors; use connector/plugin APIs only as fallback when `gh` is unavailable, unauthenticated, or lacks required data.
 - The bundled autonomous mutation executor owns ledger-bound autonomous PR, branch, reviewer, Jira, and merge side effects after deterministic validators pass.
 
@@ -26,8 +27,9 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - `<release-marshal-skill-dir>/scripts/check_stack_choreography.py ...` to validate stacked-PR merge choreography, especially when a parent PR may merge by squash and a child PR must be refreshed before continuing.
 - `<release-marshal-skill-dir>/scripts/format_pr_body.py --file <draft-body-file>` to normalize noisy generated PR copy into the strict public body shape before validation.
 - `<release-marshal-skill-dir>/scripts/check_pr_body.py --file <tmp-body-file>` before PR creation or update.
+- `<release-marshal-skill-dir>/scripts/resolve_jira_provider.py --root <repo-root> [--provider <auto|cloud|server-datacenter|none>] [--jira-url <url>]` before selecting a Jira skill.
 - Commit work is delegated to `krt-gitflow-knight`, which must run its deterministic `.krt/env/jira-scribe.env` ignore guard before planning and before each local commit.
-- Jira readiness belongs to `krt-jira-scribe`'s checkout-local env contract. Before calling Jira available, prefer `python3 <jira-scribe-skill-dir>/scripts/check_jira_env.py --root <repo-root> --strict` and treat Jira as ready only when that checker reports `ok: true`.
+- Jira readiness belongs to the selected provider skill's checkout-local env contract. Treat Jira as ready only when the resolver selected one provider and that provider's checker reports `ok: true`.
 
 ## Mandatory Rules
 
@@ -45,14 +47,15 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - Never include Compound Master planning IDs or package numbers in PR titles, PR body bullets, branch names, or commit messages unless the user or repo convention explicitly requires them.
 - Prefer branch names that describe the capability or functional behavior being shipped. Treat work-package IDs, review-unit markers, package numbers, and delivery-phase labels as branch-hygiene debt unless the user or repo convention explicitly requires them.
 - Never put both parent and child Jira references in commit messages. If repo convention requires a Jira reference or link in a commit, use only the immediately relevant issue: usually the subtask/work-package issue; use the parent only when no child issue exists.
-- Jira issue and subtask summaries/descriptions created or proposed by Release Marshal must be in Spanish. Translate English branch names, commit summaries, PR titles, or upstream suggested Jira text into concise Spanish before passing them to `krt-jira-scribe`.
+- Jira issue and subtask summaries/descriptions created or proposed by Release Marshal must be in Spanish. Translate English branch names, commit summaries, PR titles, or upstream suggested Jira text into concise Spanish before passing them to the selected Jira provider skill.
 - Never include secrets, tokens, credentials, or internal environment dumps in the PR body.
 - Treat verification results from upstream workflows as readiness evidence only. Do not include test commands, test output, or verification summaries in the PR body unless the user, repo template, or project convention explicitly requires it.
 - Do not run tests, linters, or formatters unless the user explicitly asks; use verification results supplied by the user or upstream workflow.
 - Before pushing or updating a PR with a CI-fix commit, require evidence that the repo-specific command equivalent to the affected CI job passed locally, or present the missing validation clearly and ask for explicit override before the remote mutation.
-- Do not ask for Jira credentials. Do not assume Jira variables are already present in console context. For local Jira configuration, treat the active checkout's `.krt/env/jira-scribe.env` as the required source, loaded into runtime env vars by `direnv`, `krt-jira-scribe`'s bundled loader, or an equivalent project-scoped loader. If Jira is required and that contract is not ready, block and ask whether to continue without Jira. If Jira is optional, show the no-Jira fallback in the release plan and continue after the normal release-plan approval without a separate Jira-usage question.
+- Do not ask for Jira credentials or assume a provider. Resolve provider from explicit `jira-provider`, Jira URL, or exactly one ready provider. Use that skill's checkout-local env contract (`jira-cloud-scribe.env` or `jira-scribe.env`). If Jira is required and provider resolution/readiness fails, block and ask whether to continue without Jira. If Jira is optional, show the exact no-Jira diagnosis in the release plan and continue after approval.
 - For stacked PRs, treat squash merge as a special choreography case. If PR1 will merge by squash and PR2 is stacked on PR1's branch, PR2 must be rebased or retargeted onto the final base before continuing merge work, and parent branch deletion must wait until that refresh is complete.
 - Use `--force-with-lease`, never plain `--force`, when a rewritten branch must be pushed.
+- Require the exact push command in the visible approval for every push, including first publication with `git push -u`. Reuse an accepted Release Marshal approval only when remote, branch/refspec, and push mode match exactly; otherwise ask again.
 - In autonomous mode, route PR/branch/reviewer/Jira/merge side effects through `scripts/autonomous_mutation.py`; direct `gh`, Jira, or push commands are validation-only/manual-required unless the runtime enforcement boundary is confirmed.
 - Prefer strict PR bodies: one factual change bullet per line, blank line, then the immediately relevant Jira URL. Do not include stack context, retargeting plans, base-branch notes, reviewer instructions, verification, or any operational commentary unless the repo template explicitly requires it.
 - Prefer reviewable PRs and logical commits over package-sized PRs when the pending work has clear boundaries. A work package may produce several review-unit PRs; a single PR should represent one focused review unit unless a broad unit was explicitly approved.
@@ -69,7 +72,7 @@ Ask before destructive, irreversible, external, or notification-causing work unl
 - PR or branch merge.
 - Jira issue/subtask creation or updates.
 - Jira transition.
-- Push or `--force-with-lease` push.
+- Any push, including `git push -u` and `--force-with-lease`; the accepted plan must show the exact push command.
 - PR creation or update.
 - Reviewer requests.
 - PR comments or other reviewer-facing PR messages.
@@ -88,6 +91,7 @@ Use context already provided by the user or previous skills:
 - Desired workflow scope: full flow or PR-only.
 - Review unit scope from Compound Master, when provided.
 - Jira parent issue key, subtask key, or issue URL.
+- `jira-provider:cloud|server-datacenter|none` from an enclosing workflow when known; persist it as `jira_provider` in release handoffs and autonomous Jira mutations.
 - Jira policy from an enclosing workflow: `required`, `optional`, or `skip`; default to `optional` when the enclosing workflow provided Jira-ready handoff text but no explicit policy.
 - Suggested Jira summary/description from an enclosing workflow. Treat these as semantic input, not final text; normalize them into Spanish before Jira creation proposals.
 - Target/base branch.
@@ -100,7 +104,7 @@ Use context already provided by the user or previous skills:
 - Suggested commit grouping from an enclosing workflow, when provided.
 - Autonomous ledger path, allowed mutation classes, latest audit hash, and executor mode from Compound Master, when provided.
 
-If the user asks simply to create a PR and there are uncommitted changes, propose the full flow. Treat missing Jira context as optional by default: include Jira discovery when there is enough signal, otherwise state that Jira will be omitted unless the user requires it. Treat "Jira configured" as false unless the checkout-local `jira-scribe.env` contract passes `krt-jira-scribe`'s readiness check.
+If the user asks simply to create a PR and there are uncommitted changes, propose the full flow. Treat missing Jira context as optional by default: run provider resolution when there is enough signal, otherwise state that Jira will be omitted unless the user requires it. Never infer a default Jira provider.
 
 ## Workflow
 
@@ -108,7 +112,7 @@ If the user asks simply to create a PR and there are uncommitted changes, propos
 
 Load `references/github-pr-flow.md` for commands. Inspect branch, working tree, remotes, and repository default branch.
 
-When Jira may be relevant, resolve `<jira-scribe-skill-dir>` to the directory containing `krt-jira-scribe`'s `SKILL.md` and run `python3 <jira-scribe-skill-dir>/scripts/check_jira_env.py --root <repo-root>` before deciding that Jira is available, omitted, or blocked. Use the checker's diagnosis in the release plan instead of hand-waving about "missing env vars".
+When Jira may be relevant, run `python3 <release-marshal-skill-dir>/scripts/resolve_jira_provider.py --root <repo-root>` plus `--provider` or `--jira-url` when supplied. Resolution order is explicit provider, URL, then exactly one ready provider. If both are ready, neither is ready, or explicit input conflicts with the URL, report ambiguity/unresolved state; never choose a default. Preserve the resolved `jira_provider` in the plan and all handoffs.
 
 When the release may produce stacked PRs, use `python3 <release-marshal-skill-dir>/scripts/check_stack_choreography.py ...` to validate the plan before remote mutations. At minimum, use it to verify that any squash-merge parent PR has an explicit downstream refresh plan, and rerun it after parent merge before continuing child merge work or deleting the parent branch.
 
@@ -134,7 +138,8 @@ Build and show a phase plan in the user's language. The visible message should r
 - Commits:
 - Jira:
 - Guardarraíl de alcance:
-- Push/PR:
+- Push exacto: `<exact push command or none>`
+- PR:
 - Reviewers:
 - Merge:
 - Mutaciones remotas cubiertas por esta aprobación:
@@ -143,7 +148,7 @@ Build and show a phase plan in the user's language. The visible message should r
 ¿Apruebas este plan de release?
 ```
 
-Adapt the labels when another short shape is clearer, but keep the same idea: summarize the release decision, not the tool choreography. Use exact branch names and concrete Jira/PR intent when known, but do not force every internal phase or command into the visible plan. Summarize checker/script outcomes in plain language instead of pasting raw diagnostics. In manual/guarded flow, make clear that merge is not part of this step and that the PR will wait for human review plus later merge authorization. In autonomous flow, summarize merge posture in one sentence instead of dumping validator details unless the user needs them. If a value is not known yet, say what local read-only step will resolve it inside the accepted plan.
+Adapt the labels when another short shape is clearer, but keep the same idea: summarize the release decision, not the tool choreography. The push is the exception: show the exact push command so approval binds remote, branch/refspec, and first-push versus force-with-lease mode. Use exact branch names and concrete Jira/PR intent when known. Summarize checker/script outcomes in plain language instead of pasting raw diagnostics. In manual/guarded flow, make clear that merge is not part of this step and that the PR will wait for human review plus later merge authorization. In autonomous flow, summarize merge posture in one sentence instead of dumping validator details unless the user needs them. If a value is not known yet, say what local read-only step will resolve it inside the accepted plan.
 When a PR comment is in scope, add the target PR and the exact English comment text to the visible plan. Approval covers only that target and text; present any later edit as a new external mutation.
 When commit work is needed, the visible plan should include the proposed commit messages plus the main files or surfaces for each commit. Do not summarize commits as just "necesarios" or "uno o varios commits"; show the intended grouping when it can be inferred safely.
 When branch work is needed, the visible plan should include the proposed branch name. Prefer semantic branch names derived from the shipped capability, not from work-package labels, review-unit numbering, or planning traceability.
@@ -247,24 +252,24 @@ If there are staged/unstaged changes or the current branch is protected/off-conv
 
 ### 3. Rebase Phase
 
-Unless the user explicitly skips history cleanup, load and follow `krt-rebase-smith`. Resolve target/base from current context when unambiguous. Use `rebase --onto` when the branch was derived from another feature branch whose commits should be dropped. Ask before any `--force-with-lease`.
+Unless the user explicitly skips history cleanup, load and follow `krt-rebase-smith`. Resolve target/base from current context when unambiguous. Use `rebase --onto` when the branch was derived from another feature branch whose commits should be dropped. The accepted plan may satisfy Rebase Smith's push gate only when it included the exact push command that remains unchanged.
 
 ### 4. Jira Phase
 
-If Jira context was provided, keep it, but do not treat it as execution-ready until the checkout-local `jira-scribe.env` readiness check passes.
+If Jira context was provided, keep its URL and `jira_provider`, but do not treat it as execution-ready until the provider resolver selects one provider and that provider's checkout-local readiness check passes.
 
 If `jira-policy:skip`, omit Jira lookup, creation, backlinking, and transition.
 
-If Jira context is missing and Jira should be included, first run `python3 <jira-scribe-skill-dir>/scripts/check_jira_env.py --root <repo-root>`. If it reports `ok: false`, treat the result as a Jira readiness diagnosis, not as permission to guess. With `jira-policy:optional`, surface the exact diagnosis in the plan and continue without Jira after plan approval. With `jira-policy:required`, stop and ask whether to continue without Jira. If the checker reports `ok: true`, load and follow `krt-jira-scribe`. When the shell is not already preloaded, run Jira verification and Jira API commands via `python3 <jira-scribe-skill-dir>/scripts/run_with_jira_env.py --root <repo-root> -- <command ...>`. Use Jira Server/Data Center only. For PRs that look like a review unit inside a larger delivery sequence, prefer finding or creating a parent task plus subtasks only when there are two or more likely child tasks. Never propose a single parent task with a single child subtask; use one standalone `Tarea` for that case and attach PR backlink/transition to it. Before proposing creation, derive Spanish Jira text:
+Resolve Jira with `scripts/resolve_jira_provider.py`. Use `krt-jira-cloud-scribe` only for `jira_provider=cloud` and `krt-jira-scribe` only for `jira_provider=server-datacenter`. Run API commands through the selected provider's `run_with_jira_env.py`. If resolution or readiness reports `ok: false`, treat the exact result as a diagnosis, not permission to guess or switch providers. With `jira-policy:optional`, surface it and continue without Jira after plan approval. With `jira-policy:required`, stop and ask whether to continue without Jira. For PRs that look like a review unit inside a larger delivery sequence, prefer finding or creating a parent task plus subtasks only when there are two or more likely child tasks. Never propose a single parent task with a single child subtask; use one standalone `Tarea` for that case and attach PR backlink/transition to it. Before proposing creation, derive Spanish Jira text:
 
 - Summary: concise Spanish action phrase, no branch prefixes, no Conventional Commit type, no Jira key, no Compound Master IDs, and no package/date numbers.
 - Description: 1-3 concise Spanish sentences explaining what must be done and why.
 - If an enclosing workflow supplied English suggested Jira text, translate it to Spanish while preserving the intended scope.
 - If the work domain contains unavoidable English product/API names, keep those terms but write the surrounding title and description in Spanish.
 
-Pass the Spanish summary and description explicitly to `krt-jira-scribe`. When looking for an existing Jira task/subtask to associate with commits, branch work, or PRs, prefer only issues in open or in-progress statuses; treat done/closed-like matches as historical context, not default reuse candidates. Create or reuse Jira issues only after confirmation. Capture the immediately relevant Jira URL for the PR body: the subtask when a real multi-child parent exists, otherwise the standalone task.
+Pass the Spanish summary, description, and `jira_provider` explicitly to the selected Jira provider skill. When looking for an existing Jira task/subtask to associate with commits, branch work, or PRs, prefer only issues in open or in-progress statuses; treat done/closed-like matches as historical context, not default reuse candidates. Create or reuse Jira issues only after confirmation. Capture the immediately relevant Jira URL for the PR body: the subtask when a real multi-child parent exists, otherwise the standalone task.
 
-If the Jira readiness checker reports missing runtime vars, missing `.krt/env/jira-scribe.env`, "env file exists but was not loaded", or any other `ok: false` diagnosis, stop the Jira phase and ask whether to continue PR creation without Jira links only when `jira-policy:required`. With `jira-policy:optional`, record the exact diagnosis, omit Jira links/backlinks/transitions in the plan, and continue after the normal release-plan approval.
+If provider resolution or the selected readiness checker reports any `ok: false` diagnosis, stop the Jira phase and ask whether to continue PR creation without Jira links only when `jira-policy:required`. With `jira-policy:optional`, record the exact diagnosis, omit Jira links/backlinks/transitions in the plan, and continue after the normal release-plan approval.
 
 ### 5. PR Preparation
 
@@ -288,7 +293,7 @@ Before push or PR creation/update, show a concise user-facing PR proposal in the
 - Estado:
 - Alcance:
 - Archivos o superficies clave:
-- Push:
+- Push exacto:
 - Jira:
 - Reviewers:
 ```
@@ -300,7 +305,7 @@ Then show:
 - ...
 ```
 
-Keep this proposal editorial and review-oriented. Summarize the push mode instead of dumping every command unless a rewritten push needs explicit approval. Summarize PR body validation as a short confidence note such as "cuerpo validado" or "ajusté el cuerpo para cumplir el formato", not raw checker output, unless the checker is failing and the failure itself needs discussion. If Jira backlinking or transition will happen automatically after PR creation, mention that briefly in the proposal only when it affects the user's approval decision.
+Keep this proposal editorial and review-oriented, but always show the exact push command. Summarize PR body validation as a short confidence note such as "cuerpo validado" or "ajusté el cuerpo para cumplir el formato", not raw checker output, unless the checker is failing and the failure itself needs discussion. If Jira backlinking or transition will happen automatically after PR creation, mention that briefly in the proposal only when it affects the user's approval decision.
 When there are multiple PRs in scope, emit one `PR1` / `PR2` / `PR3` block per branch instead of one merged proposal, and add a short `Estado local:` section above them with the current stack/base relationships and any non-blocking validation warnings. Keep the block labels stable so users can approve "abre las dos PR" against a concrete structure.
 If the current branch name includes planning/review-unit identifiers or otherwise reads like traceability instead of capability, treat that as branch hygiene debt. When the branch has not been pushed yet, propose a semantic rename in the visible plan. When it has already been pushed, call out the mismatch in the plan and ask before renaming.
 For semantic renames, prefer the primary user-visible or architectural capability in the slug, for example `feat/drive-watch-renewal` over `feat/wp3-watch`, or `fix/release-plan-jira-backlink` over `fix/ru2-jira`.
@@ -308,7 +313,7 @@ Ask for approval before the next remote mutation.
 
 ### 6. Push And Create PR
 
-After approval, push if needed and create the PR with `gh`. Use a temporary body file rather than passing long body text inline.
+After approval, push only if the exact push command still matches the accepted plan, then create the PR with `gh`. If remote, branch/refspec, or push mode changed, present the new exact command and obtain fresh approval. Use a temporary body file rather than passing long body text inline.
 
 If an open PR already exists for the branch, stop and ask whether to view/update it instead of creating a duplicate.
 
@@ -343,9 +348,9 @@ Show the target PR and exact comment text before posting. Do not ask again when 
 
 After PR creation, return PR number, URL, base branch, head branch, Jira link if included, draft/ready state, and the comment URL when a PR comment was posted.
 
-If Jira context was included, the PR is ready for review, and the approved plan included Jira PR backlinking, use `krt-jira-scribe` to add the PR URL back to the associated Jira issue without asking again in manual/guarded flow. When the PR groups several review units, add the backlink to every covered review-unit subtask, not just one. In autonomous flow, call the mutation executor with the Jira Scribe backlink validator; Jira Scribe supplies validation/API guidance, but Release Marshal owns the audited mutation. For a grouped PR whose subtasks should inherit completion from the parent, also remote-link the grouped PR to the shared parent so the parent is autonomously completable. Prefer a Jira remote link only. If the issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic backlinking, ask or report the deferred action instead of updating Jira silently.
+If Jira context was included, the PR is ready for review, and the approved plan included Jira PR backlinking, use the resolved Jira provider skill to add the PR URL back to the associated Jira issue without asking again in manual/guarded flow. When the PR groups several review units, add the backlink to every covered review-unit subtask, not just one. In autonomous flow, call the mutation executor with `--jira-provider <jira_provider>` so it selects the matching provider validator. For a grouped PR whose subtasks should inherit completion from the parent, also remote-link the grouped PR to the shared parent so the parent is autonomously completable. Prefer a Jira remote link only. If the provider or issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic backlinking, ask or report the deferred action instead of updating Jira silently.
 
-If Jira context was included, the PR is ready for review, and the approved plan included review transition, use `krt-jira-scribe` to inspect real transitions and move the associated Jira issue to `En Revisión` without asking again in manual/guarded flow. When the PR groups several review units, transition every covered review-unit subtask. In autonomous flow, call the mutation executor with the Jira Scribe transition validator. If `En Revisión` is unavailable, the issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic transition, ask before transitioning.
+If Jira context was included, the PR is ready for review, and the approved plan included review transition, use the resolved Jira provider skill to inspect real transitions and move the associated Jira issue to `En Revisión` without asking again in manual/guarded flow. When the PR groups several review units, transition every covered review-unit subtask. In autonomous flow, call the mutation executor with `--jira-provider <jira_provider>`. If `En Revisión` is unavailable, provider or issue key is ambiguous, the PR is still draft, or the approved plan did not include automatic transition, ask before transitioning.
 
 ## PR-Only Mode
 

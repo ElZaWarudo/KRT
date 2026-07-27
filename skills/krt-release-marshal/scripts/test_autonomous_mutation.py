@@ -53,6 +53,37 @@ def run_executor(audit_dir: Path, state_file: str, *extra: str) -> tuple[int, di
     return completed.returncode, json.loads(completed.stdout)
 
 
+def run_jira_backlink(audit_dir: Path, provider: str, *extra: str) -> tuple[int, dict]:
+    fixture = ROOT.parents[1] / (
+        "krt-jira-cloud-scribe" if provider == "cloud" else "krt-jira-scribe"
+    ) / "scripts" / "fixtures" / "jira-autonomy" / "binding_existing.json"
+    cmd = [
+        sys.executable,
+        str(EXECUTOR),
+        "--ledger",
+        str(LEDGER),
+        "--mutation-class",
+        "jira_backlink",
+        "--jira-provider",
+        provider,
+        "--target",
+        "jira_project=KRT",
+        "--target",
+        "jira_key=KRT-42",
+        "--target",
+        "pr_url=https://github.com/acme/widgets/pull/42",
+        "--state-file",
+        str(fixture),
+        "--audit-dir",
+        str(audit_dir),
+        "--now",
+        NOW,
+        *extra,
+    ]
+    completed = subprocess.run(cmd, text=True, capture_output=True, check=False)
+    return completed.returncode, json.loads(completed.stdout)
+
+
 class AutonomousMutationTest(unittest.TestCase):
     def test_dry_run_records_audit_events(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -111,6 +142,72 @@ class AutonomousMutationTest(unittest.TestCase):
             code, second = run_executor(Path(tmp), "merge_allowed.json")
             self.assertNotEqual(code, 0)
             self.assertIn("audit-chain-mismatch", second["block_reasons"])
+
+    def test_jira_mutation_requires_provider(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            cmd = [
+                sys.executable,
+                str(EXECUTOR),
+                "--ledger",
+                str(LEDGER),
+                "--mutation-class",
+                "jira_backlink",
+                "--target",
+                "jira_project=KRT",
+                "--target",
+                "jira_key=KRT-42",
+                "--target",
+                "pr_url=https://github.com/acme/widgets/pull/42",
+                "--state-file",
+                str(ROOT.parents[1] / "krt-jira-scribe" / "scripts" / "fixtures" / "jira-autonomy" / "binding_existing.json"),
+                "--audit-dir",
+                str(tmp),
+                "--now",
+                NOW,
+            ]
+            completed = subprocess.run(cmd, text=True, capture_output=True, check=False)
+            result = json.loads(completed.stdout)
+            self.assertNotEqual(completed.returncode, 0)
+            self.assertIn("jira-provider-required", result["block_reasons"])
+
+    def test_jira_cloud_backlink_uses_cloud_validator(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            code, result = run_jira_backlink(Path(tmp), "cloud")
+            self.assertEqual(code, 0, result)
+            self.assertTrue(result["allowed"])
+            self.assertEqual(result["live_state_summary"]["jira_provider"], "cloud")
+            self.assertEqual(result["live_state_summary"]["validator_skill"], "krt-jira-cloud-scribe")
+
+    def test_jira_server_backlink_uses_server_validator(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            code, result = run_jira_backlink(Path(tmp), "server-datacenter")
+            self.assertEqual(code, 0, result)
+            self.assertTrue(result["allowed"])
+            self.assertEqual(result["live_state_summary"]["jira_provider"], "server-datacenter")
+            self.assertEqual(result["live_state_summary"]["validator_skill"], "krt-jira-scribe")
+
+    def test_jira_provider_target_mismatch_blocks(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            code, result = run_jira_backlink(
+                Path(tmp),
+                "cloud",
+                "--target",
+                "jira_provider=server-datacenter",
+            )
+            self.assertNotEqual(code, 0)
+            self.assertIn("jira-provider-target-mismatch", result["block_reasons"])
+
+
+class ReleaseRoutingContractTest(unittest.TestCase):
+    def test_release_propagates_jira_provider_and_exact_push_authority(self) -> None:
+        skill = (ROOT.parent / "SKILL.md").read_text(encoding="utf-8")
+        rebase = (ROOT.parents[1] / "krt-rebase-smith" / "SKILL.md").read_text(encoding="utf-8")
+        self.assertIn("jira-provider:cloud|server-datacenter|none", skill)
+        self.assertIn("jira_provider", skill)
+        self.assertIn("exact push command", skill)
+        self.assertIn("accepted `krt-release-marshal` plan", rebase)
+        self.assertIn("exact push command", rebase)
+        self.assertIn("git push -u origin <target>", rebase)
 
 
 if __name__ == "__main__":

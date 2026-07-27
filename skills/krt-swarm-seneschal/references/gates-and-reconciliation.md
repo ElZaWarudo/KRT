@@ -27,13 +27,13 @@ For each unit:
 
 5. **State gate**
    - Queue status, branch/base facts, blockers, verification evidence, and downstream-fix notes are current.
-   - Jira Cloud issue/subtask state, when relevant, is reconciled through `krt-jira-cloud-scribe`.
+   - Jira issue/subtask state, when relevant, is reconciled through the selected Jira provider skill.
    - Non-fatal blockers are recorded in `docs/swarm/blockers.yaml`.
 
 6. **Release handoff gate**
    - `krt-release-marshal` receives the completed unit context.
    - The swarm seneschal does not commit, push, open PRs, mutate Jira, request reviewers, or merge unless routed through the release skill and a manual approval or autonomy ledger permits it.
-   - Jira handoff context must name whether it is Jira Cloud or Server/Data Center. Default is Jira Cloud with `krt-jira-cloud-scribe`.
+   - Jira handoff context must name `jira_provider` as `cloud`, `server-datacenter`, or `none`. There is no default provider.
 
 ## Reconciliation Checklist
 
@@ -85,7 +85,7 @@ Intended base: <branch>
 PR grouping: standalone | grouped | stacked
 Covered units: <ids>
 Jira policy: required | optional | skip
-Jira mode: cloud | server-datacenter | none
+jira_provider: cloud | server-datacenter | none
 Suggested PR title: <semantic title>
 Suggested PR body bullets:
 - <user-facing change>
@@ -105,7 +105,7 @@ Suggested Jira transition:
 
 Pass this to `krt-release-marshal`. Do not include internal queue mechanics in public PR copy unless repo convention requires it.
 
-When `Jira mode: cloud`, include that Jira lookup, issue/subtask mapping, and readiness came from `krt-jira-cloud-scribe`. Do not silently downgrade to `krt-jira-scribe`. Suggested Jira transitions are context only; Release Marshal and Jira Cloud Scribe own confirmed or ledger-covered execution.
+Include the resolved `jira_provider` and matching skill in every handoff. Do not silently switch providers. Suggested Jira transitions are context only; Release Marshal and the selected Jira provider skill own confirmed or ledger-covered execution.
 
 ## Closeout Shape
 

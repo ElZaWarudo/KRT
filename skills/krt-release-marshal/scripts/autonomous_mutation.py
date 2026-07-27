@@ -29,12 +29,29 @@ VALIDATOR_REGISTRY = {
     "pr_merge": SCRIPT_DIR / "check_merge_eligibility.py",
     "pr_merge_queue": SCRIPT_DIR / "check_merge_eligibility.py",
     "pr_auto_merge": SCRIPT_DIR / "check_merge_eligibility.py",
-    "jira_create": SKILLS_DIR / "krt-jira-scribe" / "scripts" / "check_jira_issue_mutation.py",
-    "jira_update": SKILLS_DIR / "krt-jira-scribe" / "scripts" / "check_jira_issue_mutation.py",
-    "jira_backlink": SKILLS_DIR / "krt-jira-scribe" / "scripts" / "check_jira_binding.py",
-    "jira_transition_review": SKILLS_DIR / "krt-jira-scribe" / "scripts" / "check_jira_transition.py",
-    "jira_transition_done": SKILLS_DIR / "krt-jira-scribe" / "scripts" / "check_jira_transition.py",
 }
+
+JIRA_VALIDATOR_NAMES = {
+    "jira_create": "check_jira_issue_mutation.py",
+    "jira_update": "check_jira_issue_mutation.py",
+    "jira_backlink": "check_jira_binding.py",
+    "jira_transition_review": "check_jira_transition.py",
+    "jira_transition_done": "check_jira_transition.py",
+}
+
+JIRA_PROVIDER_SKILLS = {
+    "cloud": "krt-jira-cloud-scribe",
+    "server-datacenter": "krt-jira-scribe",
+}
+
+
+def resolve_validator(mutation_class: str, jira_provider: str | None) -> Path | None:
+    validator_name = JIRA_VALIDATOR_NAMES.get(mutation_class)
+    if validator_name is None:
+        return VALIDATOR_REGISTRY.get(mutation_class)
+    if jira_provider not in JIRA_PROVIDER_SKILLS:
+        return None
+    return SKILLS_DIR / JIRA_PROVIDER_SKILLS[jira_provider] / "scripts" / validator_name
 
 
 def sha256_file(path: Path | None) -> str | None:
@@ -79,6 +96,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ledger", required=True)
     parser.add_argument("--mutation-class", required=True)
+    parser.add_argument("--jira-provider", choices=tuple(JIRA_PROVIDER_SKILLS))
     parser.add_argument("--target", action="append", default=[])
     parser.add_argument("--payload-file")
     parser.add_argument("--state-file", help="Live-state JSON fixture or fetched state for the class validator")
@@ -91,14 +109,22 @@ def main() -> int:
     parser.add_argument("--now")
     args = parser.parse_args()
 
+    reasons: list[str] = []
     targets = parse_targets(args.target)
+    if args.jira_provider:
+        target_provider = targets.get("jira_provider")
+        if target_provider and target_provider != args.jira_provider:
+            reasons.append("jira-provider-target-mismatch")
+        targets["jira_provider"] = args.jira_provider
     payload_path = Path(args.payload_file) if args.payload_file else None
     payload_digest = sha256_file(payload_path)
-    reasons: list[str] = []
-    validator_path = VALIDATOR_REGISTRY.get(args.mutation_class)
-    if validator_path is None:
+    is_jira_mutation = args.mutation_class in JIRA_VALIDATOR_NAMES
+    if is_jira_mutation and not args.jira_provider:
+        reasons.append("jira-provider-required")
+    validator_path = resolve_validator(args.mutation_class, args.jira_provider)
+    if validator_path is None and not is_jira_mutation:
         reasons.append(f"unknown-mutation-class:{args.mutation_class}")
-    elif not validator_path.exists():
+    elif validator_path is not None and not validator_path.exists():
         reasons.append(f"validator-missing:{validator_path}")
     if not args.state_file:
         reasons.append("state-file-required")
@@ -159,6 +185,7 @@ def main() -> int:
         "contract_id": ledger_result.get("contract_id") or ledger_json.get("contract_id"),
         "mutation_class": args.mutation_class,
         "target": targets,
+        "jira_provider": args.jira_provider,
         "payload_hash": payload_digest,
         "ledger_result": ledger_result,
         "validator_result": validator_result,
@@ -201,6 +228,8 @@ def main() -> int:
             "ledger_allowed": ledger_result.get("allowed", False),
             "validator_allowed": validator_result.get("allowed", False),
             "execution_mode": execution_mode,
+            "jira_provider": args.jira_provider,
+            "validator_skill": JIRA_PROVIDER_SKILLS.get(args.jira_provider),
         },
         "audit_required": True,
         "audit": {

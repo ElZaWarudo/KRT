@@ -137,7 +137,7 @@ Before selecting every wave:
 - Include Jira key, unit ID, wave, title, suggested owner, and next action.
 - Identify high-risk blockers.
 - Identify which decisions would unblock the most units.
-- Avoid direct Jira mutation. Manual flow routes confirmed mutations through `krt-jira-cloud-scribe`; autonomous flow routes ledger-covered mutations through `krt-jira-cloud-scribe`.
+- Avoid direct Jira mutation. Manual flow routes confirmed mutations through the selected Jira provider skill; autonomous flow routes ledger-covered mutations through that same selected skill.
 
 Review output shape:
 
@@ -160,7 +160,7 @@ Best unlocks:
 - Records the decision, resolver, and date.
 - Sets status to `answered` or `resolved` as appropriate.
 - Marks affected units as candidates for readiness check in `docs/swarm/queue-state.yaml`.
-- Does not update Jira, comment, transition, or backlink directly. Manual flow requires confirmation through `krt-jira-cloud-scribe`; autonomous flow requires ledger coverage through `krt-jira-cloud-scribe`.
+- Does not update Jira, comment, transition, or backlink directly. Manual flow requires confirmation through the selected Jira provider skill; autonomous flow requires ledger coverage through that same selected skill.
 
 Resolution entry:
 

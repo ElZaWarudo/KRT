@@ -23,6 +23,7 @@ The executor requires:
 - Exact target identifiers.
 - Payload file or payload hash when the mutation has text/body/ref content.
 - Class-specific live-state file or fetched JSON state.
+- Resolved `jira_provider` for every Jira mutation; pass it with `--jira-provider` and preserve it in the audited target.
 - Owning validator resolved from the registry. Caller-supplied validator paths are not allowed for autonomous execution.
 - Audit directory.
 - Explicit execution flag, trusted expected contract hash, registered execution template, and enforcement confirmation for real side effects.

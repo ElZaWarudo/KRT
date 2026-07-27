@@ -23,7 +23,7 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
 2. **Executable queue**
    - `docs/work-packages/**`
    - GitHub Issues, Linear issues, or `backlog.yaml`
-   - Jira Cloud issues/subtasks when running `jira-team-flow`
+   - Jira issues/subtasks from the resolved provider when running `jira-team-flow`
    - each unit must have scope, non-goals, acceptance criteria, dependencies, and verification commands
 
 3. **Dispatcher**
@@ -45,7 +45,7 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
    - security review when required
    - CI break-prevention evidence
    - release handoff
-   - Jira Cloud reconciliation through `krt-jira-cloud-scribe` when Jira is part of the queue or release trace
+   - Jira reconciliation through the selected Jira provider skill when Jira is part of the queue or release trace
 
 ## Non-Negotiables
 
@@ -55,7 +55,7 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
 - No worker performs release actions.
 - No dispatcher creates a deeper stack than humans can review.
 - No backlog item enters the queue until it is written as a contract of work.
-- No Jira operation uses `krt-jira-scribe` unless the user explicitly identifies the target as Jira Server/Data Center. For Jira Cloud, use `krt-jira-cloud-scribe`.
+- No Jira operation runs until `jira_provider` is resolved; use the matching provider skill without fallback to its sibling.
 - No worker question stops the whole swarm when it can be recorded as a non-fatal blocker and independent work remains.
 - No-confirmation requests become ledger-bound autonomous runs. The swarm should not ask during the run; it should execute covered actions, defer uncovered/risky units, and continue independent work.
 
@@ -63,7 +63,7 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
 
 - `krt-compound-master` remains the artifact and quality pipeline.
 - `krt-release-marshal` remains the release mutation owner.
-- `krt-jira-cloud-scribe` is the default Jira integration role for Cloud issue lookup, readiness, subtask mapping, and handoff context.
+- Jira adapters remain separate: `cloud` selects `krt-jira-cloud-scribe`; `server-datacenter` selects `krt-jira-scribe`.
 - `krt-review-herald`, `krt-security-sentinel`, and `krt-ci-questor` remain specialists used when their gates are triggered.
 - This skill coordinates when and how those roles are invoked across multiple units.
 
@@ -84,7 +84,7 @@ Do not skip straight to high concurrency. Increase concurrency only after repeat
 
 ## Jira Team Flow
 
-When Jira Cloud is the backlog source, load `jira-team-flow.md`. The seneschal may seed or read the backlog, maintain `docs/swarm/queue-state.yaml`, maintain `docs/swarm/blockers.yaml`, select safe waves, and prepare release handoff packets.
+When Jira is the backlog source, resolve its provider and load `jira-team-flow.md`. The seneschal may seed or read the backlog through the selected Jira provider skill, maintain `docs/swarm/queue-state.yaml`, maintain `docs/swarm/blockers.yaml`, select safe waves, and prepare release handoff packets.
 
 It must not directly create/update Jira issues, comment, transition, backlink, commit, push, open PRs, request reviewers, or merge. It hands the packet to the owning skill with manual approval or ledger authority.
 

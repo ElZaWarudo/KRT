@@ -18,6 +18,7 @@ Arguments:
 [initiative/docs] [mode:artifacts|execute|full|resume] [package:<path>] [review-unit:<RU#>]
 [pr-granularity:auto|review-unit|work-package|roadmap-item|plan-unit]
 [jira-policy:required|optional|skip] [production:unknown|live|preprod|prototype]
+[jira-provider:auto|cloud|server-datacenter|none]
 [parallel:true|false] [delegation:auto|ask|inline] [worktree-policy:avoid|auto|required]
 [autonomy:manual|guarded|high] [autonomous-ledger:<path>] [review-threshold:P0-P2|P0-P1|P0]
 [subagent-model:<runtime-specific-model>]
@@ -72,7 +73,7 @@ Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md
 - Do not produce artifacts or PRs faster than their verifying gate can close them. Every brainstorm, plan, work package, and PR must pass its review/verification gate before the next one is built on top of it; this generalizes the open-stack cap to all phases, not just stacked PRs.
 - Do not let work roles ship. Internal review, Security Sentinel, CI evidence, and release-plan acceptance are readiness signals only, not merge authorization.
 - `autonomy:high` without an active ledger is local autonomy only; it never authorizes PR, branch, reviewer, Jira, or merge side effects.
-- Trust bundled checkers over assumptions. If a checker reports a result, act on it and diagnose the real failure; never ask for Jira credentials.
+- Trust bundled checkers over assumptions. Resolve Jira provider from explicit input, Jira URL, or unique readiness through `krt-release-marshal`; never default silently to Cloud or Server/Data Center. If a checker reports a result, act on it and diagnose the real failure; never ask for Jira credentials.
 - With default optional Jira, attempt Jira when context/config exists; otherwise record the omitted handoff. Ask only for required Jira, ambiguous Jira mutation, or release-plan approval naming the action/fallback.
 
 ## Stop Discipline

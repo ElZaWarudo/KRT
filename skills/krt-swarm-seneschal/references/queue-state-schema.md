@@ -6,7 +6,7 @@ Use this reference for `docs/swarm/queue-state.yaml`.
 
 The queue state file is Seneschal's persistent local memory for the documentation gate, Jira issue mapping, executable units, wave history, verification, and release handoff facts.
 
-It is not live Jira authority. Re-fetch Jira Cloud through `krt-jira-cloud-scribe` before seed execution, release handoff, backlinks, comments, or transitions.
+It is not live Jira authority. Re-fetch Jira through the selected Jira provider skill before seed execution, release handoff, backlinks, comments, or transitions.
 
 ## Default Path
 
@@ -36,8 +36,16 @@ documentation_gate:
 autonomy:
   mode: manual
   ledger_path: null
+  resume_snapshot:
+    authority: false
+    schema_version: 1
+    contract_id: null
+    contract_status: null
+    contract_hash: null
+    latest_audit_event: null
+    captured_at: null
 jira:
-  mode: cloud
+  provider: null
   project_key: null
   base_url: null
   last_read_at: null
@@ -141,7 +149,7 @@ Do not create real Jira keys, executable `running` units, implementation wave hi
 - Prefer one Jira subtask per worker.
 - Standalone Jira issues are allowed when hierarchy would be artificial.
 - Preserve historical handoff verification facts when live Jira status changes.
-- Replace provisional Jira IDs only after `krt-jira-cloud-scribe` confirms creation or reuse.
+- Replace provisional Jira IDs only after the selected Jira provider skill confirms creation or reuse.
 
 ## Read Before Wave Selection
 
@@ -150,8 +158,8 @@ Before every wave, read:
 - `docs/swarm/queue-state.yaml`
 - `documentation_gate.status` from queue state
 - `docs/swarm/blockers.yaml`
-- `docs/orchestration/autonomy-ledgers/<run>.yaml` when autonomous flow is active
-- live Jira Cloud issue state, when Jira is source
+- the canonical `docs/orchestration/autonomy-ledgers/<run>.json` when autonomous flow is active; validate it directly because `resume_snapshot` is not authority
+- live Jira issue state through the resolved provider skill, when Jira is source
 - current git branch/worktree state
 
 Then mark units with open blockers, dependencies on open blockers, or a non-approved documentation gate as ineligible for execution.
@@ -161,7 +169,7 @@ Then mark units with open blockers, dependencies on open blockers, or a non-appr
 Update queue state when:
 
 - Documentation packet is drafted, moved to review, revised, approved, or has feedback recorded.
-- Jira seed plan is proposed, confirmed, or executed by Jira Cloud Scribe.
+- Jira seed plan is proposed, confirmed, or executed by the selected Jira provider skill.
 - Jira issue keys are mapped or remapped.
 - A wave is planned, dispatched, reconciled, or closed.
 - A worker reports changed files, verification, branch facts, or blockers.

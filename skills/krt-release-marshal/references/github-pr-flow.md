@@ -38,13 +38,13 @@ Check whether current branch exists on origin:
 git ls-remote --heads origin <current-branch>
 ```
 
-If it does not exist, summarize in the visible release plan that the branch will be published on origin:
+If it does not exist, show this exact push command in the visible release plan:
 
 ```bash
 git push -u origin <current-branch>
 ```
 
-In autonomous mode, do not run this command directly. Pass the exact push operation through `scripts/autonomous_mutation.py` with mutation class `branch_push`, state file, expected old/new SHAs, and enforcement confirmation. If no registered execution template is available, report validation-only/manual-required.
+In manual/guarded mode, run it only after the user approves this exact command. An accepted Release Marshal plan is reusable authorization only while remote, branch/refspec, and push mode remain unchanged. In autonomous mode, do not run this command directly. Pass the exact push operation through `scripts/autonomous_mutation.py` with mutation class `branch_push`, state file, expected old/new SHAs, and enforcement confirmation. If no registered execution template is available, report validation-only/manual-required.
 
 If it exists, inspect ahead/behind:
 
@@ -52,7 +52,7 @@ If it exists, inspect ahead/behind:
 git status --porcelain=v1 -b
 ```
 
-If history was rewritten, summarize that a `--force-with-lease` push will be required and ask for explicit approval:
+If history was rewritten, show the exact `--force-with-lease` command and obtain approval unless the accepted Release Marshal plan already authorized that unchanged command:
 
 ```bash
 git push --force-with-lease origin <current-branch>
