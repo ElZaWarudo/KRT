@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://krt.local/schemas/visual-qa.schema.json",
+  "title": "KRT Word visual QA",
+  "type": "object",
+  "required": ["document", "render_report", "rendered_pages", "inspected_pages", "status", "findings"],
+  "properties": {
+    "document": {"type": "string", "minLength": 1},
+    "render_report": {"type": "string", "minLength": 1},
+    "rendered_pages": {"type": "integer", "minimum": 1},
+    "inspected_pages": {
+      "type": "array",
+      "items": {"type": "integer", "minimum": 1},
+      "uniqueItems": true
+    },
+    "status": {"enum": ["passed", "failed", "pending"]},
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["page", "severity", "description", "resolved"],
+        "properties": {
+          "page": {"type": "integer", "minimum": 1},
+          "severity": {"enum": ["blocking", "warning", "note"]},
+          "description": {"type": "string", "minLength": 1},
+          "resolved": {"type": "boolean"},
+          "correction": {"type": "string"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

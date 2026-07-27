@@ -1,0 +1,11 @@
+{
+  "templates": [
+    {
+      "file": "professional-report.docx",
+      "purpose": "Neutral A4 report base with semantic styles and page-number field",
+      "languages": ["any"],
+      "brand": "neutral"
+    }
+  ]
+}
+

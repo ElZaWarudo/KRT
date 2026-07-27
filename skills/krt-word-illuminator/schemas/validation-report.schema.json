@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://krt.local/schemas/validation-report.schema.json",
+  "title": "KRT Word validation report",
+  "type": "object",
+  "required": ["document", "valid", "errors", "warnings", "metrics"],
+  "properties": {
+    "document": {"type": "string"},
+    "valid": {"type": "boolean"},
+    "errors": {"type": "array", "items": {"type": "object"}},
+    "warnings": {"type": "array", "items": {"type": "object"}},
+    "metrics": {"type": "object"},
+    "visual_qa": {"type": ["object", "null"]},
+    "unverified_claims": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}
+
