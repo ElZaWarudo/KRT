@@ -14,6 +14,7 @@ Use this rubric to keep Repo Medic findings actionable.
 | Delivery | Branch, release, Jira, PR, and rollback expectations are explicit | Release steps live only in memory or old tickets |
 | Dependencies | Package managers and lockfiles are consistent; upgrade policy is visible | Unclear runtime versions, stale pinned dependencies, security unknowns |
 | Operability | Logs, env vars, service startup, and incident/runbook paths are findable | Production-like behavior cannot be diagnosed from repo context |
+| Skill portfolio | Canonical IDs, triggers, safety, scripts, tests/evals, and catalog entries agree | Routing overlap, metadata drift, missing negative/effect tests, unsafe or undocumented procedures |
 
 ## Severity
 
@@ -26,12 +27,15 @@ Use this rubric to keep Repo Medic findings actionable.
 
 Every finding needs:
 
+- a stable root-cause ID that remains unchanged while the underlying problem remains the same;
 - repo-relative evidence path or command observed;
 - why it matters now;
 - smallest useful next action;
 - confidence level.
 
 Suppress findings when evidence is weak and the recommendation would be vague.
+
+Do not duplicate one systemic root cause for every affected skill. Keep affected skill IDs on one finding and use the per-skill matrix for row-level evidence. On a repeated audit, assign `new`, `persistent`, `changed`, or `resolved` only from current evidence.
 
 ## Prioritization
 

@@ -102,6 +102,20 @@ Update durable docs:
 Use $krt:docs-chronicler to update docs and ADRs after this incident fix.
 ```
 
+## Skill Portfolio Quality
+
+Check structural, metadata, and safety wiring:
+
+```text
+Use $krt:skill-arbiter to validate this KRT skill portfolio.
+```
+
+Score supervisor-captured results without running a model:
+
+```text
+Use $krt:skill-arbiter to validate the corpus and score eval-results.json, preserving inconclusive cases.
+```
+
 ## Frontend Craft
 
 Audit an implemented workflow's interaction feel:

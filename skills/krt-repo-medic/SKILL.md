@@ -1,6 +1,6 @@
 ---
 name: krt-repo-medic
-description: Diagnose repository health and produce focused maintenance prescriptions. Use when a user asks for repo health checks, maintenance audits, stale docs, broken scripts, drift between docs and code, CI/test hygiene, onboarding friction, dependency risk, delivery bottlenecks, or "what should we clean up" analysis. Runtime aliases may expose this as krt:repo-medic.
+description: Diagnose repository and skill-portfolio health and produce focused maintenance prescriptions. Use for repo health checks, maintenance audits, stale docs, broken scripts, doc/code drift, CI/test hygiene, onboarding friction, dependency risk, delivery bottlenecks, skill catalog/metadata drift, routing overlap, missing safety wiring, weak skill tests/evals, or "what should we clean up" analysis. Runtime aliases may expose this as krt:repo-medic.
 ---
 
 # Repo Medic
@@ -13,6 +13,7 @@ It does not implement fixes by default. It may propose concrete patches only whe
 
 - Load `references/safety.md` before beginning the workflow.
 - Load `references/health-rubric.md` before scoring or prioritizing findings.
+- Load `references/skill-portfolio-profile.md` for repositories containing a portfolio of agent skills.
 - Load `references/source-literature.md` when explaining the reasoning model or when the user asks what the audit is based on.
 
 ## Workflow
@@ -24,6 +25,7 @@ Classify the visit:
 - **Quick check:** obvious drift, one area, or pre-PR confidence.
 - **Standard audit:** repo-wide health across docs, tests, scripts, dependencies, and delivery.
 - **Deep audit:** multi-service repo, repeated delivery pain, CI instability, stale onboarding, or release risk.
+- **Skill-portfolio audit:** inventory every skill, trigger/overlap, metadata, safety, tests/evals, docs, and maintenance status.
 
 Ask one blocking question only when the audit target is ambiguous enough to make findings misleading.
 
@@ -37,6 +39,13 @@ Use targeted local reads before broad exploration:
 - Inspect recent git history only when it helps identify churn, stale branches, or recurring failure surfaces.
 - Treat current code, tests, and executable config as stronger evidence than old prose.
 
+For a skill portfolio:
+
+- Build one matrix row per discovered skill using the portfolio profile.
+- Check canonical folder/frontmatter/autocomplete identity, description-based routing, negative triggers, references, scripts, safety loading, tests/evals, catalog rows, and overlap.
+- Consolidate repeated symptoms into one root-cause finding with a stable finding ID.
+- Do not create or update portfolio snapshots automatically. Current evidence and an explicitly requested report are sufficient for this profile.
+
 Do not run expensive tests or destructive commands unless the user asks. If a check would be useful but unsafe or slow, list it as a prescription.
 
 ### Step 3 - Diagnose
@@ -49,6 +58,8 @@ Use the rubric to classify findings:
 - **Cosmetic:** nice but not worth interrupting delivery.
 
 Each finding must include evidence, impact, confidence, and a recommended next action. Do not create a dumping ground of every imperfection.
+
+For repeated audits, retain a finding's stable ID while its root cause remains the same. Mark it `new`, `persistent`, `changed`, or `resolved` only after checking current evidence; do not infer state from an old report.
 
 ### Step 4 - Prescribe
 
@@ -72,6 +83,8 @@ Suggested follow-up:
 ```
 
 Prefer 3-7 findings. If there are more, group them by theme and recommend a roadmap/plan instead of overwhelming the user.
+
+For a skill-portfolio audit, include the complete per-skill matrix before the deduplicated finding register. The 3-7 preference applies to root-cause findings, not matrix rows.
 
 ## Guardrails
 

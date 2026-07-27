@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-skill-arbiter"
+  short_description: "Evaluate KRT skill routing and outcomes"
+  default_prompt: "Use krt-skill-arbiter to evaluate skill routing, safety, restart, fallback, and outcomes."

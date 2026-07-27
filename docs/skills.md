@@ -26,6 +26,7 @@ Formal skill IDs use lowercase hyphenated `krt-*` names. Some runtimes may expos
 | `$krt:jira-scribe` | `krt-jira-scribe` | Manage Jira Server/Data Center issues, subtasks, sprints, and transitions in Spanish. |
 | `$krt:jira-cloud-scribe` | `krt-jira-cloud-scribe` | Manage Jira Cloud issues, subtasks, sprints, and transitions in Spanish. |
 | `$krt:repo-medic` | `krt-repo-medic` | Diagnose repository health, stale docs, broken workflows, and maintenance risks. |
+| `$krt:skill-arbiter` | `krt-skill-arbiter` | Validate a KRT skill portfolio and score supervisor-captured routing, safety, restart, fallback, and outcome evaluations. |
 | `$krt:product-polish-council` | `krt-product-polish-council` | Audit an application across twelve product-polish dimensions and produce an evidence-based, prioritized backlog. |
 | `$krt:frontend-ux-guardian` | `krt-frontend-ux-guardian` | Guard frontend agents toward functional, accessible, responsive UX/UI and browser-verified workflows. |
 | `$krt:interface-inquisitor` | `krt-interface-inquisitor` | Produce evidence-based adversarial visual critiques and implementation-ready change briefs. |
@@ -51,6 +52,7 @@ Skills can bring their own references, templates, scripts, assets, or agent defi
 | `krt-interface-inquisitor` | Optional: `krt-frontend-ux-guardian` constraints and `krt-interface-warden` implementation | Works independently; optional handoffs keep visual criticism product-safe and directly actionable. |
 | `krt-interface-warden` | Optional: `krt-frontend-ux-guardian` constraints and `krt-interface-inquisitor` critique | Works independently; optional inputs help preserve task flow while implementing visual direction. |
 | `krt-interaction-polisher` | Optional: `krt-frontend-ux-guardian` constraints, `krt-interface-inquisitor` critique, and `krt-interface-warden` composition | Works independently; optional inputs keep interaction refinements functionally safe and visually coherent. |
+| `krt-skill-arbiter` | Any KRT skill portfolio; optionally `krt-repo-medic` for the diagnostic matrix | Validates corpus and portfolio contracts, then aggregates independently supervised results without executing models. |
 
 For Jira Server/Data Center flows, configure the active checkout's `.krt/env/jira-scribe.env`, load it into environment variables, and verify readiness with `check_jira_env.py` without printing `JIRA_API_TOKEN`, because secrets are not confetti.
 

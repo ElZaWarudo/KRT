@@ -23,6 +23,7 @@ Each skill owns the detailed guardrails closest to its procedure:
 | `krt-jira-cloud-scribe` | [`skills/krt-jira-cloud-scribe/references/safety.md`](../skills/krt-jira-cloud-scribe/references/safety.md) |
 | `krt-jira-scribe` | [`skills/krt-jira-scribe/references/safety.md`](../skills/krt-jira-scribe/references/safety.md) |
 | `krt-repo-medic` | [`skills/krt-repo-medic/references/safety.md`](../skills/krt-repo-medic/references/safety.md) |
+| `krt-skill-arbiter` | [`skills/krt-skill-arbiter/references/safety.md`](../skills/krt-skill-arbiter/references/safety.md) |
 
 ## Shared Rules
 

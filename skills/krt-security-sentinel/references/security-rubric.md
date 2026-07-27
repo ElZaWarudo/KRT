@@ -16,6 +16,11 @@ Use this rubric for focused work-package reviews and broader system diagnosis.
 | Runtime/Deploy | containers, Kubernetes/Helm values, RBAC, network exposure, probes, resource limits |
 | CI/CD | secrets in workflows, permissions, artifact exposure, untrusted PR execution, provenance |
 | Observability | security-relevant logs, audit trails, alertable events, sensitive log redaction |
+| Agent Instructions | trusted instruction boundary, prompt/goal hijacking, conflict handling, data-versus-authority separation |
+| Agent Tools | tool allowlists, argument validation, identity/scopes, approval checks, confused-deputy paths, external effects |
+| Context/Memory | untrusted propagation, retrieval provenance, memory poisoning, restart integrity, cross-user/tenant leakage |
+| Agent Control Loop | delegation boundaries, termination checks, retries, token/cost/time budgets, recursive or runaway loops |
+| Agent Egress | secret/PII exposure, destination constraints, message/tool exfiltration, indirect disclosure through artifacts |
 
 ## Slice Review Checklist
 
@@ -44,6 +49,14 @@ For whole-system diagnosis, inventory:
 - documented security assumptions and runbooks.
 
 Then prioritize by exploitable paths, not by checklist coverage.
+
+For agentic systems, additionally map:
+
+- which instructions are authoritative and where authority is verified;
+- every untrusted source: web, tickets, logs, documents, tools, messages, retrieved memory, and model output;
+- propagation from those sources into prompts, persistent memory, tool calls, delegates, and external messages;
+- identities, scopes, approvals, and budgets held outside model-controlled text;
+- stop, retry, restart, and handoff behavior under adversarial or malformed input.
 
 ## Finding Quality Bar
 
