@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -16,11 +17,11 @@ FIXTURES = ROOT / "fixtures" / "autonomy-ledgers"
 NOW = "2026-05-22T12:00:00Z"
 
 
-def run_check(fixture: str, *extra: str) -> tuple[int, dict]:
+def run_check_path(ledger: Path, *extra: str) -> tuple[int, dict]:
     cmd = [
         sys.executable,
         str(CHECK),
-        str(FIXTURES / fixture),
+        str(ledger),
         "--mutation-class",
         "pr_merge",
         "--target",
@@ -43,6 +44,10 @@ def run_check(fixture: str, *extra: str) -> tuple[int, dict]:
     ]
     completed = subprocess.run(cmd, text=True, capture_output=True, check=False)
     return completed.returncode, json.loads(completed.stdout)
+
+
+def run_check(fixture: str, *extra: str) -> tuple[int, dict]:
+    return run_check_path(FIXTURES / fixture, *extra)
 
 
 class AutonomyLedgerTest(unittest.TestCase):
@@ -116,6 +121,20 @@ class AutonomyLedgerTest(unittest.TestCase):
         code, result = run_check("unsupported-version.json")
         self.assertNotEqual(code, 0)
         self.assertIn("schema-error:unsupported-version:2", result["block_reasons"])
+
+    def test_boolean_schema_version_blocks(self) -> None:
+        ledger = json.loads((FIXTURES / "active.json").read_text(encoding="utf-8"))
+        ledger["schema_version"] = True
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "boolean-version.json"
+            path.write_text(json.dumps(ledger), encoding="utf-8")
+            code, result = run_check_path(path)
+
+        self.assertNotEqual(code, 0)
+        self.assertIn(
+            "schema-error:unsupported-version:True",
+            result["block_reasons"],
+        )
 
 
 class RuntimeRoleContractTest(unittest.TestCase):

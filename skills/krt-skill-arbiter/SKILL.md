@@ -11,14 +11,15 @@ Measure skill behavior without turning the evaluator into another opaque agent.
 
 - Load `references/safety.md` before handling prompts, outputs, traces, or tool logs.
 - Load `references/evaluation-contract.md` before preparing or scoring a run.
+- Treat `references/portfolio.json` as the explicit inventory and safety classification for every KRT skill.
 
 ## Workflow
 
-1. Run `scripts/check_corpus.py` against `references/cases.json` and `references/expectations.json`.
+1. Run `scripts/check_corpus.py` against `references/cases.json` and `references/expectations.json`; preserve its corpus version and digest in the run result.
 2. Give each routing case to the evaluated runtime without its expected skill. Give capability cases with their declared target skill.
 3. Keep expected behavior hidden until the runtime response is complete.
 4. Have a supervisor record exactly one `pass`, `fail`, or `inconclusive` result per observed case. Preserve evidence outside the status field.
-5. Run `scripts/score_run.py <results.json>` to aggregate the captured judgments. Do not convert inconclusive results into passes or failures.
+5. Run `scripts/score_run.py <results.json>` to verify corpus identity and aggregate the captured judgments. Do not convert inconclusive results into passes or failures.
 6. Run `scripts/check_portfolio.py --repo-root <repo>` after adding or modifying skills.
 
 Use the bundled scripts only as deterministic validators and aggregators. They do not invoke models, execute case content, or decide whether a response is correct.

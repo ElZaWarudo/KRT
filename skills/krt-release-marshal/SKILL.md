@@ -29,7 +29,7 @@ Use bundled scripts for mechanical guardrails when preparing a PR:
 - `<release-marshal-skill-dir>/scripts/check_pr_body.py --file <tmp-body-file>` before PR creation or update.
 - `<release-marshal-skill-dir>/scripts/resolve_jira_provider.py --root <repo-root> [--provider <auto|cloud|server-datacenter|none>] [--jira-url <url>]` before selecting a Jira skill.
 - Commit work is delegated to `krt-gitflow-knight`, which must run its deterministic `.krt/env/jira-scribe.env` ignore guard before planning and before each local commit.
-- Jira readiness belongs to the selected provider skill's checkout-local env contract. Treat Jira as ready only when the resolver selected one provider and that provider's checker reports `ok: true`.
+- Jira readiness belongs to the selected provider skill's checkout-local env contract. Treat Jira as ready only when the resolver selected one provider, that provider's checker reports `ok: true`, and any supplied Jira URL matches the configured origin, effective port, base path, and project.
 
 ## Mandatory Rules
 

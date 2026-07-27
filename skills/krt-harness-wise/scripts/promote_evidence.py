@@ -6,8 +6,9 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import secrets
+import stat
 import sys
-import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -16,6 +17,12 @@ from publication_safety import scan_publication
 
 
 SUMMARIES_DIR = Path("docs/harnesses/summaries")
+
+
+class PromotionValidationError(ValueError):
+    def __init__(self, errors: list[str]) -> None:
+        super().__init__("\n".join(errors))
+        self.errors = errors
 
 
 def failed(errors: list[str], paths: list[str]) -> dict[str, Any]:
@@ -28,26 +35,106 @@ def failed(errors: list[str], paths: list[str]) -> dict[str, Any]:
     }
 
 
-def write_atomic(destination: Path, content: bytes, overwrite: bool) -> None:
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    descriptor, temporary_name = tempfile.mkstemp(
-        prefix=f".{destination.name}.",
-        suffix=".tmp",
-        dir=destination.parent,
-    )
-    temporary = Path(temporary_name)
+def open_parent(root: Path, destination: Path) -> int:
+    relative_parent = destination.parent.relative_to(root)
+    flags = os.O_RDONLY | os.O_DIRECTORY
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    descriptor = os.open(root, flags)
     try:
-        with os.fdopen(descriptor, "wb") as handle:
+        for part in relative_parent.parts:
+            try:
+                os.mkdir(part, mode=0o755, dir_fd=descriptor)
+            except FileExistsError:
+                pass
+            child = os.open(part, flags, dir_fd=descriptor)
+            os.close(descriptor)
+            descriptor = child
+        return descriptor
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
+def write_atomic(
+    root: Path,
+    destination: Path,
+    content: bytes,
+    overwrite: bool,
+) -> dict[str, list[str]]:
+    parent = open_parent(root, destination)
+    temporary = f".{destination.name}.{secrets.token_hex(8)}.tmp"
+    flags = os.O_RDWR | os.O_CREAT | os.O_EXCL
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
+    created = False
+    try:
+        descriptor = os.open(
+            temporary,
+            flags,
+            0o600,
+            dir_fd=parent,
+        )
+        created = True
+        with os.fdopen(descriptor, "w+b") as handle:
             handle.write(content)
             handle.flush()
             os.fsync(handle.fileno())
+            handle.seek(0)
+            promoted = handle.read()
+
+        try:
+            decoded = promoted.decode("utf-8")
+        except UnicodeDecodeError as error:
+            raise PromotionValidationError(["destination-not-utf8"]) from error
+        rescan = scan_publication(decoded)
+        validation_errors: list[str] = []
+        if promoted != content:
+            validation_errors.append("destination-content-mismatch")
+        validation_errors.extend(
+            f"publication-safety:{code}" for code in rescan["blocking"]
+        )
+        if validation_errors:
+            raise PromotionValidationError(validation_errors)
+
+        try:
+            existing = os.stat(
+                destination.name,
+                dir_fd=parent,
+                follow_symlinks=False,
+            )
+        except FileNotFoundError:
+            existing = None
+        if existing is not None and stat.S_ISLNK(existing.st_mode):
+            raise PromotionValidationError(["destination-must-not-be-symlink"])
+
         if overwrite:
-            os.replace(temporary, destination)
+            os.replace(
+                temporary,
+                destination.name,
+                src_dir_fd=parent,
+                dst_dir_fd=parent,
+            )
+            created = False
         else:
-            os.link(temporary, destination)
-            temporary.unlink()
+            os.link(
+                temporary,
+                destination.name,
+                src_dir_fd=parent,
+                dst_dir_fd=parent,
+                follow_symlinks=False,
+            )
+            os.unlink(temporary, dir_fd=parent)
+            created = False
+        os.fsync(parent)
+        return rescan
     finally:
-        temporary.unlink(missing_ok=True)
+        if created:
+            try:
+                os.unlink(temporary, dir_fd=parent)
+            except FileNotFoundError:
+                pass
+        os.close(parent)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -78,12 +165,16 @@ def main(argv: list[str] | None = None) -> int:
         result = failed(["destination-must-be-markdown"], [args.summary, args.sidecar, destination_arg])
         print(json.dumps(result, sort_keys=True, indent=2))
         return 1
-    if destination.is_symlink():
-        result = failed(["destination-must-not-be-symlink"], [args.summary, args.sidecar, destination_arg])
+    try:
+        rescan = write_atomic(root, destination, content, args.overwrite)
+    except PromotionValidationError as exc:
+        errors = ["destination-rescan-failed", *exc.errors]
+        result = failed(
+            sorted(set(errors)),
+            [args.summary, args.sidecar, destination_arg],
+        )
         print(json.dumps(result, sort_keys=True, indent=2))
         return 1
-    try:
-        write_atomic(destination, content, args.overwrite)
     except FileExistsError:
         result = failed(
             [f"destination-exists:{destination.relative_to(root).as_posix()}"],
@@ -93,16 +184,6 @@ def main(argv: list[str] | None = None) -> int:
         return 1
     except OSError as exc:
         result = failed([f"promotion-failed:{exc}"], [args.summary, args.sidecar, destination_arg])
-        print(json.dumps(result, sort_keys=True, indent=2))
-        return 1
-
-    promoted = destination.read_bytes()
-    rescan = scan_publication(promoted.decode("utf-8"))
-    if promoted != content or rescan["blocking"]:
-        destination.unlink(missing_ok=True)
-        errors = ["destination-rescan-failed"]
-        errors.extend(f"publication-safety:{code}" for code in rescan["blocking"])
-        result = failed(sorted(set(errors)), [args.summary, args.sidecar, destination_arg])
         print(json.dumps(result, sort_keys=True, indent=2))
         return 1
 

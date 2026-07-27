@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from collections import Counter
@@ -32,6 +33,19 @@ def load_object(path: Path) -> dict:
     return value
 
 
+def corpus_digest(cases_path: Path, expectations_path: Path) -> str:
+    digest = hashlib.sha256()
+    for label, path in (
+        (b"cases", cases_path),
+        (b"expectations", expectations_path),
+    ):
+        digest.update(label)
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
 def nonempty_strings(value: object) -> bool:
     return isinstance(value, list) and bool(value) and all(
         isinstance(item, str) and item.strip() for item in value
@@ -45,7 +59,12 @@ def validate(
     expected = load_object(expectations_path)
     errors: list[str] = []
 
-    if corpus.get("schema_version") != 1 or expected.get("schema_version") != 1:
+    if (
+        type(corpus.get("schema_version")) is not int
+        or corpus.get("schema_version") != 1
+        or type(expected.get("schema_version")) is not int
+        or expected.get("schema_version") != 1
+    ):
         errors.append("schema_version must be 1 in both files")
     if corpus.get("corpus_version") != expected.get("corpus_version"):
         errors.append("corpus_version must match between files")
@@ -128,17 +147,25 @@ def validate(
         case = by_case.get(case_id)
         if case and case.get("evaluation_mode") == "routing":
             route = item.get("expected_skill")
-            if route is not None and (
+            category = case.get("category")
+            if category == "routing" and (
                 not isinstance(route, str) or not route.startswith("krt-")
             ):
-                errors.append(f"{case_id}: expected_skill must be a KRT ID or null")
-        route = item.get("expected_skill")
-        if (
-            isinstance(route, str)
-            and route.startswith("krt-")
-            and not (skills_root / route / "SKILL.md").is_file()
-        ):
-            errors.append(f"{case_id}: expected_skill does not exist: {route}")
+                errors.append(
+                    f"{case_id}: routing expected_skill must be a KRT ID"
+                )
+            elif category == "negative-trigger" and route is not None:
+                errors.append(
+                    f"{case_id}: negative-trigger expected_skill must be null"
+                )
+            if (
+                isinstance(route, str)
+                and route.startswith("krt-")
+                and not (skills_root / route / "SKILL.md").is_file()
+            ):
+                errors.append(
+                    f"{case_id}: expected_skill does not exist: {route}"
+                )
 
     if len(expectation_ids) != len(set(expectation_ids)):
         errors.append("expectation IDs must be unique")
@@ -150,6 +177,7 @@ def validate(
     return {
         "status": "valid",
         "corpus_version": corpus["corpus_version"],
+        "corpus_digest": corpus_digest(cases_path, expectations_path),
         "case_count": len(cases),
         "categories": dict(sorted(counts.items())),
     }

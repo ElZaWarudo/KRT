@@ -186,7 +186,10 @@ def validate(
         reasons.append(f"schema-error:missing:{','.join(missing)}")
 
     schema_version = ledger.get("schema_version")
-    if "schema_version" in ledger and schema_version != SUPPORTED_SCHEMA_VERSION:
+    if "schema_version" in ledger and (
+        type(schema_version) is not int
+        or schema_version != SUPPORTED_SCHEMA_VERSION
+    ):
         reasons.append(f"schema-error:unsupported-version:{schema_version}")
 
     status = ledger.get("status")

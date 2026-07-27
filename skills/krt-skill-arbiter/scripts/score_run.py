@@ -8,22 +8,43 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
-from check_corpus import load_object
+from check_corpus import corpus_digest, load_object
 
 
 ROOT = Path(__file__).resolve().parents[1]
 STATUSES = {"pass", "fail", "inconclusive"}
 
 
-def score(results_path: Path, cases_path: Path) -> dict:
+def score(
+    results_path: Path,
+    cases_path: Path,
+    expectations_path: Path,
+) -> dict:
     submitted = load_object(results_path)
     corpus = load_object(cases_path)
+    expectations = load_object(expectations_path)
     cases = corpus.get("cases")
     results = submitted.get("results")
     if not isinstance(cases, list):
         raise ValueError("corpus cases must be a list")
     if not isinstance(results, list):
         raise ValueError("results must be a list")
+
+    expected_version = corpus.get("corpus_version")
+    expected_digest = corpus_digest(cases_path, expectations_path)
+    identity_errors: list[str] = []
+    if type(submitted.get("schema_version")) is not int:
+        identity_errors.append("results schema_version must be integer 1")
+    elif submitted.get("schema_version") != 1:
+        identity_errors.append("results schema_version must be 1")
+    if expectations.get("corpus_version") != expected_version:
+        identity_errors.append("corpus_version must match expectations")
+    if submitted.get("corpus_version") != expected_version:
+        identity_errors.append("results corpus_version does not match corpus")
+    if submitted.get("corpus_digest") != expected_digest:
+        identity_errors.append("results corpus_digest does not match corpus")
+    if identity_errors:
+        raise ValueError("\n".join(identity_errors))
 
     known = {
         case["id"]: case["category"]
@@ -64,8 +85,10 @@ def score(results_path: Path, cases_path: Path) -> dict:
     conclusive = counts["pass"] + counts["fail"]
     total = len(known)
     return {
+        "schema_version": 1,
         "run_id": submitted.get("run_id"),
-        "corpus_version": corpus.get("corpus_version"),
+        "corpus_version": expected_version,
+        "corpus_digest": expected_digest,
         "corpus_size": total,
         "submitted": len(seen),
         "corpus_coverage": round(len(seen) / total, 6) if total else 0.0,
@@ -91,14 +114,22 @@ def score(results_path: Path, cases_path: Path) -> dict:
 
 def main(argv: list[str]) -> int:
     if len(argv) < 2:
-        print("usage: score_run.py <results.json> [cases.json]", file=sys.stderr)
+        print(
+            "usage: score_run.py <results.json> [cases.json] [expectations.json]",
+            file=sys.stderr,
+        )
         return 2
     results = Path(argv[1])
     cases = (
         Path(argv[2]) if len(argv) > 2 else ROOT / "references" / "cases.json"
     )
+    expectations = (
+        Path(argv[3])
+        if len(argv) > 3
+        else ROOT / "references" / "expectations.json"
+    )
     try:
-        output = score(results, cases)
+        output = score(results, cases, expectations)
     except ValueError as error:
         print(error, file=sys.stderr)
         return 1

@@ -9,7 +9,10 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+
+import promote_evidence
 
 
 ROOT = Path(__file__).resolve().parent
@@ -34,6 +37,58 @@ class HarnessScriptTest(unittest.TestCase):
         code, result = run_json(str(ROOT / "check_harness.py"), str(FIXTURES / "harnesses" / "valid.md"))
         self.assertEqual(code, 0, result)
         self.assertTrue(result["allowed"])
+
+    def test_ready_harness_blocks_publication_findings(self) -> None:
+        baseline = (FIXTURES / "harnesses" / "valid.md").read_text(
+            encoding="utf-8"
+        )
+        cases = {
+            "email": "person@example.com",
+            "pii-like-value": "DNI: 12345678Z",
+            "phone-like-value": "+34 612 345 678",
+            "iban-like-value": "ES9121000418450200051332",
+            "private-url": "https://portal.internal/customer",
+            "generated-image-reference": "docs/harnesses/images/private.png",
+            "private-artifact-path": "docs/harnesses/staging/private.md",
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            harness = Path(directory) / "ready.md"
+            for expected, value in cases.items():
+                with self.subTest(expected=expected):
+                    harness.write_text(
+                        f"{baseline}\n{value}\n",
+                        encoding="utf-8",
+                    )
+                    code, result = run_json(
+                        str(ROOT / "check_harness.py"),
+                        str(harness),
+                    )
+                    self.assertNotEqual(code, 0)
+                    self.assertIn(
+                        f"publication-safety:{expected}",
+                        result["errors"],
+                    )
+
+    def test_public_url_and_relative_paths_are_not_absolute_sources(self) -> None:
+        baseline = (FIXTURES / "harnesses" / "valid.md").read_text(
+            encoding="utf-8"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            harness = Path(directory) / "ready.md"
+            harness.write_text(
+                f"{baseline}\nhttps://example.com/docs/public/guide\n",
+                encoding="utf-8",
+            )
+            code, result = run_json(
+                str(ROOT / "check_harness.py"),
+                str(harness),
+            )
+
+        self.assertEqual(code, 0, result)
+        self.assertNotIn(
+            "publication-safety:absolute-source-path",
+            result["errors"],
+        )
 
     def test_missing_frontmatter_blocks(self) -> None:
         code, result = run_json(str(ROOT / "check_harness.py"), str(FIXTURES / "harnesses" / "no-frontmatter.md"))
@@ -155,6 +210,97 @@ class HarnessScriptTest(unittest.TestCase):
             self.assertEqual(result["summary"]["destination_rescan"], "passed")
             self.assertEqual(destination.read_bytes(), source.read_bytes())
 
+    def test_atomic_overwrite_validates_before_replacing(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            destination = (
+                root / "docs" / "harnesses" / "summaries" / "existing.md"
+            )
+            destination.parent.mkdir(parents=True)
+            destination.write_bytes(b"existing\n")
+
+            with self.assertRaises(
+                promote_evidence.PromotionValidationError
+            ):
+                promote_evidence.write_atomic(
+                    root,
+                    destination,
+                    b"person@example.com\n",
+                    True,
+                )
+
+            self.assertEqual(destination.read_bytes(), b"existing\n")
+
+    def test_concurrent_overwrites_leave_one_complete_destination(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            destination = (
+                root / "docs" / "harnesses" / "summaries" / "shared.md"
+            )
+            payloads = (b"# First\n", b"# Second\n")
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                futures = [
+                    executor.submit(
+                        promote_evidence.write_atomic,
+                        root,
+                        destination,
+                        payload,
+                        True,
+                    )
+                    for payload in payloads
+                ]
+                for future in futures:
+                    future.result()
+
+            self.assertIn(destination.read_bytes(), payloads)
+
+    def test_atomic_write_rejects_symlinked_parent(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            summaries = root / "docs" / "harnesses" / "summaries"
+            summaries.mkdir(parents=True)
+            outside = root / "outside"
+            outside.mkdir()
+            linked = summaries / "linked"
+            linked.symlink_to(outside, target_is_directory=True)
+
+            with self.assertRaises(OSError):
+                promote_evidence.write_atomic(
+                    root,
+                    linked / "escaped.md",
+                    b"# Safe\n",
+                    True,
+                )
+
+            self.assertFalse((outside / "escaped.md").exists())
+
+    def test_atomic_write_rejects_symlinked_destination(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            summaries = root / "docs" / "harnesses" / "summaries"
+            summaries.mkdir(parents=True)
+            target = root / "outside.md"
+            target.write_bytes(b"outside\n")
+            destination = summaries / "target.md"
+            destination.symlink_to(target)
+
+            with self.assertRaises(
+                promote_evidence.PromotionValidationError
+            ) as raised:
+                promote_evidence.write_atomic(
+                    root,
+                    destination,
+                    b"# Safe\n",
+                    True,
+                )
+
+            self.assertIn(
+                "destination-must-not-be-symlink",
+                raised.exception.errors,
+            )
+            self.assertTrue(destination.is_symlink())
+            self.assertEqual(target.read_bytes(), b"outside\n")
+
     def test_promotion_blocks_destination_escape_and_implicit_overwrite(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.prepare_evidence_root(Path(directory))
@@ -266,6 +412,8 @@ class HarnessScriptTest(unittest.TestCase):
             "private-url": "https://portal.internal/customer",
             "source-hash-or-raw-digest": "a" * 64,
             "generated-source-fallback-reference": "docs/harnesses/sources/private.md",
+            "generated-image-reference": "docs/harnesses/images/private.png",
+            "private-artifact-path": "docs/harnesses/staging/private.md",
             "absolute-source-path": "/home/operator/contracts/client.docx",
             "windows-absolute-source-path": r"C:\clients\private\client.docx",
             "source-metadata": "source_path=private/client.docx",

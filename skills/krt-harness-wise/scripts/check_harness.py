@@ -30,7 +30,7 @@ REQUIRED_SECTIONS = (
     "## Validation Expectations",
     "## Agent-Ready Instructions",
 )
-ABSOLUTE_PATH = re.compile(r"(?<![\w.-])(?:/[A-Za-z0-9_.-]+){2,}")
+ABSOLUTE_PATH = re.compile(r"(?<![\w.:/-])(?:/[A-Za-z0-9_.-]+){2,}")
 WINDOWS_PATH = re.compile(r"\b[A-Za-z]:\\")
 BROAD_READ = re.compile(r"\bread (?:the )?(?:whole|entire|all of) [`']?[\w./-]+/?[`']?", re.I)
 SELF_REFERENCE = re.compile(r"\bkrt-harness-wise\b|\$krt:harness-wise\b", re.I)
@@ -97,7 +97,10 @@ def validate(path: Path) -> dict[str, Any]:
     publication = scan_publication(text)
     for finding in publication["blocking"]:
         tagged = f"publication-safety:{finding}"
-        if finding in {"secret-like-assignment", "secret-like-value"}:
+        if (
+            frontmatter.get("status") == "ready"
+            or finding in {"secret-like-assignment", "secret-like-value"}
+        ):
             errors.append(tagged)
         else:
             warnings.append(tagged)

@@ -12,7 +12,7 @@ Use this contract to keep routing tests blind, capability tests explicit, and sc
 ## Run Protocol
 
 1. Validate both corpus files with `scripts/check_corpus.py`.
-2. Freeze the corpus version for the run.
+2. Freeze the reported corpus version and digest for the run.
 3. For `routing` mode, send only the prompt to the runtime. Do not name, preload, hint at, or reveal the expected skill.
 4. For `capability` mode, make the declared `target_skill` available and retain its explicit name in the prompt.
 5. Capture the runtime response and tool trace before opening the matching expectation.
@@ -27,7 +27,10 @@ Use this contract to keep routing tests blind, capability tests explicit, and sc
 
 ```json
 {
+  "schema_version": 1,
   "run_id": "runtime-model-date",
+  "corpus_version": "2026-07-27.1",
+  "corpus_digest": "<digest reported by check_corpus.py>",
   "results": [
     {
       "case_id": "routing-security-review",
@@ -38,7 +41,9 @@ Use this contract to keep routing tests blind, capability tests explicit, and sc
 }
 ```
 
-Partial runs are allowed. Coverage must make missing cases visible. Duplicate or unknown case IDs are invalid.
+Partial runs are allowed. Coverage must make missing cases visible. Missing or
+mismatched corpus identity, duplicate case IDs, unknown case IDs, and invalid
+statuses are invalid.
 
 ## Interpretation
 

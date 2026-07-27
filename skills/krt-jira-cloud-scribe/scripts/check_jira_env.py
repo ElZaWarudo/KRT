@@ -9,6 +9,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 from jira_env_runtime import (
     EXAMPLE_PATH,
@@ -19,6 +20,25 @@ from jira_env_runtime import (
     bool_map,
     load_env_from_secret,
 )
+
+
+def normalized_endpoint(value: str | None) -> tuple[str | None, str]:
+    if not value:
+        return None, ""
+    candidate = value if "://" in value else f"https://{value}"
+    parsed = urlparse(candidate)
+    hostname = (parsed.hostname or "").lower()
+    if not hostname:
+        return None, ""
+    scheme = (parsed.scheme or "https").lower()
+    try:
+        port = parsed.port
+    except ValueError:
+        return None, ""
+    default_port = 443 if scheme == "https" else 80 if scheme == "http" else None
+    rendered_host = f"[{hostname}]" if ":" in hostname else hostname
+    port_suffix = f":{port}" if port and port != default_port else ""
+    return f"{scheme}://{rendered_host}{port_suffix}", parsed.path.rstrip("/")
 
 
 def git(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
@@ -135,9 +155,21 @@ def main() -> int:
         if not secret_exists and not example.exists():
             warnings.append("project-local-jira-env-files-not-present")
 
+    identity_origin, identity_base_path = normalized_endpoint(
+        env.get("JIRA_CLOUD_HOST")
+    )
     result = {
         "ok": config_ready,
         "diagnosis": diagnosis,
+        "identity": (
+            {
+                "origin": identity_origin,
+                "base_path": identity_base_path,
+                "project_key": env.get("JIRA_CLOUD_PROJECT_KEY", "").upper(),
+            }
+            if config_ready
+            else None
+        ),
         "missing_required_vars": missing_required,
         "required_present": required_present,
         "optional_present": optional_present,

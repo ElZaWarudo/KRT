@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -19,11 +20,49 @@ JIRA_PROVIDER_SKILLS = {
 PROVIDERS = tuple(JIRA_PROVIDER_SKILLS)
 
 
-def provider_from_url(jira_url: str | None) -> str | None:
+def jira_host(jira_url: str | None) -> str | None:
     if not jira_url:
         return None
     candidate = jira_url if "://" in jira_url else f"https://{jira_url}"
-    hostname = (urlparse(candidate).hostname or "").lower()
+    return (urlparse(candidate).hostname or "").lower() or None
+
+
+def jira_endpoint(jira_url: str | None) -> tuple[str | None, str]:
+    if not jira_url:
+        return None, ""
+    candidate = jira_url if "://" in jira_url else f"https://{jira_url}"
+    parsed = urlparse(candidate)
+    hostname = (parsed.hostname or "").lower()
+    if not hostname:
+        return None, ""
+    scheme = (parsed.scheme or "https").lower()
+    try:
+        port = parsed.port
+    except ValueError:
+        return None, ""
+    default_port = 443 if scheme == "https" else 80 if scheme == "http" else None
+    rendered_host = f"[{hostname}]" if ":" in hostname else hostname
+    port_suffix = f":{port}" if port and port != default_port else ""
+    origin = f"{scheme}://{rendered_host}{port_suffix}"
+    marker = re.search(r"/(?:browse|projects)/", parsed.path)
+    base_path = parsed.path[: marker.start()] if marker else parsed.path
+    return origin, base_path.rstrip("/")
+
+
+def jira_project(jira_url: str | None) -> str | None:
+    if not jira_url:
+        return None
+    candidate = jira_url if "://" in jira_url else f"https://{jira_url}"
+    path = urlparse(candidate).path
+    match = re.search(
+        r"/(?:browse|projects)/([A-Za-z][A-Za-z0-9_]+)(?:-\d+|/|$)",
+        path,
+    )
+    return match.group(1).upper() if match else None
+
+
+def provider_from_url(jira_url: str | None) -> str | None:
+    hostname = jira_host(jira_url)
     if not hostname:
         return None
     return "cloud" if hostname == "atlassian.net" or hostname.endswith(".atlassian.net") else "server-datacenter"
@@ -72,6 +111,31 @@ def resolve_provider(
     provider_ready = provider is not None and readiness.get(provider, {}).get("ok") is True
     if provider and not provider_ready:
         reasons.append(f"jira-provider-not-ready:{provider}")
+    elif provider and jira_url:
+        requested_origin, requested_base_path = jira_endpoint(jira_url)
+        requested_project = jira_project(jira_url)
+        identity = readiness.get(provider, {}).get("identity")
+        ready_origin = (
+            identity.get("origin") if isinstance(identity, dict) else None
+        )
+        ready_base_path = (
+            identity.get("base_path", "") if isinstance(identity, dict) else ""
+        )
+        ready_project = (
+            identity.get("project_key") if isinstance(identity, dict) else None
+        )
+        if not ready_origin:
+            reasons.append(f"jira-provider-identity-unverified:{provider}")
+        elif (
+            requested_origin != str(ready_origin).lower()
+            or requested_base_path != str(ready_base_path).rstrip("/")
+        ):
+            reasons.append("jira-provider-conflict:url-vs-readiness-endpoint")
+        if (
+            requested_project
+            and str(ready_project or "").upper() != requested_project
+        ):
+            reasons.append("jira-provider-conflict:url-vs-readiness-project")
 
     return {
         "ok": provider is not None and not reasons,

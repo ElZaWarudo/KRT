@@ -47,7 +47,7 @@ SOURCE_METADATA = re.compile(
     re.I,
 )
 ABSOLUTE_SOURCE_PATH = re.compile(
-    r"(?<![:/])/(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+"
+    r"(?<![\w.:/-])/(?:[A-Za-z0-9_.-]+/)+[A-Za-z0-9_.-]+"
 )
 WINDOWS_ABSOLUTE_SOURCE_PATH = re.compile(
     r"\b[A-Za-z]:\\(?:[^\\/:*?\"<>|\r\n]+\\)+[^\\/:*?\"<>|\r\n\s]+"

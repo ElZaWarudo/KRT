@@ -45,6 +45,55 @@ class DocumentForgeContractTest(unittest.TestCase):
 
             self.assertEqual(MODULE.validate_summary(summary), [])
 
+    def test_validate_summary_rejects_invalid_private_metadata(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            summary = Path(directory) / "summary.md"
+            summary.write_text(
+                "---\n"
+                "summary_type: draft\n"
+                "provenance_id: prov-not-a-uuid\n"
+                "source_path: private/client.docx\n"
+                "source_sha256: private-digest\n"
+                "source_fallback_policy: generated\n"
+                "---\n\n"
+                "# Summary\n",
+                encoding="utf-8",
+            )
+
+            failures = MODULE.validate_summary(summary)
+
+        self.assertTrue(
+            any("summary_type must be harness-ready" in item for item in failures)
+        )
+        self.assertTrue(
+            any("opaque UUID4" in item for item in failures)
+        )
+        self.assertTrue(
+            any("private source metadata (source_path)" in item for item in failures)
+        )
+        self.assertTrue(
+            any(
+                "private source metadata (source_sha256)" in item
+                for item in failures
+            )
+        )
+        self.assertTrue(
+            any(
+                "private source metadata (source_fallback_policy)" in item
+                for item in failures
+            )
+        )
+
+    def test_validate_summary_rejects_missing_frontmatter(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            summary = Path(directory) / "summary.md"
+            summary.write_text("# Summary\n", encoding="utf-8")
+            failures = MODULE.validate_summary(summary)
+
+        self.assertTrue(
+            any("summary frontmatter is missing" in item for item in failures)
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

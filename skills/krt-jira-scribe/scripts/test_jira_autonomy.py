@@ -119,6 +119,14 @@ class JiraAutonomyTest(unittest.TestCase):
             self.assertTrue(result["ok"])
             self.assertEqual(result["diagnosis"], "ready")
             self.assertEqual(
+                result["identity"],
+                {
+                    "origin": "https://jira.example.com",
+                    "base_path": "",
+                    "project_key": "KRT",
+                },
+            )
+            self.assertEqual(
                 result["auto_loaded_vars"],
                 ["JIRA_HOST", "JIRA_API_TOKEN", "JIRA_PROJECT_KEY", "JIRA_EMAIL", "JIRA_BOARD_ID"],
             )

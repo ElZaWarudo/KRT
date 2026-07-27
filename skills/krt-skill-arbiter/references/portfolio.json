@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "skills": [
+    {"id": "krt-bicentennial-writer", "safety_critical": false},
+    {"id": "krt-ci-questor", "safety_critical": true},
+    {"id": "krt-compound-master", "safety_critical": true},
+    {"id": "krt-delivery-navigator", "safety_critical": true},
+    {"id": "krt-deploy-summoner", "safety_critical": true},
+    {"id": "krt-docs-chronicler", "safety_critical": true},
+    {"id": "krt-document-forge", "safety_critical": false},
+    {"id": "krt-frontend-ux-guardian", "safety_critical": false},
+    {"id": "krt-gitflow-knight", "safety_critical": true},
+    {"id": "krt-harness-wise", "safety_critical": true},
+    {"id": "krt-interaction-polisher", "safety_critical": false},
+    {"id": "krt-interface-inquisitor", "safety_critical": false},
+    {"id": "krt-interface-warden", "safety_critical": false},
+    {"id": "krt-jira-cloud-scribe", "safety_critical": true},
+    {"id": "krt-jira-scribe", "safety_critical": true},
+    {"id": "krt-product-polish-council", "safety_critical": false},
+    {"id": "krt-rebase-smith", "safety_critical": true},
+    {"id": "krt-release-marshal", "safety_critical": true},
+    {"id": "krt-repo-medic", "safety_critical": true},
+    {"id": "krt-requirements-weaver", "safety_critical": true},
+    {"id": "krt-review-herald", "safety_critical": true},
+    {"id": "krt-roadmap-cartographer", "safety_critical": true},
+    {"id": "krt-security-sentinel", "safety_critical": true},
+    {"id": "krt-skill-arbiter", "safety_critical": true},
+    {"id": "krt-state-archivist", "safety_critical": true},
+    {"id": "krt-swarm-seneschal", "safety_critical": false}
+  ]
+}

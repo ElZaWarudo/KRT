@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 
+ROOT = Path(__file__).resolve().parents[1]
 FRONTMATTER = re.compile(r"\A---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 
 
@@ -23,7 +24,46 @@ def yaml_value(text: str, key: str) -> str | None:
     return match.group(1).strip("'\"") if match else None
 
 
-def validate(repo_root: Path) -> dict:
+def load_catalog(path: Path) -> dict[str, bool]:
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"{path}: {error}") from error
+    if not isinstance(value, dict):
+        raise ValueError(f"{path}: top level must be an object")
+    if (
+        type(value.get("schema_version")) is not int
+        or value.get("schema_version") != 1
+    ):
+        raise ValueError(f"{path}: schema_version must be integer 1")
+    items = value.get("skills")
+    if not isinstance(items, list):
+        raise ValueError(f"{path}: skills must be a list")
+
+    catalog: dict[str, bool] = {}
+    errors: list[str] = []
+    for index, item in enumerate(items):
+        if not isinstance(item, dict):
+            errors.append(f"catalog[{index}] must be an object")
+            continue
+        skill_id = item.get("id")
+        critical = item.get("safety_critical")
+        if not isinstance(skill_id, str) or not skill_id.startswith("krt-"):
+            errors.append(f"catalog[{index}].id must be a KRT skill ID")
+            continue
+        if skill_id in catalog:
+            errors.append(f"catalog duplicate skill: {skill_id}")
+            continue
+        if type(critical) is not bool:
+            errors.append(f"{skill_id}: safety_critical must be boolean")
+            continue
+        catalog[skill_id] = critical
+    if errors:
+        raise ValueError("\n".join(errors))
+    return catalog
+
+
+def validate(repo_root: Path, catalog_path: Path) -> dict:
     skills_root = repo_root / "skills"
     safety_index = repo_root / "docs" / "safety.md"
     if not skills_root.is_dir():
@@ -36,6 +76,12 @@ def validate(repo_root: Path) -> dict:
         path for path in skills_root.iterdir() if path.is_dir() and path.name.startswith("krt-")
     )
     errors: list[str] = []
+    catalog = load_catalog(catalog_path)
+    skill_ids = {skill.name for skill in skills}
+    for skill_id in sorted(skill_ids - catalog.keys()):
+        errors.append(f"{skill_id}: missing from portfolio catalog")
+    for skill_id in sorted(catalog.keys() - skill_ids):
+        errors.append(f"{skill_id}: catalog entry has no skill directory")
     safety_critical: list[str] = []
     for skill in skills:
         skill_id = skill.name
@@ -79,9 +125,14 @@ def validate(repo_root: Path) -> dict:
 
         safety = skill / "references" / "safety.md"
         declares_safety = "references/safety.md" in body
-        if safety.is_file():
+        if catalog.get(skill_id) is True:
             safety_critical.append(skill_id)
-            if not declares_safety:
+            if not safety.is_file():
+                errors.append(
+                    f"{skill_id}: safety-critical catalog entry requires "
+                    "references/safety.md"
+                )
+            elif not declares_safety:
                 errors.append(
                     f"{skill_id}: critical safety reference is not loaded by SKILL.md"
                 )
@@ -91,8 +142,17 @@ def validate(repo_root: Path) -> dict:
                 errors.append(
                     f"{skill_id}: missing or invalid row in docs/safety.md"
                 )
-        elif declares_safety:
-            errors.append(f"{skill_id}: loads missing references/safety.md")
+        else:
+            if safety.is_file():
+                errors.append(
+                    f"{skill_id}: safety file requires safety_critical=true "
+                    "in portfolio catalog"
+                )
+            if declares_safety:
+                errors.append(
+                    f"{skill_id}: safety declaration requires "
+                    "safety_critical=true in portfolio catalog"
+                )
 
     if errors:
         raise ValueError("\n".join(errors))
@@ -107,9 +167,14 @@ def validate(repo_root: Path) -> dict:
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--repo-root", type=Path, default=Path.cwd())
+    parser.add_argument(
+        "--catalog",
+        type=Path,
+        default=ROOT / "references" / "portfolio.json",
+    )
     args = parser.parse_args(argv[1:])
     try:
-        output = validate(args.repo_root.resolve())
+        output = validate(args.repo_root.resolve(), args.catalog.resolve())
     except (OSError, ValueError) as error:
         print(error, file=sys.stderr)
         return 1

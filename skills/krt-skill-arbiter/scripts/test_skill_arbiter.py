@@ -8,10 +8,12 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from functools import cache
 from pathlib import Path
 
 
 SKILL_ROOT = Path(__file__).resolve().parents[1]
+REPO_ROOT = SKILL_ROOT.parents[1]
 SCRIPTS = SKILL_ROOT / "scripts"
 CASES = SKILL_ROOT / "references" / "cases.json"
 EXPECTATIONS = SKILL_ROOT / "references" / "expectations.json"
@@ -24,6 +26,19 @@ def run_script(name: str, *args: object) -> subprocess.CompletedProcess[str]:
         capture_output=True,
         text=True,
     )
+
+
+@cache
+def corpus_identity() -> dict[str, object]:
+    checked = run_script("check_corpus.py", CASES, EXPECTATIONS)
+    if checked.returncode != 0:
+        raise AssertionError(checked.stderr)
+    payload = json.loads(checked.stdout)
+    return {
+        "schema_version": 1,
+        "corpus_version": payload["corpus_version"],
+        "corpus_digest": payload["corpus_digest"],
+    }
 
 
 class CorpusContractTests(unittest.TestCase):
@@ -86,10 +101,58 @@ class CorpusContractTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("target_skill does not exist", result.stderr)
 
+    def test_routing_expectation_requires_skill(self) -> None:
+        cases = json.loads(CASES.read_text(encoding="utf-8"))
+        expectations = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
+        routing_id = next(
+            case["id"]
+            for case in cases["cases"]
+            if case["category"] == "routing"
+        )
+        next(
+            item
+            for item in expectations["expectations"]
+            if item["id"] == routing_id
+        )["expected_skill"] = None
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "expectations.json"
+            path.write_text(json.dumps(expectations), encoding="utf-8")
+            result = run_script("check_corpus.py", CASES, path)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("routing expected_skill must be a KRT ID", result.stderr)
+
+    def test_negative_trigger_expectation_requires_null_skill(self) -> None:
+        cases = json.loads(CASES.read_text(encoding="utf-8"))
+        expectations = json.loads(EXPECTATIONS.read_text(encoding="utf-8"))
+        negative_id = next(
+            case["id"]
+            for case in cases["cases"]
+            if case["category"] == "negative-trigger"
+        )
+        next(
+            item
+            for item in expectations["expectations"]
+            if item["id"] == negative_id
+        )["expected_skill"] = "krt-security-sentinel"
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "expectations.json"
+            path.write_text(json.dumps(expectations), encoding="utf-8")
+            result = run_script("check_corpus.py", CASES, path)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "negative-trigger expected_skill must be null",
+            result.stderr,
+        )
+
 
 class ScoreRunTests(unittest.TestCase):
     def test_score_preserves_inconclusive_results(self) -> None:
         results = {
+            **corpus_identity(),
             "run_id": "test-run",
             "results": [
                 {"case_id": "routing-security-review", "status": "pass"},
@@ -115,6 +178,7 @@ class ScoreRunTests(unittest.TestCase):
 
     def test_score_rejects_unknown_case(self) -> None:
         results = {
+            **corpus_identity(),
             "results": [{"case_id": "not-in-the-corpus", "status": "pass"}],
         }
 
@@ -126,8 +190,87 @@ class ScoreRunTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("unknown case_id", result.stderr)
 
+    def test_score_rejects_mismatched_corpus_identity(self) -> None:
+        results = {
+            **corpus_identity(),
+            "corpus_version": "old-corpus",
+            "results": [],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            result_path = Path(directory) / "results.json"
+            result_path.write_text(json.dumps(results), encoding="utf-8")
+            result = run_script("score_run.py", result_path, CASES)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("corpus_version does not match", result.stderr)
+
+    def test_score_rejects_mismatched_digest(self) -> None:
+        results = {
+            **corpus_identity(),
+            "corpus_digest": "0" * 64,
+            "results": [],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            result_path = Path(directory) / "results.json"
+            result_path.write_text(json.dumps(results), encoding="utf-8")
+            result = run_script("score_run.py", result_path, CASES)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("corpus_digest does not match", result.stderr)
+
+    def test_score_rejects_boolean_schema_version(self) -> None:
+        results = {
+            **corpus_identity(),
+            "schema_version": True,
+            "results": [],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            result_path = Path(directory) / "results.json"
+            result_path.write_text(json.dumps(results), encoding="utf-8")
+            result = run_script("score_run.py", result_path, CASES)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("schema_version must be integer 1", result.stderr)
+
+    def test_score_rejects_duplicate_and_invalid_status(self) -> None:
+        results = {
+            **corpus_identity(),
+            "results": [
+                {"case_id": "routing-security-review", "status": "pass"},
+                {"case_id": "routing-security-review", "status": "unknown"},
+                {"case_id": "routing-repo-health", "status": "unknown"},
+            ],
+        }
+        with tempfile.TemporaryDirectory() as directory:
+            result_path = Path(directory) / "results.json"
+            result_path.write_text(json.dumps(results), encoding="utf-8")
+            result = run_script("score_run.py", result_path, CASES)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("duplicate case_id", result.stderr)
+        self.assertIn("status must be pass, fail, or inconclusive", result.stderr)
+
 
 class PortfolioContractTests(unittest.TestCase):
+    @staticmethod
+    def write_catalog(root: Path, *, safety_critical: bool) -> Path:
+        catalog = root / "portfolio.json"
+        catalog.write_text(
+            json.dumps(
+                {
+                    "schema_version": 1,
+                    "skills": [
+                        {
+                            "id": "krt-safe-example",
+                            "safety_critical": safety_critical,
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return catalog
+
     def test_valid_fixture_passes_portfolio_check(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
@@ -163,12 +306,32 @@ class PortfolioContractTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            result = run_script("check_portfolio.py", "--repo-root", root)
+            catalog = self.write_catalog(root, safety_critical=True)
+            result = run_script(
+                "check_portfolio.py",
+                "--repo-root",
+                root,
+                "--catalog",
+                catalog,
+            )
 
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertEqual(payload["skill_count"], 1)
         self.assertEqual(payload["safety_critical_count"], 1)
+
+    def test_default_catalog_validates_real_portfolio(self) -> None:
+        result = run_script(
+            "check_portfolio.py",
+            "--repo-root",
+            REPO_ROOT,
+        )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        payload = json.loads(result.stdout)
+        self.assertEqual(payload["skill_count"], 26)
+        self.assertEqual(payload["safety_critical_count"], 18)
+        self.assertIn("krt-skill-arbiter", payload["safety_critical_skills"])
 
     def test_default_prompt_must_start_with_exact_canonical_id(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -195,11 +358,59 @@ class PortfolioContractTests(unittest.TestCase):
                 "# Safety\n", encoding="utf-8"
             )
 
-            result = run_script("check_portfolio.py", "--repo-root", root)
+            catalog = self.write_catalog(root, safety_critical=False)
+            result = run_script(
+                "check_portfolio.py",
+                "--repo-root",
+                root,
+                "--catalog",
+                catalog,
+            )
 
         self.assertNotEqual(result.returncode, 0)
         self.assertIn(
             "default_prompt must start with 'Use krt-safe-example'",
+            result.stderr,
+        )
+
+
+    def test_catalogued_critical_skill_requires_safety_wiring(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            skill = root / "skills" / "krt-safe-example"
+            (skill / "agents").mkdir(parents=True)
+            (root / "docs").mkdir()
+            (skill / "SKILL.md").write_text(
+                "---\n"
+                "name: krt-safe-example\n"
+                "description: Test fixture.\n"
+                "---\n\n"
+                "# Safe Example\n",
+                encoding="utf-8",
+            )
+            (skill / "agents" / "openai.yaml").write_text(
+                'interface:\n'
+                '  display_name: "krt-safe-example"\n'
+                '  short_description: "Test fixture"\n'
+                '  default_prompt: "Use krt-safe-example fixture."\n',
+                encoding="utf-8",
+            )
+            (root / "docs" / "safety.md").write_text(
+                "# Safety\n",
+                encoding="utf-8",
+            )
+            catalog = self.write_catalog(root, safety_critical=True)
+            result = run_script(
+                "check_portfolio.py",
+                "--repo-root",
+                root,
+                "--catalog",
+                catalog,
+            )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn(
+            "safety-critical catalog entry requires references/safety.md",
             result.stderr,
         )
 

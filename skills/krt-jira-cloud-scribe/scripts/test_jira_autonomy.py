@@ -119,6 +119,14 @@ class JiraAutonomyTest(unittest.TestCase):
             self.assertTrue(result["ok"])
             self.assertEqual(result["diagnosis"], "ready")
             self.assertEqual(
+                result["identity"],
+                {
+                    "origin": "https://example.atlassian.net",
+                    "base_path": "",
+                    "project_key": "KRT",
+                },
+            )
+            self.assertEqual(
                 result["auto_loaded_vars"],
                 [
                     "JIRA_CLOUD_HOST",
