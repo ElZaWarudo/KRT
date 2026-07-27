@@ -1,6 +1,8 @@
 __pycache__/
 *.py[cod]
 
+.worktrees/
+
 docs/*
 !docs/development.md
 !docs/examples.md
