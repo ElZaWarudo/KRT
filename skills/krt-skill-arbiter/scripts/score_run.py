@@ -8,19 +8,11 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
+from check_corpus import load_object
+
 
 ROOT = Path(__file__).resolve().parents[1]
 STATUSES = {"pass", "fail", "inconclusive"}
-
-
-def load_object(path: Path) -> dict:
-    try:
-        value = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as error:
-        raise ValueError(f"{path}: {error}") from error
-    if not isinstance(value, dict):
-        raise ValueError(f"{path}: top level must be an object")
-    return value
 
 
 def score(results_path: Path, cases_path: Path) -> dict:

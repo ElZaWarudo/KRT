@@ -654,7 +654,7 @@ def parse_frontmatter(markdown: str) -> dict[str, str]:
     return values
 
 
-def validate_summary(summary: Path, _output: Path) -> list[str]:
+def validate_summary(summary: Path) -> list[str]:
     failures: list[str] = []
     markdown = summary.read_text(encoding="utf-8")
     frontmatter = parse_frontmatter(markdown)
@@ -704,7 +704,7 @@ def check_file(
                 failures.append(f"linked image is missing: {link}")
 
         if summary.exists():
-            failures.extend(validate_summary(summary, output))
+            failures.extend(validate_summary(summary))
 
     if manifest_entry:
         if manifest_entry.get("source_sha256") and manifest_entry.get("source_sha256") != source_hash:

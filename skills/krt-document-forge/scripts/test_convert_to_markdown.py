@@ -43,7 +43,7 @@ class DocumentForgeContractTest(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            self.assertEqual(MODULE.validate_summary(summary, output), [])
+            self.assertEqual(MODULE.validate_summary(summary), [])
 
 
 if __name__ == "__main__":

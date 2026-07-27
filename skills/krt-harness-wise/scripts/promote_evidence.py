@@ -47,8 +47,7 @@ def write_atomic(destination: Path, content: bytes, overwrite: bool) -> None:
             os.link(temporary, destination)
             temporary.unlink()
     finally:
-        if temporary.exists():
-            temporary.unlink()
+        temporary.unlink(missing_ok=True)
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -83,14 +82,6 @@ def main(argv: list[str] | None = None) -> int:
         result = failed(["destination-must-not-be-symlink"], [args.summary, args.sidecar, destination_arg])
         print(json.dumps(result, sort_keys=True, indent=2))
         return 1
-    if destination.exists() and not args.overwrite:
-        result = failed(
-            [f"destination-exists:{destination.relative_to(root).as_posix()}"],
-            [args.summary, args.sidecar, destination_arg],
-        )
-        print(json.dumps(result, sort_keys=True, indent=2))
-        return 1
-
     try:
         write_atomic(destination, content, args.overwrite)
     except FileExistsError:

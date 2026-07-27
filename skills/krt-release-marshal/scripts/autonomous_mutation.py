@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any
 
 import autonomous_audit
+from resolve_jira_provider import JIRA_PROVIDER_SKILLS
 
 
 DEFAULT_LEDGER_CHECK = Path(__file__).resolve().parents[2] / "krt-compound-master" / "scripts" / "check_autonomy_ledger.py"
@@ -38,12 +39,6 @@ JIRA_VALIDATOR_NAMES = {
     "jira_transition_review": "check_jira_transition.py",
     "jira_transition_done": "check_jira_transition.py",
 }
-
-JIRA_PROVIDER_SKILLS = {
-    "cloud": "krt-jira-cloud-scribe",
-    "server-datacenter": "krt-jira-scribe",
-}
-
 
 def resolve_validator(mutation_class: str, jira_provider: str | None) -> Path | None:
     validator_name = JIRA_VALIDATOR_NAMES.get(mutation_class)

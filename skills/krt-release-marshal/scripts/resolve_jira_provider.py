@@ -12,11 +12,11 @@ from typing import Any
 from urllib.parse import urlparse
 
 
-PROVIDERS = ("cloud", "server-datacenter")
-SKILLS = {
+JIRA_PROVIDER_SKILLS = {
     "cloud": "krt-jira-cloud-scribe",
     "server-datacenter": "krt-jira-scribe",
 }
+PROVIDERS = tuple(JIRA_PROVIDER_SKILLS)
 
 
 def provider_from_url(jira_url: str | None) -> str | None:
@@ -75,8 +75,8 @@ def resolve_provider(
 
     return {
         "ok": provider is not None and not reasons,
-        "provider": provider if not reasons or (provider and len(reasons) == 1 and reasons[0].startswith("jira-provider-not-ready:")) else None,
-        "skill": SKILLS.get(provider) if provider else None,
+        "provider": provider,
+        "skill": JIRA_PROVIDER_SKILLS.get(provider) if provider else None,
         "source": source,
         "ready": provider_ready,
         "readiness": readiness,
@@ -85,7 +85,7 @@ def resolve_provider(
 
 
 def check_readiness(skills_dir: Path, root: Path, provider: str) -> dict[str, Any]:
-    skill = SKILLS[provider]
+    skill = JIRA_PROVIDER_SKILLS[provider]
     checker = skills_dir / skill / "scripts" / "check_jira_env.py"
     if not checker.exists():
         return {"ok": False, "diagnosis": "checker-missing", "checker": str(checker)}
