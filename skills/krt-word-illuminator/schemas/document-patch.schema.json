@@ -12,6 +12,7 @@
         "oneOf": [
           {
             "type": "object",
+            "description": "Replace a uniquely matched plain-text paragraph containing exactly one run and no inline semantic nodes.",
             "required": ["op", "old", "new"],
             "properties": {
               "op": {"const": "replace_paragraph"},
@@ -65,4 +66,3 @@
   },
   "additionalProperties": false
 }
-

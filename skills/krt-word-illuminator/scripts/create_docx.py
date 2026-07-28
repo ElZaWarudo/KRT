@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
+import tempfile
 from pathlib import Path
 
 SKILL_DIR = Path(__file__).resolve().parents[1]
@@ -16,8 +18,11 @@ from lib.worddoc import (  # noqa: E402
     create_from_request,
     inspect_docx,
     load_json,
+    redact_inspection,
+    resolve_request_path,
     validate_json,
 )
+from lib.path_safety import atomic_publish_files, resolve_output_path  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -36,11 +41,13 @@ def parse_args() -> argparse.Namespace:
 
 def resolve_output(args: argparse.Namespace, request: dict) -> Path:
     if args.output:
-        return args.output.resolve()
-    output = Path(request["output"])
-    if not output.is_absolute():
-        output = args.request.resolve().parent / output
-    return output
+        return resolve_output_path(args.output, label="Output path")
+    resolved = resolve_request_path(
+        str(request["output"]),
+        args.request.resolve().parent,
+        label="Request output",
+    )
+    return resolve_output_path(resolved, label="Request output")
 
 
 def main() -> int:
@@ -51,13 +58,20 @@ def main() -> int:
         validate_json(request, SKILL_DIR / "schemas" / "document-request.schema.json")
         output = resolve_output(args, request)
         report_path = (
-            args.report.resolve()
+            resolve_output_path(args.report, label="Report path")
             if args.report
-            else output.with_suffix(".creation-report.json")
+            else resolve_output_path(
+                output.with_suffix(".creation-report.json"),
+                label="Creation report path",
+            )
         )
 
         if output.exists() and not args.overwrite:
             raise FileExistsError(f"Refusing to overwrite existing output: {output}")
+        if report_path.exists() and not args.overwrite:
+            raise FileExistsError(
+                f"Refusing to overwrite existing report: {report_path}"
+            )
         if output.suffix.lower() != ".docx":
             raise ValueError("Output must use the .docx extension")
 
@@ -78,29 +92,76 @@ def main() -> int:
 
         document = create_from_request(request, request_path)
         output.parent.mkdir(parents=True, exist_ok=True)
-        document.save(output)
-        inspection = inspect_docx(output)
-        report = {
-            "output": str(output),
-            "status": (
-                "created_with_grounding_issues"
-                if grounding["source_reference_issues"]
-                else "created"
-            ),
-            "objective": request["objective"],
-            "document_type": request["document_type"],
-            "sections": len(request["sections"]),
-            "tables": inspection["tables"],
-            "figures": inspection["inline_figures"],
-            "grounding": grounding,
-            "structural_inspection": inspection,
-            "visual_qa": "pending_render_and_manual_inspection",
-        }
-        report_path.parent.mkdir(parents=True, exist_ok=True)
-        report_path.write_text(
-            json.dumps(report, indent=2, ensure_ascii=False) + "\n",
-            encoding="utf-8",
-        )
+        with tempfile.NamedTemporaryFile(
+            dir=output.parent,
+            prefix=f".{output.name}.",
+            suffix=".docx",
+            delete=False,
+        ) as temporary:
+            temporary_path = Path(temporary.name)
+        report_temporary_path: Path | None = None
+        try:
+            document.save(temporary_path)
+            inspection = inspect_docx(temporary_path)
+            inspection["path"] = str(output)
+            report = {
+                "output": str(output),
+                "status": (
+                    "created_with_grounding_issues"
+                    if grounding["source_reference_issues"]
+                    else "created"
+                ),
+                "document_type": request["document_type"],
+                "sections": len(request["sections"]),
+                "tables": inspection["tables"],
+                "figures": inspection["inline_figures"],
+                "grounding": {
+                    "provenance_counts": grounding["provenance_counts"],
+                    "source_reference_issue_count": len(
+                        grounding["source_reference_issues"]
+                    ),
+                    "unclassified_block_count": len(
+                        grounding["unclassified_blocks"]
+                    ),
+                    "unverified_claim_count": len(grounding["unverified_claims"]),
+                },
+                "structural_inspection": redact_inspection(inspection),
+                "visual_qa": "pending_render_and_manual_inspection",
+            }
+            report_path.parent.mkdir(parents=True, exist_ok=True)
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=report_path.parent,
+                prefix=f".{report_path.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as report_temporary:
+                report_temporary.write(
+                    json.dumps(report, indent=2, ensure_ascii=False) + "\n"
+                )
+                report_temporary.flush()
+                os.fsync(report_temporary.fileno())
+                report_temporary_path = Path(report_temporary.name)
+            atomic_publish_files(
+                (
+                    (temporary_path, output, "DOCX output"),
+                    (
+                        report_temporary_path,
+                        report_path,
+                        "creation report",
+                    ),
+                ),
+                overwrite=args.overwrite,
+            )
+        finally:
+            if temporary_path.exists():
+                temporary_path.unlink()
+            if (
+                report_temporary_path is not None
+                and report_temporary_path.exists()
+            ):
+                report_temporary_path.unlink()
         report["report"] = str(report_path)
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0 if not grounding["source_reference_issues"] else 1
@@ -116,4 +177,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

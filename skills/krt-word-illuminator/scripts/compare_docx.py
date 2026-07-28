@@ -9,6 +9,7 @@ import hashlib
 import json
 import sys
 import zipfile
+from contextlib import ExitStack
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +18,8 @@ from docx import Document
 SKILL_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SKILL_DIR))
 
+from lib.package_safety import admitted_docx  # noqa: E402
+from lib.path_safety import atomic_write_text  # noqa: E402
 from lib.worddoc import inspect_docx, iter_all_paragraphs  # noqa: E402
 
 
@@ -27,6 +30,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--before-render-dir", type=Path)
     parser.add_argument("--after-render-dir", type=Path)
     parser.add_argument("--report", type=Path)
+    parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument(
+        "--include-content",
+        action="store_true",
+        help="Include textual diffs and heading values in protected output.",
+    )
     return parser.parse_args()
 
 
@@ -87,12 +96,15 @@ def visual_comparison(before_dir: Path, after_dir: Path) -> dict[str, Any]:
 
 def main() -> int:
     args = parse_args()
+    admissions = ExitStack()
     try:
-        before_path = args.before.resolve()
-        after_path = args.after.resolve()
-        for path in (before_path, after_path):
+        before_source = args.before.absolute()
+        after_source = args.after.absolute()
+        for path in (before_source, after_source):
             if not path.is_file():
                 raise FileNotFoundError(f"Document not found: {path}")
+        before_path = admissions.enter_context(admitted_docx(before_source))
+        after_path = admissions.enter_context(admitted_docx(after_source))
 
         before_doc = Document(str(before_path))
         after_doc = Document(str(after_path))
@@ -102,8 +114,8 @@ def main() -> int:
             difflib.unified_diff(
                 before_lines,
                 after_lines,
-                fromfile=str(before_path),
-                tofile=str(after_path),
+                fromfile=str(before_source),
+                tofile=str(after_source),
                 lineterm="",
             )
         )
@@ -126,21 +138,64 @@ def main() -> int:
                 }
 
         report: dict[str, Any] = {
-            "before": str(before_path),
-            "after": str(after_path),
+            "before": str(before_source),
+            "after": str(after_source),
             "changed": before_inspection["sha256"] != after_inspection["sha256"],
-            "text_diff": diff,
+            "text_diff": (
+                diff
+                if args.include_content
+                else {
+                    "redacted": True,
+                    "changed_lines": len(diff),
+                    "before_paragraphs": len(before_lines),
+                    "after_paragraphs": len(after_lines),
+                }
+            ),
             "structure_changes": metrics,
             "heading_changes": {
-                "before": before_inspection["headings"],
-                "after": after_inspection["headings"],
+                "before": (
+                    before_inspection["headings"]
+                    if args.include_content
+                    else len(before_inspection["headings"])
+                ),
+                "after": (
+                    after_inspection["headings"]
+                    if args.include_content
+                    else len(after_inspection["headings"])
+                ),
             },
             "style_usage_changes": {
-                "before": before_inspection["style_usage"],
-                "after": after_inspection["style_usage"],
+                "before": (
+                    before_inspection["style_usage"]
+                    if args.include_content
+                    else {
+                        "style_count": len(before_inspection["style_usage"]),
+                        "paragraphs": sum(
+                            before_inspection["style_usage"].values()
+                        ),
+                    }
+                ),
+                "after": (
+                    after_inspection["style_usage"]
+                    if args.include_content
+                    else {
+                        "style_count": len(after_inspection["style_usage"]),
+                        "paragraphs": sum(
+                            after_inspection["style_usage"].values()
+                        ),
+                    }
+                ),
             },
-            "package_parts_added": sorted(after_parts - before_parts),
-            "package_parts_removed": sorted(before_parts - after_parts),
+            "package_parts_added": (
+                sorted(after_parts - before_parts)
+                if args.include_content
+                else len(after_parts - before_parts)
+            ),
+            "package_parts_removed": (
+                sorted(before_parts - after_parts)
+                if args.include_content
+                else len(before_parts - after_parts)
+            ),
             "visual": None,
         }
         if args.before_render_dir or args.after_render_dir:
@@ -151,18 +206,20 @@ def main() -> int:
                 args.after_render_dir.resolve(),
             )
         if args.report:
-            args.report.parent.mkdir(parents=True, exist_ok=True)
-            args.report.write_text(
+            atomic_write_text(
+                args.report,
                 json.dumps(report, indent=2, ensure_ascii=False) + "\n",
-                encoding="utf-8",
+                overwrite=args.overwrite,
+                label="comparison report",
             )
         print(json.dumps(report, indent=2, ensure_ascii=False))
         return 0
     except Exception as exc:
         print(json.dumps({"error": str(exc)}, ensure_ascii=False))
         return 1
+    finally:
+        admissions.close()
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

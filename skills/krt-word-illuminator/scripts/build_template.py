@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+import tempfile
 from pathlib import Path
 
 from docx import Document
@@ -14,6 +15,7 @@ SKILL_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(SKILL_DIR))
 
 from lib.worddoc import configure_document, ensure_styles, set_core_properties  # noqa: E402
+from lib.path_safety import atomic_publish_file, resolve_output_path  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -30,7 +32,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     args = parse_args()
     try:
-        output = args.output.resolve()
+        output = resolve_output_path(args.output, label="Template output path")
         if output.exists() and not args.overwrite:
             raise FileExistsError(f"Refusing to overwrite existing template: {output}")
         document = Document()
@@ -56,7 +58,24 @@ def main() -> int:
             },
         )
         output.parent.mkdir(parents=True, exist_ok=True)
-        document.save(output)
+        with tempfile.NamedTemporaryFile(
+            dir=output.parent,
+            prefix=f".{output.name}.",
+            suffix=".docx",
+            delete=False,
+        ) as temporary:
+            temporary_path = Path(temporary.name)
+        try:
+            document.save(temporary_path)
+            atomic_publish_file(
+                temporary_path,
+                output,
+                overwrite=args.overwrite,
+                label="template",
+            )
+        finally:
+            if temporary_path.exists():
+                temporary_path.unlink()
         print(json.dumps({"output": str(output), "status": "created"}, indent=2))
         return 0
     except Exception as exc:

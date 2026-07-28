@@ -7,7 +7,7 @@
     {"id": "krt-delivery-navigator", "safety_critical": true},
     {"id": "krt-deploy-summoner", "safety_critical": true},
     {"id": "krt-docs-chronicler", "safety_critical": true},
-    {"id": "krt-document-forge", "safety_critical": false},
+    {"id": "krt-document-forge", "safety_critical": true},
     {"id": "krt-frontend-ux-guardian", "safety_critical": false},
     {"id": "krt-gitflow-knight", "safety_critical": true},
     {"id": "krt-harness-wise", "safety_critical": true},
@@ -26,6 +26,7 @@
     {"id": "krt-security-sentinel", "safety_critical": true},
     {"id": "krt-skill-arbiter", "safety_critical": true},
     {"id": "krt-state-archivist", "safety_critical": true},
-    {"id": "krt-swarm-seneschal", "safety_critical": false}
+    {"id": "krt-swarm-seneschal", "safety_critical": false},
+    {"id": "krt-word-illuminator", "safety_critical": true}
   ]
 }

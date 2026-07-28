@@ -10,7 +10,8 @@
 | Inline figures with proportional sizing and alt text | Supported |
 | Tables with repeated headers and controlled row splitting | Supported |
 | Headers, footers, page-number fields, TOC field, page/section breaks | Supported |
-| Exact text replacement and heading-relative insertion | Supported with ambiguity guards |
+| Exact text replacement | Supported for uniquely matched, single-run plain-text paragraphs |
+| Heading-relative insertion | Supported with uniqueness and block-type guards |
 | Structural, placeholder, style, table-header, alt-text, metadata, and PII audits | Supported |
 | LibreOffice PDF rendering and page PNG generation | Supported when host tools exist |
 | Textual, structural, style, relationship, and optional rendered-page comparison | Supported |
@@ -41,4 +42,3 @@ or stop for user direction.
 Automated validation can find structural defects but cannot certify layout.
 `visual_qa: pending_manual_inspection` remains pending until an agent inspects
 all rendered pages and records the result.
-

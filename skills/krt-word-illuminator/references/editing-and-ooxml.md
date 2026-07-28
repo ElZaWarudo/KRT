@@ -14,6 +14,13 @@ uniquely named heading, section append, and selected core-property changes.
 Abort zero-match and multi-match replacements unless the patch explicitly
 allows all matches.
 
+Exact replacement updates one existing run in place. It is deliberately limited
+to a plain-text paragraph containing exactly one run and no fields, hyperlinks,
+comments, bookmarks, drawings, or other inline semantic nodes. A paragraph may
+look plain in Word while still containing several runs; abort rather than merge
+those runs or silently discard their formatting. Use a targeted, fixture-backed
+OOXML workflow when the requested paragraph is more complex.
+
 ## Package preservation
 
 A DOCX is a ZIP package of parts connected by relationships. Changes to
@@ -47,4 +54,3 @@ that no dangling relationship remains.
 The tools can insert TOC and page-number field instructions. LibreOffice or Word
 may update them on open or conversion. Validate the rendered result; do not
 assume an inserted field instruction has a current cached value.
-

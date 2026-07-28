@@ -12,12 +12,14 @@ Each skill owns the detailed guardrails closest to its procedure:
 | `krt-delivery-navigator` | [`skills/krt-delivery-navigator/references/safety.md`](../skills/krt-delivery-navigator/references/safety.md) |
 | `krt-compound-master` | [`skills/krt-compound-master/references/safety.md`](../skills/krt-compound-master/references/safety.md) |
 | `krt-state-archivist` | [`skills/krt-state-archivist/references/safety.md`](../skills/krt-state-archivist/references/safety.md) |
+| `krt-word-illuminator` | [`skills/krt-word-illuminator/references/safety.md`](../skills/krt-word-illuminator/references/safety.md) |
 | `krt-release-marshal` | [`skills/krt-release-marshal/references/safety.md`](../skills/krt-release-marshal/references/safety.md) |
 | `krt-review-herald` | [`skills/krt-review-herald/references/safety.md`](../skills/krt-review-herald/references/safety.md) |
 | `krt-security-sentinel` | [`skills/krt-security-sentinel/references/safety.md`](../skills/krt-security-sentinel/references/safety.md) |
 | `krt-ci-questor` | [`skills/krt-ci-questor/references/safety.md`](../skills/krt-ci-questor/references/safety.md) |
 | `krt-deploy-summoner` | [`skills/krt-deploy-summoner/references/safety.md`](../skills/krt-deploy-summoner/references/safety.md) |
 | `krt-docs-chronicler` | [`skills/krt-docs-chronicler/references/safety.md`](../skills/krt-docs-chronicler/references/safety.md) |
+| `krt-document-forge` | [`skills/krt-document-forge/references/safety.md`](../skills/krt-document-forge/references/safety.md) |
 | `krt-gitflow-knight` | [`skills/krt-gitflow-knight/references/safety.md`](../skills/krt-gitflow-knight/references/safety.md) |
 | `krt-rebase-smith` | [`skills/krt-rebase-smith/references/safety.md`](../skills/krt-rebase-smith/references/safety.md) |
 | `krt-jira-cloud-scribe` | [`skills/krt-jira-cloud-scribe/references/safety.md`](../skills/krt-jira-cloud-scribe/references/safety.md) |

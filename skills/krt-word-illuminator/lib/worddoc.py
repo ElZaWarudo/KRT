@@ -9,6 +9,7 @@ import zipfile
 from collections import Counter
 from pathlib import Path
 from typing import Any, Iterable
+from xml.etree import ElementTree as ET
 
 from docx import Document
 from docx.document import Document as DocumentType
@@ -18,6 +19,11 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Inches, Mm, Pt, RGBColor
+
+from lib.package_safety import admitted_docx
+
+SKILL_DIR = Path(__file__).resolve().parents[1]
+W_NS = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
 
 PLACEHOLDER_PATTERNS = {
     "TODO": re.compile(r"\bTODO\b", re.IGNORECASE),
@@ -49,7 +55,12 @@ def validate_json(data: dict[str, Any], schema_path: Path) -> None:
     except ImportError as exc:  # pragma: no cover - environment failure
         raise RuntimeError("jsonschema is required to validate request files") from exc
     schema = load_json(schema_path)
-    jsonschema.validate(data, schema)
+    try:
+        jsonschema.validate(data, schema)
+    except jsonschema.ValidationError as error:
+        location = "/".join(str(item) for item in error.absolute_path)
+        suffix = f" at {location}" if location else ""
+        raise ValueError(f"JSON does not conform to schema{suffix}") from error
 
 
 def sha256_file(path: Path) -> str:
@@ -238,6 +249,35 @@ def _source_ids(request: dict[str, Any]) -> set[str]:
     return ids
 
 
+def resolve_request_path(
+    value: str,
+    base_dir: Path,
+    *,
+    label: str,
+    trusted_roots: Iterable[Path] = (),
+) -> Path:
+    """Resolve a data-supplied path without allowing absolute or parent escapes."""
+    supplied = Path(value)
+    root = base_dir.resolve()
+    lexical = (supplied if supplied.is_absolute() else root / supplied).absolute()
+    resolved = lexical.resolve()
+    allowed_roots = (root, *(path.resolve() for path in trusted_roots))
+    within_approved_root = False
+    for allowed_root in allowed_roots:
+        try:
+            resolved.relative_to(allowed_root)
+        except ValueError:
+            continue
+        within_approved_root = True
+        break
+    if within_approved_root:
+        components = [*reversed(lexical.parents), lexical]
+        if any(component.is_symlink() for component in components):
+            raise ValueError(f"{label} contains a symbolic-link component")
+        return lexical
+    raise ValueError(f"{label} escapes the approved input roots")
+
+
 def audit_request_grounding(request: dict[str, Any]) -> dict[str, Any]:
     known_sources = _source_ids(request)
     counts: Counter[str] = Counter()
@@ -342,11 +382,11 @@ def _add_figure(
     *,
     base_dir: Path,
 ) -> list[Any]:
-    image_path = Path(block["path"])
-    if not image_path.is_absolute():
-        image_path = base_dir / image_path
+    image_path = resolve_request_path(
+        str(block["path"]), base_dir, label="Figure path"
+    )
     if not image_path.is_file():
-        raise FileNotFoundError(f"Figure not found: {image_path}")
+        raise FileNotFoundError("Figure path does not reference a readable file")
 
     section = document.sections[-1]
     available_width = section.page_width - section.left_margin - section.right_margin
@@ -422,13 +462,19 @@ def create_from_request(request: dict[str, Any], request_path: Path) -> Document
     template_value = request.get("template")
     template = None
     if template_value:
-        template = Path(template_value)
-        if not template.is_absolute():
-            template = request_path.parent / template
+        template = resolve_request_path(
+            str(template_value),
+            request_path.parent,
+            label="Template path",
+            trusted_roots=(SKILL_DIR / "assets" / "templates",),
+        )
         if not template.is_file():
-            raise FileNotFoundError(f"Template not found: {template}")
-
-    document = Document(str(template)) if template else Document()
+            raise FileNotFoundError("Template path does not reference a readable file")
+    if template:
+        with admitted_docx(template) as admitted_template:
+            document = Document(str(admitted_template))
+    else:
+        document = Document()
     if template:
         clear_document_body(document)
     ensure_styles(document, normalize_builtins=not bool(template))
@@ -481,7 +527,7 @@ def _core_properties(document: DocumentType) -> dict[str, Any]:
     }
 
 
-def inspect_docx(path: Path) -> dict[str, Any]:
+def _inspect_admitted_docx(path: Path, *, reported_path: Path) -> dict[str, Any]:
     document = Document(str(path))
     paragraphs = document.paragraphs
     headings = [
@@ -508,11 +554,84 @@ def inspect_docx(path: Path) -> dict[str, Any]:
         candidates = shape._inline.xpath(".//wp:docPr")
         alt_texts.append(candidates[0].get("descr", "") if candidates else "")
 
-    searchable_paragraphs = list(iter_all_paragraphs(document))
-    for section in document.sections:
-        searchable_paragraphs.extend(section.header.paragraphs)
-        searchable_paragraphs.extend(section.footer.paragraphs)
-    all_text = "\n".join(paragraph.text for paragraph in searchable_paragraphs)
+    with zipfile.ZipFile(path) as archive:
+        names = set(archive.namelist())
+        story_part_pattern = re.compile(
+            r"word/(?:document|header\d+|footer\d+|footnotes|endnotes|"
+            r"comments(?:Extended|Ids|Extensible)?\d*)\.xml"
+        )
+        story_parts = [
+            (name, archive.read(name))
+            for name in sorted(names)
+            if story_part_pattern.fullmatch(name)
+        ]
+        story_text: list[str] = []
+        comment_personal_metadata: set[str] = set()
+        word_elements: Counter[str] = Counter()
+        for name, value in story_parts:
+            root = ET.fromstring(value)
+            for element in root.iter():
+                local_name = element.tag.rsplit("}", 1)[-1]
+                namespace = (
+                    element.tag[1:].split("}", 1)[0]
+                    if element.tag.startswith("{")
+                    else ""
+                )
+                if namespace == W_NS:
+                    word_elements[local_name] += 1
+                if local_name in {"t", "delText", "instrText"} and element.text:
+                    story_text.append(element.text)
+                for attribute, attribute_value in element.attrib.items():
+                    if attribute.rsplit("}", 1)[-1] in {
+                        "descr",
+                        "name",
+                        "title",
+                        "tooltip",
+                    }:
+                        story_text.append(attribute_value)
+                if name.startswith("word/comments") and local_name == "comment":
+                    for attribute, attribute_value in element.attrib.items():
+                        field = attribute.rsplit("}", 1)[-1]
+                        if field in {"author", "date", "initials"} and attribute_value:
+                            comment_personal_metadata.add(field)
+                            if field in {"author", "initials"}:
+                                story_text.append(attribute_value)
+        all_text = "\n".join(story_text)
+        extended_personal_metadata: list[str] = []
+        if "docProps/app.xml" in names:
+            app_root = ET.fromstring(archive.read("docProps/app.xml"))
+            for node in app_root.iter():
+                field = node.tag.rsplit("}", 1)[-1]
+                if field in {"Company", "HyperlinkBase", "Manager", "Template"}:
+                    if (node.text or "").strip():
+                        extended_personal_metadata.append(field)
+        zip_metadata = {
+            "archive_comment": bool(archive.comment),
+            "member_comments": sum(bool(info.comment) for info in archive.infolist()),
+            "member_extra_fields": sum(bool(info.extra) for info in archive.infolist()),
+            "noncanonical_timestamps": sum(
+                info.date_time != (1980, 1, 1, 0, 0, 0)
+                for info in archive.infolist()
+            ),
+        }
+        relationship_parts = sorted(name for name in names if name.endswith(".rels"))
+        package = {
+            "parts": len(names),
+            "relationship_parts": relationship_parts,
+            "comments": word_elements["comment"],
+            "insertions": word_elements["ins"],
+            "deletions": word_elements["del"],
+            "fields": word_elements["instrText"],
+            "hyperlinks": word_elements["hyperlink"],
+            "bookmarks": word_elements["bookmarkStart"],
+            "footnotes_part": "word/footnotes.xml" in names,
+            "endnotes_part": "word/endnotes.xml" in names,
+            "custom_properties": "docProps/custom.xml" in names,
+            "comment_personal_metadata": sorted(comment_personal_metadata),
+            "extended_personal_metadata": sorted(extended_personal_metadata),
+            "zip_metadata": zip_metadata,
+        }
+
     placeholders = {
         name: len(pattern.findall(all_text))
         for name, pattern in PLACEHOLDER_PATTERNS.items()
@@ -523,34 +642,6 @@ def inspect_docx(path: Path) -> dict[str, Any]:
         for name, pattern in PII_PATTERNS.items()
         if pattern.search(all_text)
     }
-
-    with zipfile.ZipFile(path) as archive:
-        names = set(archive.namelist())
-        story_part_pattern = re.compile(
-            r"word/(?:document|header\d+|footer\d+|footnotes|endnotes)\.xml"
-        )
-        story_xml = "\n".join(
-            archive.read(name).decode("utf-8", errors="replace")
-            for name in sorted(names)
-            if story_part_pattern.fullmatch(name)
-        )
-        relationship_parts = sorted(name for name in names if name.endswith(".rels"))
-        comments = 0
-        if "word/comments.xml" in names:
-            comments = archive.read("word/comments.xml").count(b"<w:comment ")
-        package = {
-            "parts": len(names),
-            "relationship_parts": relationship_parts,
-            "comments": comments,
-            "insertions": len(re.findall(r"<w:ins(?:\s|>)", story_xml)),
-            "deletions": len(re.findall(r"<w:del(?:\s|>)", story_xml)),
-            "fields": story_xml.count("<w:instrText"),
-            "hyperlinks": story_xml.count("<w:hyperlink"),
-            "bookmarks": story_xml.count("<w:bookmarkStart"),
-            "footnotes_part": "word/footnotes.xml" in names,
-            "endnotes_part": "word/endnotes.xml" in names,
-            "custom_properties": "docProps/custom.xml" in names,
-        }
 
     sections = []
     for section in document.sections:
@@ -573,7 +664,7 @@ def inspect_docx(path: Path) -> dict[str, Any]:
         )
 
     return {
-        "path": str(path),
+        "path": str(reported_path),
         "sha256": sha256_file(path),
         "bytes": path.stat().st_size,
         "paragraphs": len(paragraphs),
@@ -593,6 +684,39 @@ def inspect_docx(path: Path) -> dict[str, Any]:
         "possible_pii": pii,
         "package": package,
     }
+
+
+def inspect_docx(path: Path) -> dict[str, Any]:
+    """Inspect one stable, admitted snapshot while reporting the caller's path."""
+    with admitted_docx(path) as admitted_path:
+        return _inspect_admitted_docx(admitted_path, reported_path=path)
+
+
+def redact_inspection(inspection: dict[str, Any]) -> dict[str, Any]:
+    """Return a structural report without document text or metadata values."""
+    redacted = dict(inspection)
+    redacted["headings"] = [
+        {"level": item["level"], "style": item["style"]}
+        for item in inspection["headings"]
+    ]
+    redacted["style_usage"] = {
+        "style_count": len(inspection["style_usage"]),
+        "paragraphs": sum(inspection["style_usage"].values()),
+    }
+    redacted["headers"] = {
+        "count": len(inspection["headers"]),
+        "nonempty": sum(bool(value.strip()) for value in inspection["headers"]),
+    }
+    redacted["footers"] = {
+        "count": len(inspection["footers"]),
+        "nonempty": sum(bool(value.strip()) for value in inspection["footers"]),
+    }
+    redacted["core_properties"] = {
+        "populated_fields": sorted(
+            key for key, value in inspection["core_properties"].items() if value
+        )
+    }
+    return redacted
 
 
 def iter_all_paragraphs(document: DocumentType) -> Iterable[Any]:

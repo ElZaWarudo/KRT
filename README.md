@@ -2,7 +2,7 @@
 
 KRT means **Knights of the Round Table**: portable agent skills for keeping a codebase in formation without asking one overcaffeinated linux squire to remember every ritual by heart.
 
-KRT gives agent runtimes 26 reusable skills for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, CI, deployment, security, evaluation, docs, and repo health. The bit is medieval. The contract is not.
+KRT gives agent runtimes 27 reusable skills for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, CI, deployment, security, evaluation, docs, and repo health. The bit is medieval. The contract is not.
 
 ## Choose A Skill
 
