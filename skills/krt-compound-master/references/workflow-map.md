@@ -8,7 +8,9 @@ Load `role-and-runtime.md`. Resolve roles, runtime/delegation availability, repo
 
 In `mode:resume`, compact or selectively load state before broad ingestion when state would crowd context.
 
-Before planning new work or resuming old work, reconcile live artifacts. If `docs/orchestration/compound-master-state.md`, the active work package, or linked roadmap/plan artifacts disagree with the current branch/base, dependency state, blocker set, review status, next invocation, or PR/Jira reality, repair those files first and record the correction.
+Before planning new work or resuming old work, resolve the canonical state path. Use `docs/orchestration/compound-master-state.md` for standalone work and the supplied per-run state path for a Seneschal child. Reconcile live artifacts. If canonical state, the active work package, or linked roadmap/plan artifacts disagree with the current branch/base, dependency state, blocker set, review status, next invocation, or PR/Jira reality, repair those files first and record the correction.
+
+When `orchestrator:seneschal`, load `nested-orchestration.md`, require `run-id`, `state-path`, `initiative-contract`, and `interaction:brokered`, and limit the run to its assigned roadmap item, package, or review unit.
 
 Worktree posture:
 
@@ -39,7 +41,7 @@ Production posture:
 
 ## Step 1 - Roadmap Generator Gate
 
-Invoke `roadmap_generator`. It must return exactly one:
+For standalone work, invoke `roadmap_generator`. It must return exactly one:
 
 ```text
 artifact_kind: roadmap | readiness-report
@@ -50,24 +52,38 @@ If readiness report, update state and stop with a context-blocked closeout. If r
 
 After each roadmap/readiness result, refresh state plus any touched orchestration artifact before continuing or stopping. Do not accumulate stale statuses for later cleanup.
 
+For `orchestrator:seneschal`, do not generate a second program roadmap when the
+parent supplied a reviewed roadmap and target item. Validate that the roadmap,
+item, initiative contract, dependency edges, and shared decisions agree; record
+the inherited paths and continue to focused item discovery. If they disagree,
+return a decision request or blocker to Seneschal instead of inventing a new
+roadmap.
+
 ## Step 2 - Roadmap Review
 
 Review the roadmap with `document_review`. Fix blockers without inventing behavior. Ask only when findings change scope, behavior, dependency order, or PR strategy. Stop after three blocked review rounds and escalate with the blocker and next question.
 
 ## Step 3 - Brainstorm Per Roadmap Item
 
-For each roadmap item in dependency order, invoke `brainstorm` for that item only. Keep it interactive unless the current invocation explicitly requested non-interactive discovery.
+For each roadmap item in dependency order, invoke `brainstorm` for that item only when no reviewed item-level planning input exists. Keep it interactive unless the current invocation explicitly requested non-interactive discovery. In a Seneschal child, inherit the reviewed initiative contract, do not rerun its general brainstorm, and route any required user decision through the brokered interaction contract.
 
 The brainstorm gate finishes with:
 
 ```text
-brainstorm_path: docs/brainstorms/...
-planning_input_path: docs/brainstorms/...
+brainstorm_path: <artifact path under the configured docs root>
+planning_input_path: <artifact path under the configured docs root>
+artifact_contract: ce-unified-plan/v1 | legacy
+artifact_readiness: requirements-only
 requirements_decisions: captured | assumption-backed
 open_decisions: none | [...]
 ```
 
-Review `planning_input_path` before planning. If brainstorm was skipped, record the override and assumptions.
+Resolve the artifact by metadata, not by requiring `docs/brainstorms/**`.
+Current `ce-brainstorm` outputs may live under `docs/plans/**`; legacy
+`docs/brainstorms/**` remains valid. `brainstorm_path` and
+`planning_input_path` may be the same unified artifact. Review
+`planning_input_path` before planning. If focused brainstorm was skipped,
+record the reviewed input that justified reuse and any remaining assumptions.
 
 ## Step 4 - Plan Per Reviewed Requirements Artifact
 
@@ -110,7 +126,7 @@ Execute serially unless `parallel:true`, `autonomy:high`, `worktree-policy:auto|
 ## Step 7 - Execute Review Unit
 
 Load `execution-delegation.md`. Invoke `work` in implementation-only/no-shipping mode for the selected review unit. Start Security Watch for high-risk review units. Inspect worker output, update state, run/attempt verification, and continue to review.
-Update `compound-master-state.md` and the active work-package artifact in the same turn as the worker result. Sync implementation status, blockers, changed files/tests, branch/base facts, and the next review action before launching review.
+Update the resolved canonical state path and the active work-package artifact in the same turn as the worker result. Sync implementation status, blockers, changed files/tests, branch/base facts, and the next review action before launching review. In brokered mode, include decision requests in state and return them to Seneschal instead of asking the user.
 
 ## Step 8 - Code Review And Fix Loop
 
@@ -127,7 +143,7 @@ Load `impact-verification.md` and `review-security-ci.md`. Record contract-drift
 
 ## Step 11 - Release Marshal Handoff
 
-Load `release-handoff.md`. Handoff the completed review unit to `krt-release-marshal`; do not duplicate its procedures.
+Load `release-handoff.md`. In standalone mode, hand the completed review unit to `krt-release-marshal`; do not duplicate its procedures. In a Seneschal child, return the same release-ready context to the parent and stop so it can reconcile the wave before invoking Release Marshal.
 
 When an active autonomous ledger exists, include the ledger path, allowed mutation classes, latest audit hash, executor mode, and requested autonomous mutation classes in the handoff. Handoff does not bypass Release Marshal validators.
 

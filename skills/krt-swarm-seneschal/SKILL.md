@@ -1,6 +1,6 @@
 ---
 name: krt-swarm-seneschal
-description: Meta-orchestrator turning rough initiatives, documented KRT work packages, backlog items, Jira queues, and roadmap backlogs into approved documentation packets, safe Jira seed plans, isolated Codex worker waves, reconciliation, and release handoffs. Use when the user asks for swarm-style workflow, documentary planning before execution, dispatcher, parallel subagent orchestration, Jira-backed team flow, overnight/no-confirmation autonomous delivery, backlog-to-PR execution, Codex worker waves, or a layer above krt-compound-master without modifying krt-compound-master.
+description: Meta-orchestrator turning rough initiatives, documented KRT work packages, backlog items, Jira queues, and roadmap backlogs into approved documentation packets, nested krt-compound-master flows, isolated Codex worker waves, decision brokering, reconciliation, and release handoffs. Use when the user asks for swarm-style workflow, multiple Compound Master workers, documentary planning before execution, dispatcher, parallel subagent orchestration, Jira-backed team flow, overnight/no-confirmation autonomous delivery, backlog-to-PR execution, Codex worker waves, or a layer above krt-compound-master.
 ---
 
 # KRT Swarm Seneschal
@@ -8,15 +8,21 @@ description: Meta-orchestrator turning rough initiatives, documented KRT work pa
 Coordinate swarm-style delivery flow:
 
 ```text
-rough brief -> documentation gate -> Jira/queue seed -> isolated workers -> reviewed outputs -> release handoff
+rough brief -> initiative contract -> composition gate -> nested Compound flows -> reconciliation -> release handoff
 ```
 
-This skill is a meta-orchestrator. It must not edit `krt-compound-master`, bypass its gates, or replace `krt-release-marshal`. It may invoke existing KRT/Compound skills as workers when the runtime supports subagents, or produce exact prompts and wave plans when it does not.
+This skill is a meta-orchestrator. It must not reproduce or bypass
+`krt-compound-master` gates or replace `krt-release-marshal`. It may invoke
+multiple isolated Compound Master flows, observe their canonical artifacts and
+states, broker their user decisions, and reconcile their release-ready outputs.
+When subagents are unavailable, produce exact prompts and wave plans.
 
 ## Operating Posture
 
 - Treat approved documentation as a formal dependency of Jira mutation, worker dispatch, code mutation, and release handoff.
-- Treat `krt-compound-master` as the quality pipeline, not the thing being changed.
+- Treat `krt-compound-master` as the complete per-flow artifact and quality pipeline. Let Seneschal own only cross-flow scheduling, isolation, decision brokering, and reconciliation.
+- Treat each active Compound flow as an isolated run with a stable run ID and canonical state path. Never let active runs share one mutable `compound-master-state.md`.
+- Treat Compound artifacts as authoritative. Store only paths and observed snapshots in swarm state.
 - Treat `krt-release-marshal` as the only owner of commits, PR creation, Jira mutation during release, reviewer requests, and merge-related flow.
 - Resolve Jira provider from an explicit `jira-provider`, a Jira URL, or exactly one ready provider through `krt-release-marshal/scripts/resolve_jira_provider.py`. Never default silently. Keep adapters separate: `cloud` selects `krt-jira-cloud-scribe`; `server-datacenter` selects `krt-jira-scribe`.
 - Treat human approval as a startup policy problem, not a per-action interruption. In manual flow, ask before mutating. In autonomous flow, require an active autonomy mandate/ledger that allows the exact mutation class.
@@ -33,6 +39,7 @@ Load only what the current task needs:
 | Need | Load |
 |---|---|
 | Explain design swarm model | `references/swarm-protocol.md` |
+| Start, observe, resume, or reconcile nested Compound Master flows | `references/compound-master-nesting.md` |
 | Produce, review, revise, approve documentation packet | `references/documentary-planning.md` |
 | Build queue, choose ready work, plan waves | `references/queue-and-dispatch.md` |
 | Launch or prepare subagent prompts | `references/subagent-contracts.md` |
@@ -70,6 +77,7 @@ Supported modes:
 - Inspect repo state and active orchestration artifacts before mutating anything.
 - Identify source work: `docs/work-packages/`, GitHub Issues, Linear, backlog file, Jira queue, or user-provided tasks.
 - Read persistent state from `docs/swarm/queue-state.yaml` and `docs/swarm/blockers.yaml` when they exist. Create them only when the requested mode needs local state.
+- When a queue unit uses Compound Master, load `references/compound-master-nesting.md`, resolve its run ID and canonical state path, and refresh its observed snapshot before selecting or resuming it.
 - When Jira is involved, resolve `jira_provider` before reading or mutating Jira state. If both providers are ready or neither is identifiable, treat the provider as ambiguous/unresolved instead of guessing.
 - For Jira team flow, load `references/jira-team-flow.md`, `references/queue-state-schema.md`, `references/blocker-ledger.md`, and `references/parallel-dispatch-policy.md`.
 - For autonomous or no-confirmation flow, load `references/autonomous-team-flow.md` and resolve an autonomy ledger before external or irreversible mutations.
@@ -79,6 +87,8 @@ Supported modes:
 - Load `references/documentary-planning.md`.
 - If the user is starting a new initiative, roadmap, Jira program, swarm, overnight run, or implementation request from a rough brief, enter `document-plan` first.
 - Produce the documentation packet before Jira mutation, queue execution state, worker dispatch, code mutation, or release handoff.
+- For a new initiative, produce or reuse one reviewed requirements-only initiative contract before deriving child Compound flows. Treat it as shared inherited context, not a replacement for focused item discovery.
+- Treat this gate as a composition gate: verify the shared contract, roadmap, child invocation envelopes, existing artifact gates, dependencies, and execution topology without repeating Compound Master's document reviews or requiring not-yet-generated child artifacts.
 - Persist the gate in `docs/swarm/queue-state.yaml`:
 
 ```yaml
@@ -86,7 +96,9 @@ documentation_gate:
   status: draft | in_review | approved | changes_requested
   approved_by: null
   approved_at: null
+  initiative_contract: docs/plans/<initiative>/initiative-requirements.md
   source_artifacts:
+    - docs/plans/<initiative>/initiative-requirements.md
     - docs/product/roadmap.md
     - docs/jira/seed-plan.md
     - docs/swarm/swarm-startup.md
@@ -104,6 +116,7 @@ documentation_gate:
 - Convert candidate work into executable units with scope, acceptance criteria, dependencies, touched surfaces, verification commands, and intended base.
 - Use Planner workers when a roadmap, epic, or Jira parent issue must be decomposed into small executable units before implementation.
 - Prefer existing `krt-compound-master` review units. If only high-level backlog items exist, route discovery/planning through existing requirements, roadmap, and compound-master skills rather than inventing hidden scope.
+- When several roadmap items need full artifact and quality pipelines, create one nested Compound run per independent item. Give each run the initiative contract, target item, artifact namespace, stable state path, and brokered interaction mode.
 - Reject units that are too broad, lack acceptance criteria, share a risky surface with another active unit, or need unresolved product/auth/data decisions.
 - For Jira queues, maintain the resolved `jira_provider` with the persistent mapping from Jira issue key to work package, review unit, queue unit, current status, dependencies, and handoff facts.
 
@@ -131,6 +144,8 @@ documentation_gate:
 - If runtime exposes subagents, launch each worker only with the relevant unit contract and artifact paths.
 - If subagents are unavailable, write exact prompts the user can run in separate Codex threads/worktrees.
 - Use role-specific workers: Planner, Implementer, Reviewer, Fixer, Integrator, Documenter. Use Compound Master Worker when a unit should go through the existing KRT quality pipeline.
+- Prefer a nested Compound Master Worker over reimplementing its brainstorm, plan, work-package, review, security, and CI-prevention gates in Seneschal.
+- Require nested Compound workers to use `interaction:brokered`: they formulate structured decision requests but never ask the user directly.
 - Each worker must operate in implementation-only/no-shipping mode unless the task is explicitly artifact-only.
 - Assign exactly one Jira subtask or standalone Jira issue per worker when Jira is the backlog source.
 - Forbid workers from committing, pushing, opening PRs, mutating Jira, requesting reviewers, merging, or transitioning issues.
@@ -142,6 +157,8 @@ documentation_gate:
 - Inspect real diff filesystem state before trusting worker reports.
 - Run required review and verification gates before marking any unit release-ready.
 - Reconcile blockers using `references/blocker-ledger.md`: record non-fatal blockers, mark only affected units blocked/deferred, and continue independent ready units.
+- Reconcile each nested Compound result against its canonical state and artifacts. Treat swarm snapshots as stale observations, not authority.
+- Deduplicate decision requests, ask one decision at a time in manual interactive flow, persist the answer in the canonical shared or item artifact, and resume every affected child.
 - Use Integrator workers to inspect merge order, dependency edges, stacked PR choreography, and cross-worker conflicts before release handoff.
 - Decide each unit status: `release-ready`, `needs-fix`, `blocked`, `deferred`, or `split-required`.
 - Update queue and active orchestration state in the same turn as status changes.

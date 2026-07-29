@@ -1,5 +1,8 @@
 # Release Handoff
 
+In a Seneschal child, prepare this context but return it to Seneschal; do not
+invoke Release Marshal until the parent reconciles the wave.
+
 Load only when a selected review unit has passed implementation, verification, review, and required security gates.
 
 Do not duplicate `krt-release-marshal`; hand off with enough context for it to build the visible release plan. Normal handoff may authorize preparation for review only; it must not authorize or suggest merging a PR. Autonomous handoff may include a merge candidate only when an active ledger allows that exact mutation class, and Release Marshal's executor still owns the merge decision.
@@ -17,6 +20,8 @@ Do not duplicate `krt-release-marshal`; hand off with enough context for it to b
 
 ```text
 Skill("<project_pr>", "Run the full krt-release-marshal workflow for this completed review unit.
+Compound run ID: <standalone|run-id>
+Canonical Compound state: <state-path>
 
 Work package: <work-package-path>
 Review unit: <RU# and title>

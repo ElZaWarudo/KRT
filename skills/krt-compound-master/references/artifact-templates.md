@@ -12,6 +12,11 @@ Path:
 docs/work-packages/RDM-###-<roadmap-item-slug>/YYYY-MM-DD-NNN-<package-slug>-work-package.md
 ```
 
+Resolve `origin_brainstorm` and `origin_planning_input` by artifact metadata,
+not folder name. Current `ce-brainstorm` unified plans may live under
+`docs/plans/**`; legacy `docs/brainstorms/**` remains valid. Both fields may
+point to the same requirements-only unified artifact.
+
 Use a work package as a delivery container. Its review units are the default atomic PR/Jira units. A work package may include one roadmap item, one plan U-ID, or a cohesive group of U-IDs, but it should define smaller review units when the package spans multiple review surfaces. Do not store all work packages in one flat directory; organize them under the roadmap item folder they belong to.
 
 Default `jira_policy` to `optional`: review units should carry Jira-ready summaries and descriptions because Jira is important delivery traceability, but lack of Jira role/config/context should not block package creation or execution. Use `required` only when the user, repo, or active delivery contract explicitly makes Jira mandatory; use `skip` only when the user explicitly opts out.
@@ -31,7 +36,7 @@ Review-unit size guardrails:
 - Do not create a dedicated planning/docs branch just to hold these artifacts. Until execution starts, keep them on the active integration branch; when RU1 begins, move forward on the first semantic implementation branch that ships the related capability.
 
 Freshness discipline:
-- Keep the work-package file current. When review-unit selection, dependency order, branch/base, verification, review, security, Jira, PR, or closeout facts change, update this artifact in the same turn as `docs/orchestration/compound-master-state.md`.
+- Keep the work-package file current. When review-unit selection, dependency order, branch/base, verification, review, security, Jira, PR, or closeout facts change, update this artifact in the same turn as the resolved canonical Compound state path.
 - Do not leave a package in `ready` after execution or review moved it to another state. The live package should tell the next operator what is actually ready, blocked, or handed off.
 
 Work packages must align with origin plan units. A package may combine or split units, but it must make that relationship explicit and justify it. If a plan defines U1-U5, the package must say which of those units are included, excluded, deferred, or split into another package.
@@ -42,9 +47,12 @@ title: [Work package title]
 status: ready
 roadmap_item: RDM-###
 origin_roadmap: docs/roadmaps/...
-origin_brainstorm: docs/brainstorms/...
-origin_planning_input: docs/brainstorms/...
+origin_brainstorm: <requirements artifact under configured docs root>
+origin_planning_input: <reviewed planning input under configured docs root>
 origin_plan: docs/plans/...
+initiative_contract: <shared requirements-only artifact or none>
+compound_run_id: <stable run ID or standalone>
+compound_state_path: <resolved canonical state path>
 units: [U1, U2]
 unit_alignment: complete|partial|split
 review_units: [RU1, RU2]
@@ -225,10 +233,12 @@ Proceed with execution now?
 
 ## Final Summary
 
-At the end, write:
+At the end, write the summary beside the canonical run state. Use the legacy
+standalone path when no run ID exists:
 
 ```text
-docs/orchestration/YYYY-MM-DD-compound-master-summary.md
+standalone: docs/orchestration/YYYY-MM-DD-compound-master-summary.md
+nested: docs/orchestration/compound-master/<run-id>/summary.md
 ```
 
 Include roadmap, brainstorms, plans, packages, waves, branches, Impact Scans, security reviews, CI break-prevention evidence, surface-aware verification, review rounds, Jira tasks, PRs, surfaced CI incidents/escalations, blockers, residual advisory findings, completed packages, remaining packages by wave, and the next recommended invocation if work remains.

@@ -49,6 +49,13 @@ Every work package/review unit should state:
 - Agent must escalate: product behavior, auth/tenant/data contract rules, public API compatibility, destructive persistence, production deployment/rollback, branch/base strategy, Jira/PR workflow, credentials, paid resources, or scope outside the review unit.
 - Autonomous external mutation requires ledger linkage, validator pass, audit write, and Release Marshal executor handoff. Work agents cannot self-authorize it.
 
+For a Seneschal-nested run, pass `run-id`, canonical `state-path`,
+`initiative-contract`, and `interaction:brokered` to every mutating or planning
+worker. Require decision requests in the parent return contract. Workers must
+not ask the user directly or continue through a decision that changes inherited
+product, architecture, auth, data, public-contract, security, or production
+rules.
+
 ## Work Invocation
 
 Before invoking work, verify the resolved `work` role supports implementation-only/no-shipping mode.
@@ -62,6 +69,10 @@ Review unit: <RU# and title>
 
 Execution constraint: implement only the selected review unit and run the verification you can run inside your assigned scope. Use the package autonomy contract: decide reversible, package-local, convention-following choices; record assumptions; escalate only non-inferable product, contract, security, production, branch/base, Jira/PR, credential, or scope decisions. Preserve the origin plan's implementation units: for each included U-ID/unit, report status, changed files, verification attempted/results/skips, and blockers. Do not implement later review units unless required to keep this unit coherent and explicitly recorded. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for the lead and krt-release-marshal. Return changed files, API/contract changes detected, verification attempted, verification results, skipped verification with reasons, decisions made autonomously, and any unresolved questions. Do not ask the user to take over normal local verification or review.")
 ```
+
+Under brokered interaction, replace free-form unresolved questions with
+structured `decision_request` entries from `nested-orchestration.md` and return
+them to Seneschal.
 
 ## Completion Gate
 

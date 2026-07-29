@@ -36,6 +36,13 @@ risk:
 verification:
   commands: []
   evidence: []
+compound:
+  run_id: null
+  state_path: null
+  interaction: brokered
+  observed_status: null
+  observed_at: null
+  artifact_revision: null
 handoff:
   intended_base: main
   branch: null
@@ -61,6 +68,8 @@ A unit is ready only when:
 - Overlap with active units is low or explicitly coordinated.
 - Jira source state, when applicable, has been read through the selected Jira provider skill and has an unambiguous issue/subtask key.
 - No open blocker exists in `docs/swarm/blockers.yaml` for the unit or its dependencies.
+- For a nested Compound unit, the run ID and canonical state path are unique, the observed snapshot is fresh, and the relevant inner Compound gate has passed.
+- Every nested isolation target can read the same recorded revision of the initiative contract, roadmap, and shared decisions.
 
 ## Wave Selection
 
@@ -108,6 +117,7 @@ Units:
   Jira: <key or none>
   Source: <path/link>
   Worker role: <compound-master|implementer|reviewer|documenter|fixer>
+  Compound run/state: <run ID and canonical path, or none>
   Intended base: <branch>
   Expected branch/worktree: <name/path>
   Verification: <commands or gap>

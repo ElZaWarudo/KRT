@@ -55,17 +55,37 @@ Return units small enough for one Implementer and one focused PR unless grouping
 
 ### Compound Master Worker
 
+Use `compound-master-nesting.md`. A Compound worker may own one roadmap item
+through the full artifact and quality pipeline, or one existing work
+package/review unit during execution. Always limit it to one assigned target.
+
 Use when the unit is already a `krt-compound-master` review unit or needs the existing KRT artifact/review pipeline.
 
 ```text
-Use krt-compound-master for this single review unit only.
+Use krt-compound-master for only the assigned target.
 
-Mode: execute
-Package: <work-package-path>
-Review unit: <RU#>
+Mode: <artifacts|full|execute|resume>
+Parallel: false
+Orchestrator: seneschal
+Run ID: <stable-id>
+State path: docs/orchestration/compound-master/<run-id>/state.md
+Interaction: brokered
+Initiative contract: <requirements-only artifact path>
+Target roadmap item: <RDM# or none>
+Package: <work-package-path or none>
+Review unit: <RU# or none>
+Artifact namespace: <initiative/item namespace>
+Shared decisions: <paths>
 Parallel context: this worker owns only this unit.
-Shipping: implementation-only/no-shipping. Do not commit, push, open PRs, mutate Jira, request reviewers, or merge.
-Return: changed files, commands run, blockers, review findings, branch/base facts, and release-readiness notes.
+Shipping: artifact-only or implementation-only/no-shipping as assigned.
+Do not rerun the general initiative brainstorm.
+Run focused item discovery only when no reviewed item planning input exists.
+Do not ask the user directly. Return structured decision requests and pause
+only affected work.
+Do not commit, push, open PRs, mutate Jira, request reviewers, or merge.
+Return: run ID, canonical state, artifact paths, observed revision, changed
+files, commands run, inner gates, decision requests, affected sibling units,
+branch/base facts, release readiness, and recommended resume invocation.
 ```
 
 ### Implementer
@@ -132,7 +152,7 @@ Return changed docs and any verification performed.
 Require every worker to return:
 
 ```text
-Status: done | blocked | needs-review | failed
+Status: done | blocked | needs-decision | needs-review | failed
 Role: <planner|implementer|reviewer|fixer|integrator|documenter|compound-master-worker>
 Unit: <id>
 Jira issue: <key or none>
@@ -152,6 +172,15 @@ Blockers:
   suggested_owner: <user|product|accountant|legal|security|tech lead>
   evidence: <path/output/link>
   next_action: <suggested next step>
+Decision requests:
+- question: <single decision>
+  why_not_inferable: <missing authority or evidence>
+  affected_units: []
+  options: []
+  recommendation: <option or none>
+  safe_fallback: <pause/defer behavior>
+  canonical_target: <shared or item artifact path>
+  evidence: <paths/output/links>
 Release readiness:
 - ready | not ready | unknown
 Next role:

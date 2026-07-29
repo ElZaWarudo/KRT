@@ -16,7 +16,7 @@ Read this with the repository `AGENTS.md` before acting. If they conflict, stop 
 - A review unit is the default PR/Jira unit. Do not widen it without an explicit rationale.
 - Keep related documentation with the implementation when that documentation explains the change, clarifies stacked context, or backfills nearby stale behavior docs.
 - Do not silently stash, side-branch, defer, or drop required docs to make a diff look cleaner.
-- Keep `docs/orchestration/compound-master-state.md` and the assigned package artifact aligned with reality. Do not end a loop with stale status, blockers, verification, branch/base, or next-step text.
+- Keep the resolved canonical state path and the assigned package artifact aligned with reality. Standalone runs default to `docs/orchestration/compound-master-state.md`; nested runs use their supplied per-run state path. Do not end a loop with stale status, blockers, verification, branch/base, or next-step text.
 
 ## Facts
 
@@ -39,6 +39,8 @@ Escalate instead of deciding alone when the change affects:
 - scope outside the assigned package
 
 When escalation is needed, keep working on safe local exploration, tests, and package-local implementation that do not depend on the blocked decision.
+
+Under `interaction:brokered`, do not ask the user directly. Return a structured decision request to Seneschal, pause affected work, and resume only after the decision is persisted in a canonical artifact.
 
 ## Shipping Boundary
 

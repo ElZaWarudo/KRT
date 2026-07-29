@@ -94,6 +94,11 @@ Record delegation mode, roles used, read-only/mutating status, outcome, confiden
 - `autonomous-ledger:<path>`: machine-readable authorization ledger for autonomous external mutation. `autonomy:high` without this ledger does not authorize external side effects.
 - `review-threshold:P0-P2|P0-P1|P0`: default `P0-P2`.
 - `subagent-model:<value>`: runtime-specific advisory only.
+- `orchestrator:standalone|seneschal`: default `standalone`; load `nested-orchestration.md` for a Seneschal child.
+- `run-id:<stable-id>`: required for `orchestrator:seneschal`; use it to isolate state and parent reconciliation.
+- `state-path:<repo-relative-path>`: required for `orchestrator:seneschal`; it is the child's only live resume truth.
+- `initiative-contract:<repo-relative-path>`: reviewed shared requirements-only contract inherited by the child.
+- `interaction:direct|brokered`: default `direct`; require `brokered` for `orchestrator:seneschal`.
 
 Jira policy semantics:
 
@@ -114,6 +119,7 @@ Create as needed:
 
 ```text
 docs/orchestration/
+docs/orchestration/compound-master/<run-id>/
 docs/orchestration/autonomy-ledgers/
 docs/orchestration/archive/compound-master-state/
 docs/roadmaps/
@@ -123,4 +129,4 @@ docs/brainstorms/
 docs/plans/
 ```
 
-Maintain `docs/orchestration/compound-master-state.md` as a compact live resume entrypoint. Archive long historical detail under `docs/orchestration/archive/compound-master-state/` and link it from the live state.
+For standalone runs, maintain `docs/orchestration/compound-master-state.md` as a compact live resume entrypoint. For Seneschal-nested runs, require `docs/orchestration/compound-master/<run-id>/state.md` or another explicit collision-free repo-relative path. Never let active runs share a mutable state file. Archive long historical detail under `docs/orchestration/archive/compound-master-state/` and link it from the active run state.

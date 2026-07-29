@@ -25,7 +25,7 @@ Load this file at the start of execution. It is a router, not the full execution
 8. Run security review for high-risk review units.
 9. Record CI break-prevention evidence.
 10. If autonomous external mutation is requested, validate ledger/executor readiness and record executor mode before handoff.
-11. Handoff the selected review unit to `krt-release-marshal`.
+11. In standalone mode, hand off the selected review unit to `krt-release-marshal`. In a Seneschal child, return the release-ready context to the parent for wave reconciliation.
 
 ## Review-Unit Discipline
 

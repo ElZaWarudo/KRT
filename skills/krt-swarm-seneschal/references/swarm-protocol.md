@@ -7,7 +7,7 @@ Use this reference when explaining, designing, or governing KRT Swarm Seneschal.
 The healthy shape is not one giant Codex session with an entire backlog. The healthy shape is a controlled swarm:
 
 ```text
-stable context -> executable queue -> isolated workers -> review gates -> release marshal handoff
+initiative contract -> executable queue -> isolated Compound flows -> composition gates -> release marshal handoff
 ```
 
 The swarm seneschal optimizes for reviewable, mergeable output. It does not optimize for raw task count.
@@ -17,6 +17,7 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
 1. **Stable context**
    - `AGENTS.md`
    - KRT skill rules
+   - one reviewed requirements-only initiative contract
    - existing planning, roadmap, and work-package artifacts
    - repo-specific verification commands
 
@@ -34,10 +35,11 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
    - creates worker prompts or launches subagents
 
 4. **Workers**
-   - one Codex worker per unit
+   - one Codex or nested Compound Master flow per unit
    - isolated branch/worktree/cloud task
    - no shipping authority
    - no scope expansion without escalation
+   - brokered user interaction through Seneschal
 
 5. **Quality control**
    - local verification
@@ -57,11 +59,12 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
 - No backlog item enters the queue until it is written as a contract of work.
 - No Jira operation runs until `jira_provider` is resolved; use the matching provider skill without fallback to its sibling.
 - No worker question stops the whole swarm when it can be recorded as a non-fatal blocker and independent work remains.
+- No nested Compound worker asks the user directly. It emits a structured decision request; Seneschal deduplicates, persists, asks one question at a time when policy permits, and resumes affected flows.
 - No-confirmation requests become ledger-bound autonomous runs. The swarm should not ask during the run; it should execute covered actions, defer uncovered/risky units, and continue independent work.
 
 ## Relationship To Existing KRT Skills
 
-- `krt-compound-master` remains the artifact and quality pipeline.
+- `krt-compound-master` remains the complete artifact and quality pipeline for each child flow. Seneschal may run several isolated Compound flows but must not duplicate their inner gates.
 - `krt-release-marshal` remains the release mutation owner.
 - Jira adapters remain separate: `cloud` selects `krt-jira-cloud-scribe`; `server-datacenter` selects `krt-jira-scribe`.
 - `krt-review-herald`, `krt-security-sentinel`, and `krt-ci-questor` remain specialists used when their gates are triggered.

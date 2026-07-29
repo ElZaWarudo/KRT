@@ -12,6 +12,7 @@ DOC_SECTIONS = (
     "docs/brainstorms",
     "docs/plans",
     "docs/work-packages",
+    "docs/orchestration/compound-master/",
     "docs/orchestration/compound-master-state.md",
 )
 

@@ -66,6 +66,7 @@ During autonomous execution after the documentation gate is approved:
 - Do not stop because one external mutation class is not ledger-covered.
 - Do not stop because one worker needs product/legal/accounting/security input.
 - Record blockers, defer affected units, and continue independent work.
+- Normalize nested Compound decision requests into the blocker ledger; never let a child ask the user during the run.
 - Dispatch fixers for bounded verification or review failures when surfaces remain isolated.
 - Dispatch Integrator workers before release handoff when two or more units may interact through dependencies, stack order, contracts, migrations, lockfiles, or shared generated artifacts.
 - Split broad or scope-creeping work instead of forcing one large PR.

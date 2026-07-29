@@ -7,7 +7,7 @@ Use this reference for `document-plan`, `document-review`, `document-revise`, an
 Create a human-reviewable planning packet before Jira mutation, worker dispatch, code mutation, or release handoff.
 
 ```text
-rough brief -> documentation packet -> human review -> approval -> Jira seed/drain -> implementation
+rough brief -> initiative contract -> roadmap/Compound artifacts -> composition review -> approval -> execution
 ```
 
 Documentation approval is a formal dependency, not a courtesy summary. If the gate is not approved, the swarm may create or revise documentation only.
@@ -21,7 +21,9 @@ documentation_gate:
   status: draft
   approved_by: null
   approved_at: null
+  initiative_contract: docs/plans/<initiative>/initiative-requirements.md
   source_artifacts:
+    - docs/plans/<initiative>/initiative-requirements.md
     - docs/product/roadmap.md
     - docs/jira/seed-plan.md
     - docs/swarm/swarm-startup.md
@@ -46,6 +48,7 @@ Statuses:
 
 Produce these artifacts for a new initiative, rough brief, roadmap, Jira program, swarm startup, or autonomous run:
 
+- `docs/plans/<initiative>/initiative-requirements.md`: reviewed requirements-only general brainstorm containing shared intent, actors, global scope/non-goals, terminology, success criteria, invariants, settled decisions, escalation boundaries, and open decisions. Accept another configured-docs-root path when the artifact declares `artifact_contract: ce-unified-plan/v1` and `artifact_readiness: requirements-only`.
 - `docs/product/roadmap.md`: product framing, MVP boundary, phase 2 epics, dependencies, risks, and implementation start criteria.
 - `docs/jira/seed-plan.md`: proposed Jira hierarchy, issue shapes, reuse candidates, blocked/deferred items, labels/statuses/sprint placement, and exact mutation classes that would be needed after approval.
 - `docs/swarm/swarm-startup.md`: source context, operating mode, concurrency policy, worker role caps, isolation approach, verification gates, release handoff policy, and stop conditions.
@@ -62,6 +65,10 @@ Mark the packet `in_review` only when:
 - Phase 2 or deferred epics are separated from MVP.
 - Jira hierarchy is proposed but not executed.
 - Initial blockers are recorded.
+- The initiative contract is reviewed and every child Compound run references it.
+- Child planning or execution candidates have unique run IDs and collision-free canonical state paths.
+- Each proposed child has a complete invocation envelope. Existing child artifacts, when present, have passed their relevant Compound gate; new artifact-planning children are not required to exist before this gate approves their launch.
+- Shared initiative, roadmap, and ADR artifacts have one revision that every planned isolation target can read.
 - Concurrency policy and worker caps are written.
 - Implementation start criteria are checkable.
 - Verification and review gates are named.

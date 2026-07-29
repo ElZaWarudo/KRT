@@ -95,6 +95,66 @@ blockers:
 
 If the worker reports a blocker informally, the orchestrator must normalize it before updating the ledger.
 
+## Decision Requests
+
+Treat a nested Compound worker's question as a decision request, not a direct
+user interaction. Normalize it into the blocker ledger:
+
+```yaml
+blockers:
+  - id: DEC-2026-07-28-001
+    unit_id: authentication-RU1
+    compound_run_id: customer-identity-auth
+    compound_state_path: docs/orchestration/compound-master/customer-identity-auth/state.md
+    title: Decide session revocation behavior
+    type: product
+    risk: high
+    description: Password-change session behavior is not defined.
+    decision_required: Choose whether existing sessions are revoked.
+    question: Should password changes revoke existing sessions?
+    why_not_inferable: The initiative contract does not define session validity.
+    options:
+      - id: revoke-all
+        consequence: Stronger security; signs out every device.
+      - id: keep-existing
+        consequence: Less friction; existing sessions remain valid.
+    recommendation: revoke-all
+    safe_fallback: Block affected units.
+    canonical_target: docs/plans/customer-identity/initiative-requirements.md
+    affected_units: [authentication-RU1, session-management-RU2]
+    status: open
+    evidence:
+      - docs/plans/customer-identity/initiative-requirements.md
+    resolution:
+      decided_at: null
+      decided_by: null
+      decision: null
+      canonical_revision: null
+```
+
+Before asking:
+
+- deduplicate requests with the same canonical target and decision surface;
+- merge conflicting worker proposals into one question;
+- identify every affected and dependent unit;
+- order open questions by risk and the number of units they unblock;
+- ask one decision at a time in manual interactive flow;
+- ask only through Seneschal, never through child workers.
+
+After the user answers:
+
+1. Persist the decision in `canonical_target` or a new shared ADR.
+2. Record the canonical revision in the resolution.
+3. Refresh every affected isolation target to that revision.
+4. Mark the blocker `answered` or `resolved`.
+5. Refresh affected Compound states and queue projections.
+6. Revalidate invalidated discovery, plan, package, and execution gates.
+7. Resume the original child when possible; otherwise resume a replacement from
+   its canonical state path.
+
+In autonomous flow, keep requests open, defer affected work, and continue
+independent units without asking.
+
 ## Reconciliation Rules
 
 When a blocker affects only one unit:
@@ -158,6 +218,8 @@ Best unlocks:
 
 - Finds the blocker by ID, Jira key, or unit ID.
 - Records the decision, resolver, and date.
+- Persists the decision in the canonical shared or item artifact before a child resumes.
+- Records the canonical artifact revision used by resumed Compound runs.
 - Sets status to `answered` or `resolved` as appropriate.
 - Marks affected units as candidates for readiness check in `docs/swarm/queue-state.yaml`.
 - Does not update Jira, comment, transition, or backlink directly. Manual flow requires confirmation through the selected Jira provider skill; autonomous flow requires ledger coverage through that same selected skill.

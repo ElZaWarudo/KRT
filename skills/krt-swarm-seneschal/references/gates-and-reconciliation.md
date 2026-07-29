@@ -6,6 +6,13 @@ Use this reference after dispatching workers, when reviewing outputs, and before
 
 For each unit:
 
+0. **Compound inner gate when nested**
+   - Load the child's canonical state path and active artifacts.
+   - Confirm the observed queue snapshot matches the canonical state revision.
+   - Require the relevant artifact, implementation, verification, review,
+     security, and CI-prevention gates for the requested transition.
+   - Do not substitute Seneschal review for a missing Compound gate.
+
 1. **Scope gate**
    - Worker stayed inside included scope.
    - Excluded work remains untouched.
@@ -27,6 +34,7 @@ For each unit:
 
 5. **State gate**
    - Queue status, branch/base facts, blockers, verification evidence, and downstream-fix notes are current.
+   - Nested Compound state remains canonical; queue fields contain only a fresh observed projection.
    - Jira issue/subtask state, when relevant, is reconciled through the selected Jira provider skill.
    - Non-fatal blockers are recorded in `docs/swarm/blockers.yaml`.
 
@@ -45,6 +53,7 @@ For each worker result:
 - Detect public contract, auth, data, dependency, config, or generated-artifact changes.
 - Record verification commands and outcomes.
 - Record blockers and whether they affect sibling units.
+- Normalize nested `decision_request` entries, deduplicate them, and route them through the decision broker in `blocker-ledger.md`.
 - Decide: `release-ready`, `needs-fix`, `blocked`, `deferred`, or `split-required`.
 - Update `docs/swarm/queue-state.yaml` and `docs/swarm/blockers.yaml` when statuses or blockers change.
 
@@ -79,6 +88,8 @@ For each release-ready unit, prepare:
 ```text
 Work package or source: <path/link>
 Review unit or queue ID: <id>
+Compound run ID: <run-id or none>
+Canonical Compound state: <state-path or none>
 Jira key: <key or none>
 Current branch: <branch>
 Intended base: <branch>

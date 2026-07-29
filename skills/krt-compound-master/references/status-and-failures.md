@@ -1,12 +1,13 @@
 # Status And Failures
 
-Use this reference when updating `docs/orchestration/compound-master-state.md`, setting statuses, or producing closeouts.
+Use this reference when updating the resolved Compound Master state path, setting statuses, or producing closeouts. Standalone runs default to `docs/orchestration/compound-master-state.md`; Seneschal children require a collision-free per-run state path.
 
 ## State Fields
 
 Track:
 
 - Initiative, mode, date.
+- Parent orchestrator, run ID, interaction mode, canonical state path, inherited initiative contract, target roadmap item, artifact namespace, and last parent decision applied.
 - Resolved roles and aliases.
 - Runtime adapter/delegation availability.
 - Autonomy mode and package autonomy contracts.
@@ -34,7 +35,8 @@ Track:
 
 ## Freshness Requirements
 
-- Treat `docs/orchestration/compound-master-state.md` as the live resume truth. Update it at every phase/gate transition, blocker or unblock, package/review-unit selection, branch/base change, verification/review/security result, PR/Jira mutation, and next-invocation change.
+- Treat the resolved canonical state path as the live resume truth. Update it at every phase/gate transition, blocker or unblock, package/review-unit selection, branch/base change, verification/review/security result, PR/Jira mutation, and next-invocation change.
+- Never let two active Compound runs share one mutable state path. Seneschal snapshots are observations and must not replace child state.
 - When a roadmap, brainstorm, planning input, plan, or work package changes status or operational facts, update that artifact in the same turn as the state file. Do not leave one current and the other stale.
 - Before closeout, resume, review handoff, or release handoff, reconcile state and the active artifact set against repo reality: status, blockers, next action, branch/base, dependencies, verification, review/security posture, and PR/Jira references.
 - If implementation or review made adjacent product/operator/API docs stale, update them or record the explicit split/blocker path; never leave the drift implicit.
@@ -72,13 +74,14 @@ ci-blocked
 autonomous-validation-only
 autonomous-blocked
 autonomous-audit-reconcile
+decision-needed
 blocked
 completed
 ```
 
 ## Failure Behavior
 
-Stop and write the blocker into `compound-master-state.md` and the affected active artifact when that artifact is the blocked execution surface:
+Stop and write the blocker into the resolved canonical state path and the affected active artifact when that artifact is the blocked execution surface:
 
 - Required artifact roles are missing.
 - Execution roles are missing for requested execution.
@@ -103,6 +106,10 @@ Stop and write the blocker into `compound-master-state.md` and the affected acti
 - A CI failure is surfaced by the user or release workflow and remains untriaged, package-owned without a fix plan, external/unknown without evidence, or requires a user-approved bypass.
 
 Tell the user exactly what input or action is needed before continuing.
+
+When `interaction:brokered`, replace the direct user question with the
+structured decision request from `nested-orchestration.md`, return it to
+Seneschal, and continue only safe work independent of that decision.
 
 ## Closeout Shape
 

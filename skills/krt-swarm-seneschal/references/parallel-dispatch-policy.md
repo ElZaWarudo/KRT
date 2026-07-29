@@ -19,6 +19,16 @@ documenter_workers: 1-3
 
 Adjust these caps to runtime capacity, repo size, and available isolation. The seneschal may run Planner, Reviewer, Fixer, Integrator, and Documenter work around the Implementer pool as long as shared-state and quality gates stay coherent.
 
+## Nested Compound Capacity
+
+Count each active Compound Master flow that may mutate files as one Implementer
+slot, regardless of how many internal roles it invokes. Start nested children
+with `parallel:false`; Seneschal owns cross-flow concurrency. A child may use
+bounded read-only reviewers and one mutating worker for its assigned unit, but
+must not create sibling Compound flows or expand the factory's mutable
+concurrency. Increase inner parallelism only through an explicit wave plan with
+separate isolation and capacity accounting.
+
 ## Default Implementation Concurrency
 
 Default to 2 concurrent Implementer workers when:

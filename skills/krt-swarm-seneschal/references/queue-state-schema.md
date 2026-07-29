@@ -19,20 +19,40 @@ Create the file when document planning, queue planning, or Jira team flow first 
 ## Schema
 
 ```yaml
-schema_version: 1
+schema_version: 2
 updated_at: "2026-06-30"
 mode: jira-team-flow
 documentation_gate:
   status: draft
   approved_by: null
   approved_at: null
+  initiative_contract: docs/plans/<initiative>/initiative-requirements.md
   source_artifacts:
+    - docs/plans/<initiative>/initiative-requirements.md
     - docs/product/roadmap.md
     - docs/jira/seed-plan.md
     - docs/swarm/swarm-startup.md
     - docs/swarm/queue-state.yaml
     - docs/swarm/blockers.yaml
   feedback_log: []
+initiative:
+  contract_path: docs/plans/<initiative>/initiative-requirements.md
+  artifact_contract: ce-unified-plan/v1
+  artifact_readiness: requirements-only
+  shared_revision: null
+  shared_decisions: []
+compound_runs:
+  customer-identity-auth:
+    run_id: customer-identity-auth
+    state_path: docs/orchestration/compound-master/customer-identity-auth/state.md
+    interaction: brokered
+    initiative_contract: docs/plans/<initiative>/initiative-requirements.md
+    roadmap: docs/product/roadmap.md
+    roadmap_item: RDM-001
+    artifact_namespace: customer-identity/RDM-001-authentication
+    status: planning-input-review-passed
+    observed_at: "2026-07-28T10:30:00Z"
+    artifact_revision: null
 autonomy:
   mode: manual
   ledger_path: null
@@ -77,6 +97,13 @@ units:
     depends_on: []
     blocked_by: []
     affects_dependents: []
+    compound:
+      run_id: customer-identity-auth
+      state_path: docs/orchestration/compound-master/customer-identity-auth/state.md
+      interaction: brokered
+      observed_status: execution-ready
+      observed_at: "2026-07-28T10:30:00Z"
+      artifact_revision: null
     scope:
       included: []
       excluded: []
@@ -120,6 +147,24 @@ wave_history:
     blockers_recorded: []
 ```
 
+## Schema Migration
+
+Treat version 1 files as valid standalone-worker queues. Upgrade to version 2
+only when the run needs an initiative contract or nested Compound flows.
+Preserve existing Jira mappings, unit history, blockers, verification, and
+handoff facts. Add `initiative`, `compound_runs`, and per-unit `compound`
+projections without rewriting canonical Compound artifacts.
+
+## Compound Projection Rules
+
+- Use a unique `run_id` and collision-free `state_path` for every active child.
+- Treat the child state path as authority and `observed_*` fields as a cache.
+- Refresh observations before wave selection, after child return, after a
+  decision resolution, and before release handoff.
+- Mark a projection stale when its revision or operational facts disagree with
+  the canonical child state.
+- Store decision detail in `docs/swarm/blockers.yaml`, not in both state files.
+
 ## Documentation Gate Rules
 
 - `draft`: documentation packet is being created or incomplete.
@@ -158,6 +203,7 @@ Before every wave, read:
 - `docs/swarm/queue-state.yaml`
 - `documentation_gate.status` from queue state
 - `docs/swarm/blockers.yaml`
+- the initiative contract and each candidate child's canonical Compound state
 - the canonical `docs/orchestration/autonomy-ledgers/<run>.json` when autonomous flow is active; validate it directly because `resume_snapshot` is not authority
 - live Jira issue state through the resolved provider skill, when Jira is source
 - current git branch/worktree state

@@ -21,6 +21,7 @@ class SwarmAuthorityContractTest(unittest.TestCase):
 
     def test_resume_state_is_a_non_authoritative_snapshot(self) -> None:
         schema = (ROOT / "references" / "queue-state-schema.md").read_text(encoding="utf-8")
+        self.assertIn("schema_version: 2", schema)
         self.assertIn("authority: false", schema)
         self.assertIn("schema_version: 1", schema)
         self.assertIn("contract_hash:", schema)

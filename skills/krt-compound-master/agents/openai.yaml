@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-compound-master"
-  short_description: "Turn initiatives into roadmap and review-unit delivery"
-  default_prompt: "Use krt-compound-master to turn a documented software initiative into roadmap artifacts, reviewed work packages, focused review units, and delivery coordination."
+  short_description: "Run standalone or nested artifact-first delivery"
+  default_prompt: "Use krt-compound-master to turn a documented initiative or assigned roadmap item into reviewed artifacts, focused review units, verified implementation, and release handoff; support per-run state and brokered decisions when nested."
