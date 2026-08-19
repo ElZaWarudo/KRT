@@ -8,6 +8,9 @@ Every worker prompt must contain:
 
 ```text
 Role: <role>
+Worker profile: <registered profile ID or runtime-default>
+Model class: <declared class or runtime-default>
+Profile source: <project-agent|user-agent|runtime-default>
 Unit: <id and title>
 Jira issue: <subtask or standalone issue key, when applicable>
 Source artifact: <path or issue URL>
@@ -30,6 +33,11 @@ Return contract:
 ```
 
 Pass artifact paths and repo-relative paths. Avoid flooding workers with the entire queue.
+
+When `Worker profile` names a registered Codex profile, load
+`worker-profiles.md` and pass its static preflight before launching the worker.
+The worker envelope remains mandatory: a profile supplies stable runtime
+behavior, not the unit-specific contract.
 
 ## Standard Roles
 

@@ -91,6 +91,27 @@ Install everything:
 npx -y skills add ElZaWarudo/krt --all -g
 ```
 
+### Install Seneschal Worker Profiles
+
+The skill package carries Spark and Luna profiles, while Codex discovers custom
+agents only from `.codex/agents/` in a project or `agents/` under the active
+Codex home. After installing `krt-swarm-seneschal`, preview the personal-agent
+copy:
+
+```bash
+rtk python3 <installed-seneschal-skill-dir>/scripts/install_worker_profiles.py --scope user
+```
+
+Then apply the reviewed copy:
+
+```bash
+rtk python3 <installed-seneschal-skill-dir>/scripts/install_worker_profiles.py --scope user --install
+```
+
+Existing differing profiles are preserved as conflicts unless `--replace` is
+explicitly supplied. Projects can instead commit overrides under
+`.codex/agents/`.
+
 Install the Compound Master pipeline:
 
 ```bash

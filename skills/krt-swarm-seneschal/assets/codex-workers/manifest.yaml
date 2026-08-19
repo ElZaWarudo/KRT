@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "workers": {
+    "luna": {
+      "profile": "assets/codex-workers/luna_worker.toml",
+      "project_override": ".codex/agents/luna_worker.toml",
+      "user_install": "agents/luna_worker.toml",
+      "required_runtime": "codex",
+      "expected_name": "luna_worker",
+      "model_class": "luna"
+    },
+    "spark": {
+      "profile": "assets/codex-workers/spark_worker.toml",
+      "project_override": ".codex/agents/spark_worker.toml",
+      "user_install": "agents/spark_worker.toml",
+      "required_runtime": "codex",
+      "expected_name": "spark_worker",
+      "model_class": "spark"
+    }
+  }
+}

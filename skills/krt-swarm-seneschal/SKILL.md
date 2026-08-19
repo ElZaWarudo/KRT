@@ -43,6 +43,7 @@ Load only what the current task needs:
 | Produce, review, revise, approve documentation packet | `references/documentary-planning.md` |
 | Build queue, choose ready work, plan waves | `references/queue-and-dispatch.md` |
 | Launch or prepare subagent prompts | `references/subagent-contracts.md` |
+| Resolve a named Codex worker profile | `references/worker-profiles.md` |
 | Reconcile outputs, review gates, hand off release work | `references/gates-and-reconciliation.md` |
 | Run Jira backlog source and drain ready waves | `references/jira-team-flow.md` |
 | Seed Jira from roadmap or work-package backlog | `references/jira-seeding.md` |
@@ -81,6 +82,7 @@ Supported modes:
 - When Jira is involved, resolve `jira_provider` before reading or mutating Jira state. If both providers are ready or neither is identifiable, treat the provider as ambiguous/unresolved instead of guessing.
 - For Jira team flow, load `references/jira-team-flow.md`, `references/queue-state-schema.md`, `references/blocker-ledger.md`, and `references/parallel-dispatch-policy.md`.
 - For autonomous or no-confirmation flow, load `references/autonomous-team-flow.md` and resolve an autonomy ledger before external or irreversible mutations.
+- When a unit selects a named Codex profile, load `references/worker-profiles.md` and run its static profile preflight before dispatch. If only the bundled package profile exists, block dispatch and preview the explicit project or personal installation step; do not install into the user's Codex home without authorization.
 - Resolve isolation: worktrees, cloud environments, or manual branches. If isolation is unavailable, plan serial execution.
 
 2. **Documentary Planning Gate**
@@ -141,6 +143,7 @@ documentation_gate:
 6. **Dispatch Workers**
 - Confirm `documentation_gate.status == approved` before dispatch.
 - Load `references/subagent-contracts.md`.
+- For a named Codex profile, require a successful `check_worker_profiles.py` result. Record whether resolution selected a project or personal custom agent; a bundled-only profile does not authorize dispatch. Never substitute a different profile when resolution or invocation fails.
 - If runtime exposes subagents, launch each worker only with the relevant unit contract and artifact paths.
 - If subagents are unavailable, write exact prompts the user can run in separate Codex threads/worktrees.
 - Use role-specific workers: Planner, Implementer, Reviewer, Fixer, Integrator, Documenter. Use Compound Master Worker when a unit should go through the existing KRT quality pipeline.
