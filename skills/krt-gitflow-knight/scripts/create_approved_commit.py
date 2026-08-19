@@ -65,7 +65,7 @@ def validate_message(message: str) -> list[str]:
 
 
 def staged_paths(root: Path) -> list[str]:
-    completed = git(root, "diff", "--cached", "--name-only")
+    completed = git(root, "diff", "--cached", "--name-only", "--no-renames")
     return sorted(path for path in completed.stdout.splitlines() if path)
 
 
