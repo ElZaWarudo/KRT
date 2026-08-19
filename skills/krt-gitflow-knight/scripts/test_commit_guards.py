@@ -161,6 +161,41 @@ class CommitGuardTest(unittest.TestCase):
             log = subprocess.run(["git", "log", "-1", "--pretty=%s"], cwd=root, text=True, capture_output=True, check=True)
             self.assertEqual(log.stdout.strip(), "docs(readme): add project overview")
 
+    def test_create_approved_commit_accepts_both_paths_of_a_rename(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            subprocess.run(["git", "init"], cwd=root, text=True, capture_output=True, check=True)
+            subprocess.run(["git", "config", "user.email", "agent@example.com"], cwd=root, check=True)
+            subprocess.run(["git", "config", "user.name", "Agent"], cwd=root, check=True)
+            (root / "old-name.md").write_text("hello\n", encoding="utf-8")
+            subprocess.run(["git", "add", "old-name.md"], cwd=root, check=True)
+            subprocess.run(["git", "commit", "-m", "docs: add original file"], cwd=root, capture_output=True, check=True)
+            (root / "old-name.md").rename(root / "new-name.md")
+
+            completed = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "create_approved_commit.py"),
+                    "--root",
+                    str(root),
+                    "--message",
+                    "docs(files): rename project overview",
+                    "--path",
+                    "old-name.md",
+                    "--path",
+                    "new-name.md",
+                ],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            data = json.loads(completed.stdout)
+
+            self.assertEqual(completed.returncode, 0, completed.stderr)
+            self.assertTrue(data["ok"])
+            self.assertEqual(data["committed_paths"], ["new-name.md", "old-name.md"])
+            self.assertFalse(data["reset_index"])
+
     def test_create_approved_commit_blocks_dirty_index_before_staging(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
