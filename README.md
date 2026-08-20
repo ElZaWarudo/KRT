@@ -77,6 +77,25 @@ Full descriptions, aliases, and dependencies: [`docs/skills.md`](docs/skills.md)
 
 `krt-compound-master` treats a **work package** as the PR/Jira unit while preserving the plan's implementation units inside it. One PR may carry the package; the bookkeeping should still know which pieces marched where.
 
+### Seneschal Execution Lanes
+
+Seneschal does not summon the whole court for every loose horseshoe. Small
+independent work stays with the root agent when dispatch would cost more than
+the change; dispatched implementation uses one of three stable lanes:
+
+| Lane | Use it for... | Worker profile |
+|---|---|---|
+| `fast` | Decision-closed work with a confirmed edit path | Spark with `xhigh` reasoning |
+| `standard` | Normal bounded implementation | Luna with `high` reasoning |
+| `deep` | Architecture, auth, data, concurrency, public contracts, or other demanding work | Luna with `xhigh` reasoning |
+
+Spark reasoning stays at `xhigh`; the lane changes the worker, not Spark's
+thinking budget. Optional Planner, Reviewer, Fixer, Integrator, and Documenter
+roles join only when their admission trigger is present. Leaf workers run
+focused checks; Seneschal runs aggregate verification once per wave.
+
+Canonical policy: [`execution-lanes.md`](skills/krt-swarm-seneschal/references/execution-lanes.md).
+
 ## Install
 
 Install one skill globally:
@@ -93,10 +112,10 @@ npx -y skills add ElZaWarudo/krt --all -g
 
 ### Install Seneschal Worker Profiles
 
-The skill package carries Spark and Luna profiles, while Codex discovers custom
-agents only from `.codex/agents/` in a project or `agents/` under the active
-Codex home. After installing `krt-swarm-seneschal`, preview the personal-agent
-copy:
+The skill package carries Spark, Luna `high`, and Luna `xhigh` profiles, while
+Codex discovers custom agents only from `.codex/agents/` in a project or
+`agents/` under the active Codex home. After installing
+`krt-swarm-seneschal`, preview the personal-agent copy:
 
 ```bash
 rtk python3 <installed-seneschal-skill-dir>/scripts/install_worker_profiles.py --scope user
@@ -109,8 +128,9 @@ rtk python3 <installed-seneschal-skill-dir>/scripts/install_worker_profiles.py -
 ```
 
 Existing differing profiles are preserved as conflicts unless `--replace` is
-explicitly supplied. Projects can instead commit overrides under
-`.codex/agents/`.
+explicitly supplied. With that flag, the installer also retires recognized
+legacy aliases such as `luna-worker.toml`; customized aliases remain guarded as
+conflicts. Projects can instead commit overrides under `.codex/agents/`.
 
 Install the Compound Master pipeline:
 
