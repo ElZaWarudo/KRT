@@ -20,7 +20,7 @@ When subagents are unavailable, produce exact prompts and wave plans.
 ## Operating Posture
 
 - Treat approved documentation as a formal dependency of Jira mutation, worker dispatch, code mutation, and release handoff.
-- Treat `krt-compound-master` as the complete per-flow artifact and quality pipeline. Let Seneschal own only cross-flow scheduling, isolation, decision brokering, and reconciliation.
+- Treat `krt-compound-master` as the complete per-flow artifact and quality pipeline for deep work that needs it. Route execution-ready fast and standard units directly; do not pay the nested pipeline cost by default.
 - Treat each active Compound flow as an isolated run with a stable run ID and canonical state path. Never let active runs share one mutable `compound-master-state.md`.
 - Treat Compound artifacts as authoritative. Store only paths and observed snapshots in swarm state.
 - Treat `krt-release-marshal` as the only owner of commits, PR creation, Jira mutation during release, reviewer requests, and merge-related flow.
@@ -28,8 +28,9 @@ When subagents are unavailable, produce exact prompts and wave plans.
 - Treat human approval as a startup policy problem, not a per-action interruption. In manual flow, ask before mutating. In autonomous flow, require an active autonomy mandate/ledger that allows the exact mutation class.
 - Even in autonomous flow, do not bypass the documentary planning gate unless the user explicitly authorizes the exact downstream mutation or an existing gate state is already approved.
 - Prefer small, independently reviewable units over broad backlog sweeps.
+- Apply the break-even gate and execution lanes in `references/execution-lanes.md`: keep trivial single units in the root thread, preserve Spark at `xhigh`, use Luna `high` normally, and reserve Luna `xhigh` for demanding work.
 - Cap active mutable implementation work at the smallest safe wave; default to 2 concurrent Implementer workers until repo evidence supports more. Planner, Reviewer, Fixer, Integrator, and Documenter workers use separate role caps.
-- Never let production outrun verification: a wave is not complete until worker output, review, verification evidence, and state reconciliation are captured.
+- Never let production outrun verification: a wave is not complete until worker output, any trigger-required review, verification evidence, and state reconciliation are captured.
 - If the user explicitly asks for no human confirmation, convert the instruction into a ledger-bound autonomous run: execute allowed actions after required gates pass, record uncovered decisions as blockers, continue independent work, and leave a morning-ready status packet instead of stopping to ask.
 
 ## Reference Router
@@ -42,6 +43,7 @@ Load only what the current task needs:
 | Start, observe, resume, or reconcile nested Compound Master flows | `references/compound-master-nesting.md` |
 | Produce, review, revise, approve documentation packet | `references/documentary-planning.md` |
 | Build queue, choose ready work, plan waves | `references/queue-and-dispatch.md` |
+| Classify fast/standard/deep lanes, admit roles, assign verification ownership | `references/execution-lanes.md` |
 | Launch or prepare subagent prompts | `references/subagent-contracts.md` |
 | Resolve a named Codex worker profile | `references/worker-profiles.md` |
 | Reconcile outputs, review gates, hand off release work | `references/gates-and-reconciliation.md` |
@@ -83,6 +85,7 @@ Supported modes:
 - For Jira team flow, load `references/jira-team-flow.md`, `references/queue-state-schema.md`, `references/blocker-ledger.md`, and `references/parallel-dispatch-policy.md`.
 - For autonomous or no-confirmation flow, load `references/autonomous-team-flow.md` and resolve an autonomy ledger before external or irreversible mutations.
 - When a unit selects a named Codex profile, load `references/worker-profiles.md` and run its static profile preflight before dispatch. If only the bundled package profile exists, block dispatch and preview the explicit project or personal installation step; do not install into the user's Codex home without authorization.
+- Before wave selection or dispatch, load `references/execution-lanes.md`, apply its break-even gate, classify every implementation unit, and record the selected profile and trigger.
 - Resolve isolation: worktrees, cloud environments, or manual branches. If isolation is unavailable, plan serial execution.
 
 2. **Documentary Planning Gate**
@@ -116,7 +119,7 @@ documentation_gate:
 
 3. **Normalize Work**
 - Convert candidate work into executable units with scope, acceptance criteria, dependencies, touched surfaces, verification commands, and intended base.
-- Use Planner workers when a roadmap, epic, or Jira parent issue must be decomposed into small executable units before implementation.
+- Use Planner workers only when broad or ambiguous work still needs decomposition, acceptance criteria, dependency mapping, or decision closure. Never insert a Planner before an execution-ready work package.
 - Prefer existing `krt-compound-master` review units. If only high-level backlog items exist, route discovery/planning through existing requirements, roadmap, and compound-master skills rather than inventing hidden scope.
 - When several roadmap items need full artifact and quality pipelines, create one nested Compound run per independent item. Give each run the initiative contract, target item, artifact namespace, stable state path, and brokered interaction mode.
 - Reject units that are too broad, lack acceptance criteria, share a risky surface with another active unit, or need unresolved product/auth/data decisions.
@@ -133,38 +136,45 @@ documentation_gate:
 5. **Plan A Wave**
 - Confirm `documentation_gate.status == approved` before selecting executable work.
 - Load `references/queue-and-dispatch.md`.
+- Load `references/execution-lanes.md`. Keep a single small unit in the root thread when it fails the swarm break-even gate; otherwise assign `fast`, `standard`, or `deep` before selecting its worker.
 - For Jira team flow, read active Jira issues through the selected Jira provider skill, convert them into queue units, and reconcile them with the local Jira issue map.
 - Read `docs/swarm/blockers.yaml` before selection. Do not select units with open blockers or units depending on open blockers.
 - Select only dependency-ready, non-overlapping units.
 - Apply concurrency algorithm in `references/parallel-dispatch-policy.md`: default to 2 mutable Implementer workers, role-specific caps for non-implementation workers, increase implementation concurrency only after green wave history, and never parallelize overlapping auth, migrations, public contracts, central models, or lockfiles.
 - Keep the wave within open-stack reviewability limits already enforced by `krt-compound-master`.
-- Produce a short wave plan with unit IDs, worker prompts, isolation target, verification gates, risks, and stop conditions.
+- Admit Planner, Reviewer, Fixer, Integrator, Documenter, and Compound Master roles only through their explicit triggers in `references/execution-lanes.md`.
+- Assign focused verification to each leaf and one aggregate verification owner/fingerprint to the wave.
+- Produce a short wave plan with unit IDs, lanes, profiles, role triggers, worker prompts, isolation target, verification ownership, risks, and stop conditions.
 
 6. **Dispatch Workers**
 - Confirm `documentation_gate.status == approved` before dispatch.
 - Load `references/subagent-contracts.md`.
+- Load `references/execution-lanes.md` and enforce the lane/profile mapping: `fast` uses `spark` at `xhigh`, `standard` uses `luna` at `high`, and `deep` uses `luna_xhigh` at `xhigh`. Never lower Spark reasoning.
 - For a named Codex profile, require a successful `check_worker_profiles.py` result. Record whether resolution selected a project or personal custom agent; a bundled-only profile does not authorize dispatch. Never substitute a different profile when resolution or invocation fails.
 - If runtime exposes subagents, launch each worker only with the relevant unit contract and artifact paths.
 - If subagents are unavailable, write exact prompts the user can run in separate Codex threads/worktrees.
-- Use role-specific workers: Planner, Implementer, Reviewer, Fixer, Integrator, Documenter. Use Compound Master Worker when a unit should go through the existing KRT quality pipeline.
-- Prefer a nested Compound Master Worker over reimplementing its brainstorm, plan, work-package, review, security, and CI-prevention gates in Seneschal.
+- Use only the role-specific workers admitted by the wave plan. Do not expand the standard role chain speculatively.
+- Use a nested Compound Master Worker when a deep unit needs its brainstorm, plan, work-package, review, security, or CI-prevention pipeline. Dispatch an execution-ready deep package directly to `luna_xhigh` when those artifacts and gates are already settled.
 - Require nested Compound workers to use `interaction:brokered`: they formulate structured decision requests but never ask the user directly.
 - Each worker must operate in implementation-only/no-shipping mode unless the task is explicitly artifact-only.
 - Assign exactly one Jira subtask or standalone Jira issue per worker when Jira is the backlog source.
 - Forbid workers from committing, pushing, opening PRs, mutating Jira, requesting reviewers, merging, or transitioning issues.
 - Require structured blocker reporting in the worker return contract.
+- Start or update compact timing telemetry with `scripts/record_run_timing.py`; never store prompts, source text, logs, or secrets in timing records.
 
 7. **Review Reconcile**
 - Load `references/gates-and-reconciliation.md`.
 - Read each worker result, changed-file summary, verification output, blockers, and branch/base facts.
 - Inspect real diff filesystem state before trusting worker reports.
 - Run required review and verification gates before marking any unit release-ready.
+- Reuse passing aggregate verification when the wave fingerprint is unchanged. Rerun it only after changed content/commands, failed evidence, or project-defined staleness; do not repeat the same suite in leaf, Reviewer, Compound Master, and Seneschal layers.
 - Reconcile blockers using `references/blocker-ledger.md`: record non-fatal blockers, mark only affected units blocked/deferred, and continue independent ready units.
 - Reconcile each nested Compound result against its canonical state and artifacts. Treat swarm snapshots as stale observations, not authority.
 - Deduplicate decision requests, ask one decision at a time in manual interactive flow, persist the answer in the canonical shared or item artifact, and resume every affected child.
-- Use Integrator workers to inspect merge order, dependency edges, stacked PR choreography, and cross-worker conflicts before release handoff.
+- When the wave plan admitted an Integrator, use it to inspect merge order, dependency edges, stacked PR choreography, and cross-worker conflicts before release handoff.
 - Decide each unit status: `release-ready`, `needs-fix`, `blocked`, `deferred`, or `split-required`.
 - Update queue and active orchestration state in the same turn as status changes.
+- Close timing telemetry with phase durations, context bytes, review/fix rounds, verification fingerprint, and final status.
 
 8. **Release Handoff**
 - Confirm `documentation_gate.status == approved` before release handoff.
@@ -193,5 +203,6 @@ End with:
 - Non-fatal blockers recorded, high-risk blockers, and whether independent work remains.
 - Branch/worktree/thread references when available.
 - Verification and review evidence.
+- Lane/profile decisions and timing artifact path.
 - Queue/state files updated.
 - Exact next invocation.

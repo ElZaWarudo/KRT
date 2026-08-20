@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from check_worker_profiles import (
+    REQUIRED_WORKER_FIELDS,
     default_codex_home,
     inside,
     load_manifest,
@@ -45,11 +46,24 @@ def install_profiles(
     workers = manifest["workers"]
     selected_ids = requested_workers or sorted(workers)
     pending: list[tuple[Path, Path]] = []
+    pending_removals: list[Path] = []
 
     for worker_id in selected_ids:
         worker = workers.get(worker_id)
         if not isinstance(worker, dict):
             result["errors"].append(f"worker-not-registered:{worker_id}")
+            continue
+        missing = sorted(REQUIRED_WORKER_FIELDS - set(worker))
+        if missing:
+            result["errors"].append(
+                f"worker-manifest-entry-missing:{worker_id}:{','.join(missing)}"
+            )
+            continue
+        if any(
+            not isinstance(worker[field], str) or not worker[field].strip()
+            for field in REQUIRED_WORKER_FIELDS
+        ):
+            result["errors"].append(f"worker-manifest-entry-invalid:{worker_id}")
             continue
         source = (skill_dir / worker["profile"]).resolve()
         target_root = repo_root if scope == "project" else codex_home
@@ -58,12 +72,59 @@ def install_profiles(
         if not inside(source, skill_dir) or not inside(target, target_root):
             result["errors"].append(f"worker-install-path-escape:{worker_id}")
             continue
-        _, profile_errors = validate_profile(source, worker["expected_name"])
+        source_profile, profile_errors = validate_profile(
+            source,
+            worker["expected_name"],
+            worker["expected_model"],
+            worker["expected_reasoning_effort"],
+        )
         if profile_errors:
             result["errors"].extend(
                 f"{worker_id}:{error}" for error in profile_errors
             )
             continue
+
+        legacy_targets: list[str] = []
+        if scope == "user":
+            legacy_installs = worker.get("legacy_user_installs", [])
+            if not isinstance(legacy_installs, list) or any(
+                not isinstance(path, str) or not path.strip()
+                for path in legacy_installs
+            ):
+                result["errors"].append(
+                    f"worker-legacy-installs-invalid:{worker_id}"
+                )
+                continue
+            for relative_path in legacy_installs:
+                legacy = (target_root / relative_path).resolve()
+                if not inside(legacy, target_root) or legacy == target:
+                    result["errors"].append(
+                        f"worker-legacy-install-path-invalid:{worker_id}"
+                    )
+                    continue
+                if not legacy.exists():
+                    continue
+                legacy_profile, legacy_errors = validate_profile(
+                    legacy,
+                    worker["expected_name"],
+                    worker["expected_model"],
+                )
+                expected_legacy = dict(source_profile or {})
+                actual_legacy = dict(legacy_profile or {})
+                expected_legacy.pop("model_reasoning_effort", None)
+                actual_legacy.pop("model_reasoning_effort", None)
+                if legacy_errors or actual_legacy != expected_legacy:
+                    result["errors"].append(
+                        f"worker-legacy-profile-conflict:{worker_id}:{legacy}"
+                    )
+                elif replace:
+                    pending_removals.append(legacy)
+                    legacy_targets.append(str(legacy))
+                else:
+                    result["errors"].append(
+                        f"worker-legacy-profile-conflict:{worker_id}:"
+                        "use-explicit-replace"
+                    )
 
         if target.exists():
             try:
@@ -91,6 +152,7 @@ def install_profiles(
             "source": str(source),
             "target": str(target),
             "status": status,
+            "legacy_removals": legacy_targets,
         }
 
     if result["errors"]:
@@ -100,10 +162,12 @@ def install_profiles(
         for source, target in pending:
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
+        for legacy in pending_removals:
+            legacy.unlink()
         result["applied"] = True
 
     result["allowed"] = True
-    result["summary"]["pending_changes"] = len(pending)
+    result["summary"]["pending_changes"] = len(pending) + len(pending_removals)
     return result
 
 

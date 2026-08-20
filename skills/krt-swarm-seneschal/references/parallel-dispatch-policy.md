@@ -18,6 +18,8 @@ documenter_workers: 1-3
 ```
 
 Adjust these caps to runtime capacity, repo size, and available isolation. The seneschal may run Planner, Reviewer, Fixer, Integrator, and Documenter work around the Implementer pool as long as shared-state and quality gates stay coherent.
+These are ceilings, never a standing team. The active count for every optional
+role is zero until `execution-lanes.md` admits it with a recorded trigger.
 
 ## Nested Compound Capacity
 
@@ -31,12 +33,18 @@ separate isolation and capacity accounting.
 
 ## Default Implementation Concurrency
 
+Apply the break-even gate and classify `fast`, `standard`, or `deep` before
+counting a unit. A root-direct unit consumes no worker slot. Spark remains
+`xhigh`; normal Luna work uses `high`; only deep triggers select Luna `xhigh`.
+
 Default to 2 concurrent Implementer workers when:
 
 - Worktree, branch, cloud, or thread isolation exists for each worker.
 - Units have no dependency edge between them.
 - Surfaces do not materially overlap.
 - Verification can run for each unit.
+- Focused checks can run per leaf and aggregate verification can run once at the
+  wave root after reconciliation.
 - The team can reconcile all outputs before release handoff.
 
 Use serial implementation when isolation is missing or surface ownership is unclear.
@@ -100,11 +108,12 @@ Parallelism is usually acceptable for:
 
 For non-implementation roles, use role caps instead of the Implementer cap:
 
-- Dispatch Planner workers by roadmap/domain boundaries.
-- Dispatch Reviewer workers by completed independent diffs.
-- Dispatch Fixer workers only for bounded findings or failing checks.
-- Dispatch one Integrator for a wave or PR stack unless the surfaces are fully disjoint.
-- Dispatch Documenter workers by distinct documentation surfaces.
+- First require the corresponding admission trigger in `execution-lanes.md`.
+- Dispatch admitted Planner workers by roadmap/domain boundaries.
+- Dispatch admitted Reviewer workers by completed independent diffs.
+- Dispatch admitted Fixer workers only for bounded findings or failing checks.
+- Dispatch one admitted Integrator for the affected wave or PR stack.
+- Dispatch admitted Documenter workers by distinct documentation surfaces.
 
 ## Wave Decision Record
 

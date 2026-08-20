@@ -28,6 +28,8 @@ REQUIRED_WORKER_FIELDS = {
     "user_install",
     "required_runtime",
     "expected_name",
+    "expected_model",
+    "expected_reasoning_effort",
     "model_class",
 }
 
@@ -59,11 +61,22 @@ def load_manifest(skill_dir: Path) -> tuple[dict[str, Any] | None, list[str]]:
         errors.append("worker-manifest-schema-version-must-be-1")
     if not isinstance(manifest.get("workers"), dict) or not manifest["workers"]:
         errors.append("worker-manifest-workers-must-be-a-non-empty-object")
+    lanes = manifest.get("lanes")
+    if not isinstance(lanes, dict) or set(lanes) != {"fast", "standard", "deep"}:
+        errors.append("worker-manifest-lanes-must-map-fast-standard-deep")
+    elif any(
+        not isinstance(worker_id, str) or not worker_id
+        for worker_id in lanes.values()
+    ):
+        errors.append("worker-manifest-lane-worker-invalid")
     return manifest, errors
 
 
 def validate_profile(
-    profile_path: Path, expected_name: str
+    profile_path: Path,
+    expected_name: str,
+    expected_model: str | None = None,
+    expected_reasoning_effort: str | None = None,
 ) -> tuple[dict[str, Any] | None, list[str]]:
     try:
         with profile_path.open("rb") as stream:
@@ -86,7 +99,22 @@ def validate_profile(
             errors.append(f"worker-profile-field-invalid:{field}")
     if profile.get("name") != expected_name:
         errors.append(
-            f"worker-profile-name-mismatch:expected={expected_name}:actual={profile.get('name')}"
+            "worker-profile-name-mismatch:"
+            f"expected={expected_name}:actual={profile.get('name')}"
+        )
+    if expected_model is not None and profile.get("model") != expected_model:
+        errors.append(
+            "worker-profile-model-mismatch:"
+            f"expected={expected_model}:actual={profile.get('model')}"
+        )
+    if (
+        expected_reasoning_effort is not None
+        and profile.get("model_reasoning_effort") != expected_reasoning_effort
+    ):
+        errors.append(
+            "worker-profile-reasoning-effort-mismatch:"
+            f"expected={expected_reasoning_effort}:"
+            f"actual={profile.get('model_reasoning_effort')}"
         )
     return profile, errors
 
@@ -99,6 +127,7 @@ def check_profiles(
     requested_workers: list[str] | None = None,
     runtime: str = "codex",
     model_class: str | None = None,
+    lane: str | None = None,
     allow_bundled: bool = False,
 ) -> dict[str, Any]:
     skill_dir = skill_dir.resolve()
@@ -121,7 +150,20 @@ def check_profiles(
         return result
 
     workers = manifest["workers"]
-    selected_ids = requested_workers or sorted(workers)
+    if lane is not None:
+        expected_worker = manifest["lanes"].get(lane)
+        if expected_worker is None:
+            result["errors"].append(f"worker-lane-unknown:{lane}")
+            return result
+        if requested_workers and requested_workers != [expected_worker]:
+            result["errors"].append(
+                f"worker-lane-mismatch:{lane}:expected={expected_worker}:"
+                f"actual={','.join(requested_workers)}"
+            )
+            return result
+        selected_ids = [expected_worker]
+    else:
+        selected_ids = requested_workers or sorted(workers)
     if model_class is not None and len(selected_ids) != 1:
         result["errors"].append("model-class-check-requires-exactly-one-worker")
         return result
@@ -146,12 +188,14 @@ def check_profiles(
             continue
         if worker["required_runtime"] != runtime:
             result["errors"].append(
-                f"worker-runtime-mismatch:{worker_id}:required={worker['required_runtime']}:actual={runtime}"
+                f"worker-runtime-mismatch:{worker_id}:"
+                f"required={worker['required_runtime']}:actual={runtime}"
             )
             continue
         if model_class is not None and worker["model_class"] != model_class:
             result["errors"].append(
-                f"worker-model-class-mismatch:{worker_id}:expected={model_class}:actual={worker['model_class']}"
+                f"worker-model-class-mismatch:{worker_id}:"
+                f"expected={model_class}:actual={worker['model_class']}"
             )
             continue
 
@@ -182,7 +226,10 @@ def check_profiles(
             runtime_discoverable = False
         else:
             bundled_profile, bundled_errors = validate_profile(
-                bundled_path, worker["expected_name"]
+                bundled_path,
+                worker["expected_name"],
+                worker["expected_model"],
+                worker["expected_reasoning_effort"],
             )
             if bundled_errors:
                 result["errors"].extend(
@@ -190,12 +237,16 @@ def check_profiles(
                 )
             elif bundled_profile is not None:
                 result["errors"].append(
-                    f"worker-profile-not-installed:{worker_id}:run-install_worker_profiles.py"
+                    f"worker-profile-not-installed:{worker_id}:"
+                    "run-install_worker_profiles.py"
                 )
             continue
 
         profile, profile_errors = validate_profile(
-            profile_path, worker["expected_name"]
+            profile_path,
+            worker["expected_name"],
+            worker["expected_model"],
+            worker["expected_reasoning_effort"],
         )
         if profile_errors:
             result["errors"].extend(
@@ -208,6 +259,7 @@ def check_profiles(
             "path": str(profile_path),
             "profile_name": profile["name"],
             "model": profile.get("model"),
+            "model_reasoning_effort": profile.get("model_reasoning_effort"),
             "model_class": worker["model_class"],
             "required_runtime": worker["required_runtime"],
             "runtime_discoverable": runtime_discoverable,
@@ -219,6 +271,7 @@ def check_profiles(
     )
     result["summary"]["requested"] = selected_ids
     result["summary"]["resolved"] = sorted(result["workers"])
+    result["summary"]["lane"] = lane
     return result
 
 
@@ -236,6 +289,7 @@ def main() -> int:
     parser.add_argument("--worker", action="append", dest="workers")
     parser.add_argument("--runtime", default="codex")
     parser.add_argument("--model-class")
+    parser.add_argument("--lane")
     parser.add_argument(
         "--allow-bundled",
         action="store_true",
@@ -250,6 +304,7 @@ def main() -> int:
         requested_workers=args.workers,
         runtime=args.runtime,
         model_class=args.model_class,
+        lane=args.lane,
         allow_bundled=args.allow_bundled,
     )
     json.dump(result, sys.stdout, indent=2, sort_keys=True)

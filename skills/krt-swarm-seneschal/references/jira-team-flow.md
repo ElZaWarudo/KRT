@@ -64,7 +64,8 @@ Before Jira seed/drain:
 - Read active Jira issues/subtasks using the selected Jira provider skill.
 - Convert each eligible Jira issue into a queue unit with source key, title, scope, acceptance criteria, dependencies, surfaces, verification, and status.
 - Merge live Jira facts into `docs/swarm/queue-state.yaml` without losing local documentation gate, verification, blocker, or handoff history.
-- Use Planner workers to decompose Jira epics or parent issues too broad for one implementer.
+- Use `execution-lanes.md` to admit a Planner only when a Jira epic or parent
+  remains too broad or ambiguous for one implementer.
 
 4. **Readiness filtering**
 - Exclude units when documentation gate is not approved.
@@ -87,7 +88,8 @@ Before Jira seed/drain:
 - Inspect actual diffs and changed files, not only worker reports.
 - Run relevant tests and review gates.
 - Record blockers in blocker ledger.
-- Use Reviewer workers for code-quality gates, Fixer workers for bounded failures, and Integrator workers for cross-worker merge/order conflicts.
+- Admit Reviewer, Fixer, and Integrator workers only through their triggers in
+  `execution-lanes.md`; do not create standing quality-chain stages.
 - Mark each unit `release-ready`, `needs-fix`, `blocked`, `deferred`, or `split-required`.
 
 8. **Handoff**

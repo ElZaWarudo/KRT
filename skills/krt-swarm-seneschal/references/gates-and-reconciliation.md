@@ -19,17 +19,27 @@ For each unit:
    - Any necessary scope expansion is recorded. Manual flow requires approval; autonomous flow marks broad expansion `split-required` unless the ledger allows it.
 
 2. **Verification gate**
-   - Required commands passed, or a material verification gap is recorded.
+   - Each leaf ran only its assigned focused checks, or a material verification gap is recorded.
+   - Seneschal/root ran aggregate or CI-equivalent commands once for the final
+     wave fingerprint, or reused passing evidence for that exact fingerprint.
+   - The fingerprint includes intended base, ordered changed paths and content
+     digests, and ordered aggregate commands. Changed or stale fingerprints and
+     failed prior evidence must run again.
    - Changed contracts have consumer-aware checks.
    - Generated artifacts or docs were inspected when relevant.
 
 3. **Review gate**
-   - Code review ran for implementation changes.
+   - `execution-lanes.md` was used to decide whether a Reviewer trigger exists.
+   - When triggered, independent review ran and maps to the unit contract.
+   - When not triggered, the wave records the mechanical/docs-only reason; it
+     does not create an empty Reviewer stage.
    - Findings at or above threshold were fixed or explicitly deferred.
-   - Review output maps to the unit contract, not a generic code audit.
 
 4. **Security/production gate**
    - Security-sensitive units ran the security specialist or an explicit fallback.
+   - High-risk direct deep units ran Security Watch during execution and the
+     Security Sentinel Gate after the work-review loop; otherwise they must use
+     the Compound Master security pipeline.
    - Production-sensitive units preserve compatibility unless manual approval or autonomy ledger policy explicitly allows a breaking change.
 
 5. **State gate**
@@ -52,6 +62,12 @@ For each worker result:
 - Identify shared files touched by multiple workers.
 - Detect public contract, auth, data, dependency, config, or generated-artifact changes.
 - Record verification commands and outcomes.
+- Compare the recorded execution lane/profile to `execution-lanes.md` and reject
+  silent reasoning-effort or worker substitutions.
+- Record focused unit evidence separately from aggregate wave evidence and
+  reuse only an unchanged passing verification fingerprint.
+- Record timing phases, context bytes, and review/fix rounds with
+  `scripts/record_run_timing.py`.
 - Record blockers and whether they affect sibling units.
 - Normalize nested `decision_request` entries, deduplicate them, and route them through the decision broker in `blocker-ledger.md`.
 - Decide: `release-ready`, `needs-fix`, `blocked`, `deferred`, or `split-required`.

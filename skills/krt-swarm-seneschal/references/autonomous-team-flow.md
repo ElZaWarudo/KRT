@@ -46,7 +46,8 @@ First unattended work is documentary planning:
 
 After approval, make work executable:
 
-- Dispatch Planner workers for broad epics, roadmap sections, or Jira parent issues before Implementer workers run.
+- Apply `execution-lanes.md`. Dispatch a Planner only when broad or ambiguous
+  work still needs decomposition or decision closure.
 - Parse roadmap/backlog into the smallest useful work packages.
 - Create or update Jira issue map.
 - Identify acceptance criteria and verification for every unit.
@@ -67,8 +68,10 @@ During autonomous execution after the documentation gate is approved:
 - Do not stop because one worker needs product/legal/accounting/security input.
 - Record blockers, defer affected units, and continue independent work.
 - Normalize nested Compound decision requests into the blocker ledger; never let a child ask the user during the run.
-- Dispatch fixers for bounded verification or review failures when surfaces remain isolated.
-- Dispatch Integrator workers before release handoff when two or more units may interact through dependencies, stack order, contracts, migrations, lockfiles, or shared generated artifacts.
+- Dispatch a Fixer only for a concrete bounded verification or review failure.
+- Dispatch an Integrator only when `execution-lanes.md` admits it for dependency,
+  shared-surface, stack-order, contract, migration, lockfile, or generated-output
+  interaction.
 - Split broad or scope-creeping work instead of forcing one large PR.
 
 Before documentation approval, no-interruption means "produce the review packet and stop", not "continue into Jira or implementation".

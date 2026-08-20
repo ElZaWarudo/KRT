@@ -118,14 +118,24 @@ units:
       config: []
       generated: []
     dependencies: []
+    execution:
+      route: swarm
+      lane: standard
+      worker_profile: luna
+      reasoning_effort: high
+      lane_trigger: bounded-local-decisions
+      role_triggers:
+        reviewer: behavior-change
     risk:
       production: unknown
       security: low
       compliance: low
       overlap: low
     verification:
-      commands: []
-      evidence: []
+      focused_commands: []
+      focused_evidence: []
+      aggregate_owner: wave-root
+      aggregate_fingerprint: null
     isolation:
       type: worktree
       branch: null
@@ -143,6 +153,13 @@ wave_history:
     concurrency: 2
     result: planned
     verification_summary: []
+    aggregate_verification:
+      owner: wave-root
+      fingerprint: null
+      commands: []
+      evidence: []
+      result: not-run
+    timing_artifact: docs/orchestration/runs/<run-id>-timing.json
     review_summary: []
     blockers_recorded: []
 ```
@@ -154,6 +171,9 @@ only when the run needs an initiative contract or nested Compound flows.
 Preserve existing Jira mappings, unit history, blockers, verification, and
 handoff facts. Add `initiative`, `compound_runs`, and per-unit `compound`
 projections without rewriting canonical Compound artifacts.
+Older unit-level `verification.commands` and `verification.evidence` remain
+valid. Migrate them to focused or aggregate ownership when the next wave touches
+the unit; do not rerun passing evidence merely to reshape state.
 
 ## Compound Projection Rules
 
@@ -219,5 +239,8 @@ Update queue state when:
 - Jira issue keys are mapped or remapped.
 - A wave is planned, dispatched, reconciled, or closed.
 - A worker reports changed files, verification, branch facts, or blockers.
+- A unit receives or changes its execution route, lane, profile, or role triggers.
+- Aggregate verification is run or reused for a wave fingerprint, or timing
+  telemetry is updated.
 - A unit becomes release-ready, needs-fix, blocked, deferred, split-required, or handed-off.
 - A blocker is resolved and dependent units need readiness recheck.

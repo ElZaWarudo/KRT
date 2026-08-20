@@ -28,14 +28,23 @@ surfaces:
   config: []
   generated: []
 dependencies: []
+execution:
+  route: root-direct | swarm
+  lane: fast | standard | deep | null
+  worker_profile: spark | luna | luna_xhigh | null
+  reasoning_effort: high | xhigh | null
+  lane_trigger: null
+  role_triggers: {}
 risk:
   production: unknown | prototype | preprod | live
   security: low | elevated | high
   compliance: low | elevated | high
   overlap: low | elevated | high
 verification:
-  commands: []
-  evidence: []
+  focused_commands: []
+  focused_evidence: []
+  aggregate_owner: wave-root
+  aggregate_fingerprint: null
 compound:
   run_id: null
   state_path: null
@@ -72,6 +81,11 @@ A unit is ready only when:
 - Every nested isolation target can read the same recorded revision of the initiative contract, roadmap, and shared decisions.
 
 ## Wave Selection
+
+Load `execution-lanes.md` first. Apply its break-even gate before creating a
+wave, then classify every dispatched unit. Use the exact profile mapping:
+`fast` -> `spark`/`xhigh`, `standard` -> `luna`/`high`, and `deep` ->
+`luna_xhigh`/`xhigh`. Record the lane trigger and every optional role trigger.
 
 Default wave size is 1 for uncertain queues. In established Jira team flow, default to 2 workers when:
 
@@ -117,6 +131,9 @@ Units:
   Jira: <key or none>
   Source: <path/link>
   Worker role: <compound-master|implementer|reviewer|documenter|fixer>
+  Execution lane/profile: <fast|standard|deep> / <spark|luna|luna_xhigh>
+  Reasoning effort: <high|xhigh>
+  Role triggers: <role: trigger, or none>
   Compound run/state: <run ID and canonical path, or none>
   Intended base: <branch>
   Expected branch/worktree: <name/path>
@@ -124,6 +141,11 @@ Units:
   Risks: <short list>
 Stop conditions:
 - <condition>
+Wave aggregate verification:
+- Owner: Seneschal/root
+- Commands: <ordered commands>
+- Fingerprint inputs: <base, changed paths/content, commands>
+- Reused evidence: <path or none>
 ```
 
 Ask approval before mutating or dispatching in manual flow. In autonomous flow, do not ask after documentation approval; dispatch only ledger-covered mutation classes, record uncovered needs, and continue.
@@ -136,6 +158,8 @@ Update queue state immediately when:
 - A unit is dispatched.
 - A worker reports blockers.
 - Verification fails or passes.
+- A lane/profile decision changes or an optional role is admitted.
+- Aggregate verification receives a new fingerprint or reuses passing evidence.
 - Review creates at-or-above-threshold findings.
 - A unit becomes release-ready.
 - Release handoff creates PR/Jira links.

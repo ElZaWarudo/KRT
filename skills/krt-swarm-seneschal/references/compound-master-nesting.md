@@ -64,6 +64,13 @@ After integration, reconcile the same path on the intended base.
 
 ## Child Invocation Contract
 
+Nested Compound is a `deep`-lane route, not the default implementation route.
+Before creating a child, apply `execution-lanes.md`. Use direct Spark or Luna
+dispatch for execution-ready fast and standard units, and direct `luna_xhigh`
+for a deep unit whose required artifacts and quality gates are already settled.
+Create a child only when the deep unit still needs Compound Master's artifact or
+multi-stage quality pipeline.
+
 Give every child a stable envelope:
 
 ```yaml
@@ -84,8 +91,10 @@ depends_on: []
 ```
 
 Use `mode:artifacts` or `mode:full` when the item still needs the Compound
-artifact pipeline. Use `mode:execute package:<path> review-unit:<RU#>` when
-reviewed artifacts already exist. Keep shipping disabled in the child.
+artifact pipeline. Use `mode:execute package:<path> review-unit:<RU#>` only when
+the deep unit explicitly requires Compound's remaining execution/review gates;
+otherwise dispatch the execution-ready package directly. Keep shipping disabled
+in the child.
 
 Treat the selected mode as exact phase authority. Use `mode:artifacts` when only
 planning is approved. Launch `mode:full` or `mode:execute` only after manual

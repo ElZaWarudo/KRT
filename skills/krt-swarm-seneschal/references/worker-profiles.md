@@ -22,6 +22,16 @@ Resolution order is strict:
 2. Otherwise use the personal agent installed from the skill.
 3. Block dispatch when neither runtime-discoverable profile exists.
 
+The registered execution profiles are:
+
+- `spark`: small, completely decision-closed work; Spark remains `xhigh`.
+- `luna`: normal bounded work; Luna uses `high`.
+- `luna_xhigh`: demanding work admitted by `execution-lanes.md`; Luna uses
+  `xhigh`.
+
+Do not mutate reasoning effort dynamically. Select the registered profile whose
+stable effort matches the classified lane.
+
 An invalid project or personal profile is an error. Never ignore it, use the
 bundled package file directly, or substitute another worker or model class.
 
@@ -57,13 +67,13 @@ skill's `SKILL.md`. Before dispatch, run:
 ```bash
 python3 <seneschal-skill-dir>/scripts/check_worker_profiles.py \
   --repo-root <repo-root> \
-  --worker <spark|luna> \
-  --model-class <spark|luna>
+  --lane <fast|standard|deep>
 ```
 
 The checker validates discovery location, manifest, TOML syntax, required
-custom-agent fields, runtime class, profile identity, and model-class match.
-Record the selected source and path in dispatch evidence.
+custom-agent fields, lane-to-profile mapping, profile identity, exact model,
+reasoning effort, and model-class match.
+Record the selected source, path, and reasoning effort in dispatch evidence.
 
 `--allow-bundled` exists only to validate the skill package before installing
 it. A bundled-only result is not runtime-discoverable and must never authorize
