@@ -1,8 +1,86 @@
 # Compound Master Fast Contract
 
-Use this reference when a worker, reviewer, or explorer needs the shortest binding rule set.
+Use this reference to compile the complete operational contract for one Luna
+worker invocation. The orchestrator keeps the full Compound Master and
+Seneschal context; the worker receives only repository `AGENTS.md`, this
+compiled contract, and files explicitly named under `required_context`.
 
-Read this with the repository `AGENTS.md` before acting. If they conflict, stop and escalate the conflict instead of guessing.
+Do not tell Luna to reread either skill tree. Add another reference only when a
+named acceptance criterion cannot be executed without it. If repository
+instructions conflict with the compiled contract, stop and report the conflict
+instead of guessing.
+
+## Compiled Contract
+
+Materialize every field; do not leave Luna to infer an omitted boundary:
+
+```yaml
+objective: <one bounded outcome>
+owned_files: []
+required_context: []
+closed_decisions: []
+forbidden_changes: []
+acceptance_criteria: []
+
+execution_budget:
+  discovery_passes: 1
+  implementation_rounds: 1
+  fix_rounds: 2
+  review_rounds: 1
+  extra_verification: forbidden
+
+verification:
+  focused: []
+  natural: []
+  aggregate_owner: root
+  max_retries_per_command: 1
+  baseline_failures: []
+  stop_on_unowned_failure: true
+
+supervision:
+  mode: terminal-only | discovery-checkpoint
+  transition_after_ms: 15000
+
+terminal_protocol:
+  return_when:
+    - acceptance_criteria_resolved
+    - required_checks_attempted
+    - state_reconciled
+  grace_actions: 0
+
+return_format:
+  status: done | done_with_baseline_gaps | needs_review | blocked
+  required_fields:
+    - phase
+    - remaining_actions
+    - terminal_ready
+    - acceptance_criteria_resolved
+    - last_required_command
+    - changed_files
+    - verification
+    - verification_commands_run
+    - unowned_failures
+    - state_updates
+```
+
+Empty lists are explicit decisions, not permission to expand. Commands under
+`focused` and `natural` are the complete worker verification manifest. The
+worker must not add a broad, aggregate, CI-equivalent, or exploratory command.
+Its return must account for every manifest command exactly once under
+`verification.attempted` or `verification.skipped`. An attempted entry includes
+the exact command, attempt count, and outcome. A skipped entry includes the
+exact command and a non-empty reason. `verification_commands_run` repeats the
+exact command once per actual attempt, in execution order.
+
+Use `terminal-only` for Luna `high` and `discovery-checkpoint` for Luna
+`xhigh`. In checkpoint mode, send exactly one non-blocking
+`discovery_complete` message with `edit_path_found` and `planned_files`, then
+implement immediately when an edit path exists. Do not emit per-action events.
+
+One budget extension is possible only when a concrete new finding prevents an
+acceptance criterion from being resolved. Return `needs_review` with the
+finding, requested additional round, and exact expected payoff. Do not spend
+the requested extension before the orchestrator grants it.
 
 ## Identity
 
@@ -51,7 +129,14 @@ Under `interaction:brokered`, do not ask the user directly. Return a structured 
 
 ## Verification
 
-- Prefer the verification ladder: targeted diagnostic, natural affected suite, then repo CI-equivalent command before release handoff.
+- Run the exact `focused` commands and then the exact `natural` commands once.
+- Retry a failed command at most `max_retries_per_command` times and only after
+  an owned change that could affect its result.
+- Classify a listed baseline failure as `done_with_baseline_gaps`. Classify an
+  unowned failure, record its evidence, and return when
+  `stop_on_unowned_failure` is true; do not investigate laterally.
+- The root owns aggregate or CI-equivalent verification. Luna does not repeat
+  it unless the compiled contract explicitly transfers ownership.
 - If verification cannot run, report the exact blocker and exact command or env need.
 - Do not pretend PR creation or a passing local smoke check proves release readiness.
 
@@ -64,6 +149,16 @@ Stop and surface a blocker when:
 - required context is insufficient and proceeding would force invented behavior
 - repo instructions and task instructions conflict
 
+The terminal protocol is binding: when acceptance criteria are resolved,
+required checks have been attempted, and canonical state is reconciled, set
+`acceptance_criteria_resolved: true`, `phase: closeout`,
+`remaining_actions: []`, and `terminal_ready: true`. `terminal_ready` means the
+worker has reconciled its state and must return now; it does not claim success.
+`needs_review` and `blocked` may therefore return with
+`acceptance_criteria_resolved: false`. The next mandatory action is to return
+the result. With `grace_actions: 0`, another read, search, test, review, or
+polish pass is a contract violation.
+
 ## Output Discipline
 
 - Report assumptions explicitly.
@@ -71,3 +166,5 @@ Stop and surface a blocker when:
 - Report changed files and actual write scope explicitly.
 - Report which orchestration artifacts you refreshed, not just code files.
 - Record whether required docs stayed with the change or why they did not.
+- Use only the compiled contract's four terminal statuses. `blocked` means a
+  missing decision or external capability, not an unrelated or baseline flaw.

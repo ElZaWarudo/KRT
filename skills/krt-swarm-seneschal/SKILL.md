@@ -46,6 +46,7 @@ Load only what the current task needs:
 | Classify fast/standard/deep lanes, admit roles, assign verification ownership | `references/execution-lanes.md` |
 | Launch or prepare subagent prompts | `references/subagent-contracts.md` |
 | Resolve a named Codex worker profile | `references/worker-profiles.md` |
+| Monitor Luna checkpoint, closeout, and timing | `references/lightweight-supervision.md` |
 | Reconcile outputs, review gates, hand off release work | `references/gates-and-reconciliation.md` |
 | Run Jira backlog source and drain ready waves | `references/jira-team-flow.md` |
 | Seed Jira from roadmap or work-package backlog | `references/jira-seeding.md` |
@@ -161,6 +162,10 @@ documentation_gate:
 - Forbid workers from committing, pushing, opening PRs, mutating Jira, requesting reviewers, merging, or transitioning issues.
 - Require structured blocker reporting in the worker return contract.
 - Start or update compact timing telemetry with `scripts/record_run_timing.py`; never store prompts, source text, logs, or secrets in timing records.
+- Load `references/lightweight-supervision.md` for Luna. Require no live
+  checkpoint from `luna`; require one non-blocking discovery checkpoint from
+  `luna_xhigh`, evaluate it at the existing wait cadence, and keep detailed
+  action tracing diagnostic-only.
 
 7. **Review Reconcile**
 - Load `references/gates-and-reconciliation.md`.

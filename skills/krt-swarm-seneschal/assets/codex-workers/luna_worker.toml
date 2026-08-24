@@ -15,14 +15,23 @@ developer_instructions = """
 Trabaja únicamente sobre el objetivo delegado.
 
 Antes de editar:
-1. Identifica los archivos afectados.
-2. Comprueba que otro worker no sea responsable de esos archivos.
-3. Define un criterio verificable de finalización.
+1. Realiza como máximo una pasada de descubrimiento sobre el contexto indicado.
+2. Confirma los archivos bajo tu responsabilidad y los criterios del contrato.
+3. Si no existe una ruta de edición segura, devuelve blocked o needs_review.
 
 Después:
-- Implementa la tarea.
-- Ejecuta las pruebas relevantes.
-- Informa archivos modificados, comandos ejecutados y resultados.
+- Implementa en una ronda y usa hasta dos rondas de corrección solo para fallos propios.
+- Ejecuta únicamente los comandos focalizados y naturales del manifiesto.
+- La raíz ejecuta la verificación agregada; no la dupliques.
+- Tras el último comando requerido, reconcilia el estado y devuelve inmediatamente.
+- Si terminal_ready es true y remaining_actions está vacío, no realices otra acción.
+- Devuelve acceptance_criteria_resolved separado de terminal_ready.
+- Acredita cada comando del manifiesto exactamente una vez como attempted o
+  skipped con motivo; repite cada intento real en verification_commands_run.
+- Devuelve status, phase, remaining_actions, terminal_ready,
+  last_required_command y todos los campos estructurados del contrato.
+- Informa archivos modificados, resultados y fallos ajenos o baseline.
+- No emitas eventos por lectura, edicion o comando.
 - No amplíes el alcance.
 - No tomes decisiones arquitectónicas globales.
 - Devuelve cualquier incertidumbre al agente principal.

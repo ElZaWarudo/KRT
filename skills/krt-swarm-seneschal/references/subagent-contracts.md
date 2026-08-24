@@ -26,8 +26,25 @@ Scope excluded:
 Acceptance criteria:
 - ...
 Verification commands:
-- <focused leaf checks only>
+- focused: <exact leaf commands>
+- natural: <exact affected-suite commands or []>
+- aggregate_owner: root
+- max_retries_per_command: 1
+- baseline_failures: []
+- stop_on_unowned_failure: true
 Wave verification owner: Seneschal/root
+Execution budget:
+- discovery_passes: 1
+- implementation_rounds: 1
+- fix_rounds: 2
+- review_rounds: 1
+- extra_verification: forbidden
+Terminal protocol:
+- return_when: acceptance criteria resolved, required checks attempted, state reconciled
+- grace_actions: 0
+Supervision:
+- mode: <terminal-only|discovery-checkpoint>
+- transition_after_ms: 15000
 Required skills:
 - ...
 Forbidden actions:
@@ -37,6 +54,13 @@ Return contract:
 ```
 
 Pass artifact paths and repo-relative paths. Avoid flooding workers with the entire queue.
+
+For Luna, compile this envelope using
+`krt-compound-master/references/fast-contract.md`. The compiled envelope is the
+only operational contract Luna loads besides repository `AGENTS.md` and the
+files named in `required_context`. Do not send the worker back through the
+Seneschal or Compound Master reference trees. Empty lists must be explicit.
+Use `terminal-only` for `luna` and `discovery-checkpoint` for `luna_xhigh`.
 
 When `Worker profile` names a registered Codex profile, load
 `worker-profiles.md` and pass its static preflight before launching the worker.
@@ -124,8 +148,24 @@ Follow AGENTS.md and local skill rules.
 Do not change public contracts, auth/data behavior, dependencies, or release configuration outside scope without stopping.
 Add or update tests when the unit changes behavior.
 Return a concise implementation report with files touched, verification, risks, and blockers.
+After the last required command and state update, return immediately. Do not add
+an exploratory, aggregate, or confidence-building verification pass.
 Do not commit, push, open PRs, mutate Jira, request reviewers, or merge.
 ```
+
+For `luna_xhigh`, add exactly one non-blocking parent message after the single
+discovery pass:
+
+```yaml
+event: discovery_complete
+edit_path_found: true | false
+planned_files: []
+```
+
+Begin implementation immediately when the edit path exists. If it does not,
+return `needs_review`; do not start a second discovery pass. `luna` sends no
+live checkpoint. Neither profile emits per-read, per-edit, or per-command
+events.
 
 ### Reviewer
 
@@ -183,7 +223,12 @@ Return changed docs and any verification performed.
 Require every worker to return:
 
 ```text
-Status: done | blocked | needs-decision | needs-review | failed
+Status: done | done_with_baseline_gaps | needs_review | blocked
+Phase: closeout
+Remaining actions: []
+Terminal ready: true | false
+Acceptance criteria resolved: true | false
+Last required command: <exact command or none>
 Role: <planner|implementer|reviewer|fixer|integrator|documenter|compound-master-worker>
 Unit: <id>
 Jira issue: <key or none>
@@ -191,7 +236,19 @@ Branch/worktree/thread: <ref if known>
 Changed files:
 - ...
 Verification:
-- <command>: <pass|fail|not-run> <short reason>
+- attempted:
+  - command: <exact command>
+    attempts: <positive integer>
+    outcome: <passed|failed|baseline_failure|unowned_failure>
+- skipped:
+  - command: <exact command>
+    reason: <concrete non-empty reason>
+Verification commands run:
+- <exact command once per actual attempt, in execution order>
+Unowned failures:
+- <command/evidence or none>
+State updates:
+- <canonical path and reconciled facts>
 Scope notes:
 - <inside scope|outside scope concern>
 Blockers:
@@ -217,6 +274,21 @@ Release readiness:
 Next role:
 - <implementer|reviewer|fixer|integrator|documenter|release-marshal|none>
 ```
+
+Status meanings are strict:
+
+- `done`: every required criterion and check is resolved.
+- `done_with_baseline_gaps`: only declared baseline or clearly unowned gaps remain.
+- `needs_review`: the allowed implementation, fix, or review rounds are exhausted,
+  or the worker requests its single justified budget extension.
+- `blocked`: a decision or external capability is required.
+
+When `terminal_ready: true` and `remaining_actions: []`, the worker must return
+without another action. The orchestrator treats further exploration or
+verification as a contract violation. `terminal_ready` means ready to return;
+`acceptance_criteria_resolved` separately records whether the owned criteria
+were satisfied. It must be true for `done` and `done_with_baseline_gaps`, but
+may be false for `needs_review` and `blocked`.
 
 If a worker omits the return contract, inspect the diff before trusting its status.
 

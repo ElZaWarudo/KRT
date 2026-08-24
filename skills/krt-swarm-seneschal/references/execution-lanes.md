@@ -32,8 +32,14 @@ selection. A higher-risk trigger always wins over file-count heuristics.
 
 Spark reasoning is intentionally fixed at `xhigh`. Never lower it, route
 exploration to it, or use it to compensate for an incomplete contract. Luna
-`high` is the default for normal work. Luna `xhigh` is admitted only by a deep
-trigger.
+`high` is the default for normal work. Luna `xhigh` is admitted only by a
+concrete deep trigger.
+
+Reasoning depth and execution duration are independent. `xhigh` authorizes
+deeper reasoning inside the same bounded contract; it does not authorize more
+discovery passes, implementation rounds, verification commands, or closeout
+actions. Apply the execution budget from `subagent-contracts.md` to every Luna
+lane.
 
 The table selects the implementation worker. Supporting Planner, Reviewer,
 Fixer, Integrator, and Documenter roles never use Spark: use Luna `high` for
@@ -61,14 +67,19 @@ Spark contract broader.
 
 Any one trigger selects `deep`:
 
-- a new or cross-cutting architecture, state, or integration decision;
+- a new or cross-cutting architecture, state, or integration decision whose
+  compatibility or blast radius cannot be settled by an existing pattern;
 - authentication, authorization, tenant isolation, secrets, or security policy;
 - schema, migration, transaction, destructive data, or consistency behavior;
 - a public API, event, webhook, SDK, compatibility, or deployment contract;
 - concurrency, stale-state, ordering, idempotency, or race-sensitive behavior;
 - production infrastructure, release safety, compliance, or high blast radius;
-- unresolved interaction across frontend, backend, data, and infrastructure; or
-- evidence that `high` reasoning is insufficient for the bounded unit.
+- unresolved interaction across frontend, backend, data, and infrastructure.
+
+A difficult local question, broad file count, or desire for extra confidence is
+not a deep trigger. Record the exact security, public-contract, migration/data,
+concurrency, destructive-action, architecture, or production-risk trigger in
+the envelope; `deep_trigger: difficult` is invalid.
 
 Broad file count alone does not force `deep` when the work is routine and
 decision-closed. If evidence cannot distinguish `standard` from `deep`, use
@@ -83,6 +94,11 @@ High-risk security work remains subject to the repository security policy. A
 direct deep route must run Security Watch during execution and the Security
 Sentinel Gate after the work-review loop. If those stages are unavailable
 outside Compound Master, route the unit through Compound Master instead.
+
+Do not keep a Luna `xhigh` worker alive for mechanical cleanup after the deep
+decision and owned implementation are complete. Its next action is closeout.
+If a separate decision-closed documentation or mechanical unit remains, return
+it to root for aggregation or dispatch it as a new Spark contract.
 
 ## Role Admission Triggers
 
@@ -116,8 +132,8 @@ roles need no synthetic placeholder or handoff.
 
 Verification has two owners, with no third duplicate pass:
 
-1. The leaf worker runs only contract-specific focused checks needed for quick
-   feedback on its owned change.
+1. The leaf worker runs only the exact contract-specific focused checks and at
+   most one declared natural affected suite for its owned change.
 2. The Seneschal/root runs aggregate or CI-equivalent verification once after
    all mutable units in the wave are reconciled.
 
@@ -139,6 +155,16 @@ under `docs/orchestration/runs/<run-id>-timing.json`. Record lane, selected
 profile, reasoning effort, context bytes, review/fix rounds, verification
 fingerprint, and milliseconds spent in `preflight`, `context`,
 `implementation`, `verification`, `review`, and `reconciliation`.
+
+Also record time to first change, discovery/implementation ratio, commands
+outside the verification manifest, milliseconds from the last required command
+to return, and root interventions. Follow `lightweight-supervision.md`: only
+`luna_xhigh` sends a live discovery checkpoint, and Seneschal evaluates it at
+the existing wait cadence. If no owned change follows the checkpoint within the
+configured threshold, send one transition instruction: `Discovery is complete;
+implement now.` If the worker still cannot implement, it returns `needs_review`
+or `blocked` rather than beginning another pass. Collect repeated-read counts
+only in explicitly sampled diagnostics with native runtime evidence.
 
 Only the Seneschal/root writes the timing artifact after collecting leaf timing
 reports. Leaf workers never write the shared file. The recorder also locks its

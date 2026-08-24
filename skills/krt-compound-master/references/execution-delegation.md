@@ -60,6 +60,39 @@ rules.
 
 Before invoking work, verify the resolved `work` role supports implementation-only/no-shipping mode.
 
+Compile one exact verification manifest into the worker contract:
+
+```yaml
+verification:
+  focused:
+    - <exact targeted command>
+  natural:
+    - <exact affected-suite command>
+  aggregate_owner: root
+  max_retries_per_command: 1
+  baseline_failures: []
+  stop_on_unowned_failure: true
+```
+
+Do not use phrases such as "appropriate checks" or "tests you can run". Empty
+command lists are explicit. The worker may execute only the listed focused and
+natural commands. Root runs aggregate or CI-equivalent verification once after
+reconciliation. A Reviewer consumes the evidence and adds only a newly
+identified risk-specific check through a revised manifest.
+
+The terminal return accounts for every manifest command exactly once. Put an
+executed command under `verification.attempted` with its attempt count and
+outcome, or put an unexecuted command under `verification.skipped` with a
+concrete reason. Repeat the exact command in `verification_commands_run` once
+per actual invocation and in execution order. Root rejects omitted commands,
+retries beyond the manifest limit, and a `last_required_command` that does not
+match the last actual invocation.
+
+When a command fails outside the worker's ownership, the worker records the
+command, short evidence, ownership classification, and whether it matches a
+declared baseline. With `stop_on_unowned_failure: true`, it returns immediately
+after state reconciliation; it does not diagnose or fix the unrelated failure.
+
 Prompt shape:
 
 ```text
@@ -67,7 +100,7 @@ Skill("<work>", "<work-package-path>
 
 Review unit: <RU# and title>
 
-Execution constraint: implement only the selected review unit and run the verification you can run inside your assigned scope. Use the package autonomy contract: decide reversible, package-local, convention-following choices; record assumptions; escalate only non-inferable product, contract, security, production, branch/base, Jira/PR, credential, or scope decisions. Preserve the origin plan's implementation units: for each included U-ID/unit, report status, changed files, verification attempted/results/skips, and blockers. Do not implement later review units unless required to keep this unit coherent and explicitly recorded. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for the lead and krt-release-marshal. Return changed files, API/contract changes detected, verification attempted, verification results, skipped verification with reasons, decisions made autonomously, and any unresolved questions. Do not ask the user to take over normal local verification or review.")
+Execution constraint: implement only the selected review unit and run only the exact focused and natural commands in the compiled verification manifest. Use the package autonomy contract: decide reversible, package-local, convention-following choices; record assumptions; escalate only non-inferable product, contract, security, production, branch/base, Jira/PR, credential, or scope decisions. Preserve the origin plan's implementation units: for each included U-ID/unit, report status, changed files, verification attempted/results/skips, and blockers. Do not implement later review units unless required to keep this unit coherent and explicitly recorded. Do not invoke PR creation, ce-commit-push-pr, Jira transitions, or any shipping workflow. Leave pending commits/changes for the lead and krt-release-marshal. Return changed files, API/contract changes detected, manifest verification results, skipped verification with reasons, decisions made autonomously, and structured decision requests. After the last required command and state reconciliation, return immediately. Do not ask the user to take over normal local verification or review.")
 ```
 
 Under brokered interaction, replace free-form unresolved questions with

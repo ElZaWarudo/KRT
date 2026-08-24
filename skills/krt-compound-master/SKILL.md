@@ -54,7 +54,12 @@ Before writing or reviewing a work package:
 python3 <compound-master-skill-dir>/scripts/check_work_package.py <work-package.md>
 ```
 
-Resolve `<compound-master-skill-dir>` to the directory containing this `SKILL.md`; installed runtimes may use `/home/teb/.agents/skills/krt-compound-master`. Before delegating to weaker/narrower agents, pass the relevant package plus `references/fast-contract.md`.
+Resolve `<compound-master-skill-dir>` to the directory containing this
+`SKILL.md`; installed runtimes may use
+`/home/teb/.agents/skills/krt-compound-master`. Before delegating to Luna,
+compile the relevant package into `references/fast-contract.md`'s schema. Pass
+only that compiled contract, repository `AGENTS.md`, and its explicitly named
+context; do not make the worker load the Compound Master reference tree.
 
 ## Core Pipeline
 

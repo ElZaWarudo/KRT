@@ -125,6 +125,29 @@ class RunTimingTest(unittest.TestCase):
         self.assertEqual(record["review_rounds"], 1)
         self.assertEqual(record["fix_rounds"], 0)
 
+    def test_closeout_efficiency_metrics_are_recorded(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            record = record_timing(
+                **self.timing_args(
+                    Path(temp_dir) / "timing.json",
+                    phases={"discovery": 20, "implementation": 80},
+                    closeout_metrics={
+                        "time_to_first_change_ms": 15,
+                        "out_of_manifest_commands": 0,
+                        "last_required_command_to_return_ms": 7,
+                        "root_interventions": 1,
+                        "repeated_context_reads": 2,
+                    },
+                )
+            )
+
+        self.assertEqual(record["discovery_implementation_ratio"], 0.25)
+        self.assertEqual(record["time_to_first_change_ms"], 15)
+        self.assertEqual(record["out_of_manifest_commands"], 0)
+        self.assertEqual(record["last_required_command_to_return_ms"], 7)
+        self.assertEqual(record["root_interventions"], 1)
+        self.assertEqual(record["repeated_context_reads"], 2)
+
     def test_lane_profile_mismatch_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             with self.assertRaisesRegex(ValueError, "requires worker"):
@@ -151,6 +174,20 @@ class RunTimingTest(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "non-negative"):
                         record_timing(
                             **self.timing_args(output, **{field: -1})
+                        )
+            for field in (
+                "time_to_first_change_ms",
+                "out_of_manifest_commands",
+                "last_required_command_to_return_ms",
+                "root_interventions",
+                "repeated_context_reads",
+            ):
+                with self.subTest(field=field):
+                    with self.assertRaisesRegex(ValueError, "non-negative"):
+                        record_timing(
+                            **self.timing_args(
+                                output, closeout_metrics={field: -1}
+                            )
                         )
 
     def test_malformed_document_is_rejected(self) -> None:
@@ -210,6 +247,115 @@ class RunTimingTest(unittest.TestCase):
         self.assertEqual(json.loads(valid.stdout)["total_duration_ms"], 42)
         self.assertNotEqual(malformed.returncode, 0)
         self.assertIn("phase must use NAME=MILLISECONDS", malformed.stderr)
+
+    def test_cli_imports_metrics_from_supervision_result(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            output = Path(temp_dir) / "timing.json"
+            supervision = Path(temp_dir) / "supervision.json"
+            supervision.write_text(
+                json.dumps(
+                    {
+                        "action": "complete",
+                        "terminal_status": "done",
+                        "reasons": [],
+                        "metrics": {
+                            "discovery_implementation_ratio": 0.5,
+                            "time_to_first_change_ms": 40,
+                            "out_of_manifest_commands": 0,
+                            "last_required_command_to_return_ms": 5,
+                            "root_interventions": 1,
+                            "repeated_context_reads": None,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPT),
+                    "--output",
+                    str(output),
+                    "--run-id",
+                    "run-supervised",
+                    "--wave-id",
+                    "wave-supervised",
+                    "--unit-id",
+                    "unit-supervised",
+                    "--lane",
+                    "deep",
+                    "--worker-profile",
+                    "luna_xhigh",
+                    "--status",
+                    "completed",
+                    "--supervision-result",
+                    str(supervision),
+                ],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        record = json.loads(result.stdout)
+        self.assertEqual(record["time_to_first_change_ms"], 40)
+        self.assertEqual(record["discovery_implementation_ratio"], 0.5)
+        self.assertEqual(record["last_required_command_to_return_ms"], 5)
+        self.assertEqual(record["root_interventions"], 1)
+
+    def test_cli_rejects_incompatible_supervision_action_and_status(self) -> None:
+        cases = (
+            ("contract_violation", None, ["invalid-terminal-shape"], "completed"),
+            ("complete", "blocked", [], "completed"),
+            ("transition_to_implementation", None, [], "blocked"),
+        )
+        for action, terminal_status, reasons, status in cases:
+            with self.subTest(action=action, status=status):
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    output = Path(temp_dir) / "timing.json"
+                    supervision = Path(temp_dir) / "supervision.json"
+                    supervision.write_text(
+                        json.dumps(
+                            {
+                                "action": action,
+                                "terminal_status": terminal_status,
+                                "reasons": reasons,
+                                "metrics": {
+                                    "out_of_manifest_commands": 0,
+                                    "root_interventions": 0,
+                                },
+                            }
+                        ),
+                        encoding="utf-8",
+                    )
+                    result = subprocess.run(
+                        [
+                            sys.executable,
+                            str(SCRIPT),
+                            "--output",
+                            str(output),
+                            "--run-id",
+                            "run-invalid-supervision",
+                            "--wave-id",
+                            "wave-invalid-supervision",
+                            "--unit-id",
+                            "unit-invalid-supervision",
+                            "--lane",
+                            "deep",
+                            "--worker-profile",
+                            "luna_xhigh",
+                            "--status",
+                            status,
+                            "--supervision-result",
+                            str(supervision),
+                        ],
+                        check=False,
+                        capture_output=True,
+                        text=True,
+                    )
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("incompatible", result.stderr)
 
     def test_concurrent_distinct_unit_updates_are_not_lost(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

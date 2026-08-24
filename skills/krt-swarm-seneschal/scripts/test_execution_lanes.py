@@ -39,7 +39,11 @@ class ExecutionLaneContractTest(unittest.TestCase):
         )
         self.assertIn("Spark reasoning is intentionally fixed at `xhigh`", lanes)
         self.assertIn("default for normal work", lanes)
-        self.assertIn("admitted only by a deep", lanes)
+        self.assertIn(
+            "admitted only by a concrete deep trigger", " ".join(lanes.split())
+        )
+        self.assertIn("Reasoning depth and execution duration are independent", lanes)
+        self.assertIn("`deep_trigger: difficult` is invalid", lanes)
 
     def test_role_and_verification_admission_is_bounded(self) -> None:
         lanes = (ROOT / "references" / "execution-lanes.md").read_text(
@@ -50,7 +54,7 @@ class ExecutionLaneContractTest(unittest.TestCase):
             with self.subTest(role=role):
                 self.assertIn(f"**{role}:**", lanes)
         self.assertIn(
-            "The leaf worker runs only contract-specific focused checks",
+            "The leaf worker runs only the exact contract-specific focused checks",
             normalized,
         )
         self.assertIn(
@@ -59,6 +63,33 @@ class ExecutionLaneContractTest(unittest.TestCase):
         self.assertIn("fingerprint is unchanged", normalized)
         self.assertIn("Security Watch", normalized)
         self.assertIn("Security Sentinel Gate", normalized)
+
+    def test_luna_contract_has_bounded_terminal_protocol(self) -> None:
+        contracts = (ROOT / "references" / "subagent-contracts.md").read_text(
+            encoding="utf-8"
+        )
+        profiles = (ROOT / "references" / "worker-profiles.md").read_text(
+            encoding="utf-8"
+        )
+        for text in (contracts, profiles):
+            with self.subTest(reference=text[:40]):
+                self.assertIn("discovery_passes: 1", text)
+                self.assertIn("extra_verification: forbidden", text)
+                self.assertIn("grace_actions: 0", text)
+                self.assertIn("aggregate_owner: root", text)
+
+    def test_luna_supervision_is_sparse_and_profile_specific(self) -> None:
+        supervision = (
+            ROOT / "references" / "lightweight-supervision.md"
+        ).read_text(encoding="utf-8")
+        profiles = (ROOT / "references" / "worker-profiles.md").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("`luna` | `terminal-only`", supervision)
+        self.assertIn("`luna_xhigh` | `discovery-checkpoint`", supervision)
+        self.assertIn("exactly one non-blocking checkpoint", supervision)
+        self.assertIn("Neither emits per-action telemetry", profiles)
+        self.assertIn("diagnostic sample", profiles)
 
     def test_route_references_delegate_optional_role_admission(self) -> None:
         for name in (

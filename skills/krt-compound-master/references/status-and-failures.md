@@ -31,6 +31,8 @@ Track:
 - Jira policy and posture: required/optional/skip, existing issue context, role/config availability, created/reused URL, or non-blocking omitted reason.
 - Blockers and required user decisions.
 - Agent assumptions and safe local decisions that affected implementation, verification, or review.
+- Execution closeout: current phase, remaining actions, terminal readiness,
+  last required command, unowned failures, and budget rounds consumed.
 
 
 ## Freshness Requirements
@@ -79,6 +81,43 @@ blocked
 completed
 ```
 
+Worker terminal status is a separate, smaller vocabulary:
+
+- `done`: all contracted work and required checks resolved.
+- `done_with_baseline_gaps`: only declared baseline or clearly unowned failures remain.
+- `needs_review`: allowed rounds are exhausted or one budget extension needs approval.
+- `blocked`: a required decision or external capability is missing.
+
+Do not translate every baseline imperfection into `blocked`.
+
+## Terminal Closeout Gate
+
+Before returning, write and reconcile these fields in the canonical state and
+worker result:
+
+```yaml
+phase: closeout
+remaining_actions: []
+terminal_ready: true
+acceptance_criteria_resolved: true | false
+last_required_command: <exact command or none>
+unowned_failures: []
+```
+
+Set `terminal_ready: true` after every manifest command was attempted or has a
+concrete skip reason, state matches repo reality, and no worker action remains.
+It means ready to return, not successful acceptance. Set
+`acceptance_criteria_resolved: true` for `done` and
+`done_with_baseline_gaps`. `needs_review` and `blocked` may use false. When
+`terminal_ready` is true and `remaining_actions` is empty, the next mandatory
+action is to return. Another read, search, command, review, or polish pass
+violates the contract.
+
+If an allowed round is exhausted first, reconcile state and return
+`needs_review`; do not silently begin a new round. If a decision or external
+capability is missing, return `blocked`. Baseline or unowned failures use
+`done_with_baseline_gaps` when the owned acceptance criteria are resolved.
+
 ## Failure Behavior
 
 Stop and write the blocker into the resolved canonical state path and the affected active artifact when that artifact is the blocked execution surface:
@@ -121,6 +160,8 @@ Every closeout must include:
 - What is blocked, or "No blockers".
 - Recommended next action.
 - Exact next invocation or command when one exists.
+- The terminal fields, consumed execution budget, last required command, and
+  any unowned failures.
 
 For review-blocked closeouts, also include latest findings path, unresolved findings grouped by severity, verification status, and the recommended resolver invocation.
 
