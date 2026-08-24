@@ -12,6 +12,7 @@ from typing import Any
 
 from check_worker_profiles import (
     REQUIRED_WORKER_FIELDS,
+    SANDBOX_REQUIRED_WORKERS,
     default_codex_home,
     inside,
     load_manifest,
@@ -53,7 +54,12 @@ def install_profiles(
         if not isinstance(worker, dict):
             result["errors"].append(f"worker-not-registered:{worker_id}")
             continue
-        missing = sorted(REQUIRED_WORKER_FIELDS - set(worker))
+        required_fields = REQUIRED_WORKER_FIELDS | (
+            {"expected_sandbox_mode"}
+            if worker_id in SANDBOX_REQUIRED_WORKERS
+            else set()
+        )
+        missing = sorted(required_fields - set(worker))
         if missing:
             result["errors"].append(
                 f"worker-manifest-entry-missing:{worker_id}:{','.join(missing)}"
@@ -61,7 +67,14 @@ def install_profiles(
             continue
         if any(
             not isinstance(worker[field], str) or not worker[field].strip()
-            for field in REQUIRED_WORKER_FIELDS
+            for field in required_fields
+        ):
+            result["errors"].append(f"worker-manifest-entry-invalid:{worker_id}")
+            continue
+        expected_sandbox_mode = worker.get("expected_sandbox_mode")
+        if expected_sandbox_mode is not None and (
+            not isinstance(expected_sandbox_mode, str)
+            or not expected_sandbox_mode.strip()
         ):
             result["errors"].append(f"worker-manifest-entry-invalid:{worker_id}")
             continue
@@ -77,6 +90,7 @@ def install_profiles(
             worker["expected_name"],
             worker["expected_model"],
             worker["expected_reasoning_effort"],
+            expected_sandbox_mode,
         )
         if profile_errors:
             result["errors"].extend(

@@ -66,8 +66,9 @@ After integration, reconcile the same path on the intended base.
 
 Nested Compound is a `deep`-lane route, not the default implementation route.
 Before creating a child, apply `execution-lanes.md`. Use direct Spark or Luna
-dispatch for execution-ready fast and standard units, and direct `luna_xhigh`
-for a deep unit whose required artifacts and quality gates are already settled.
+dispatch for execution-ready fast and standard units, and the direct two-stage
+`luna_xhigh_discovery` -> `luna_xhigh` route for a deep unit whose required
+artifacts and quality gates are already settled.
 Create a child only when the deep unit still needs Compound Master's artifact or
 multi-stage quality pipeline.
 

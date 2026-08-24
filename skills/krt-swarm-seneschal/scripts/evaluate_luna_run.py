@@ -21,8 +21,7 @@ TERMINAL_STATUSES = {
     "blocked",
 }
 INTERVENTION_ACTIONS = {
-    "transition_to_implementation",
-    "return_needs_review",
+    "dispatch_implementation",
     "return_now",
 }
 ATTEMPT_OUTCOMES = {"passed", "failed", "baseline_failure", "unowned_failure"}
@@ -119,9 +118,20 @@ def timeline_reasons(
     started_at = require_non_negative_int(
         observation.get("started_at_ms"), "started_at_ms"
     )
+    first_change = optional_timestamp(observation, "first_change_at_ms")
+    discovery_returned = optional_timestamp(observation, "discovery_returned_at_ms")
+    implementation_started = optional_timestamp(
+        observation, "implementation_started_at_ms"
+    )
+    changed_files = string_list(observation.get("changed_files", []), "changed_files")
+    command_finished = optional_timestamp(
+        observation, "last_required_command_finished_at_ms"
+    )
     timestamps = [
-        optional_timestamp(observation, "first_change_at_ms"),
-        optional_timestamp(observation, "last_required_command_finished_at_ms"),
+        first_change,
+        discovery_returned,
+        implementation_started,
+        command_finished,
         returned_at,
     ]
     checkpoint = observation.get("checkpoint")
@@ -135,10 +145,6 @@ def timeline_reasons(
     ):
         return ["invalid-timestamp-order"]
 
-    first_change = optional_timestamp(observation, "first_change_at_ms")
-    command_finished = optional_timestamp(
-        observation, "last_required_command_finished_at_ms"
-    )
     if returned_at is not None and (
         (first_change is not None and returned_at < first_change)
         or (command_finished is not None and returned_at < command_finished)
@@ -154,10 +160,25 @@ def timeline_reasons(
     if (
         observation.get("profile") == "luna_xhigh"
         and checkpoint_at is not None
-        and first_change is not None
-        and first_change < checkpoint_at
+        and discovery_returned is not None
+        and discovery_returned < checkpoint_at
     ):
         return ["invalid-timestamp-order"]
+    if observation.get("profile") == "luna_xhigh" and implementation_started is not None:
+        if checkpoint_at is None or implementation_started < checkpoint_at:
+            return ["invalid-timestamp-order"]
+        if discovery_returned is not None and implementation_started < discovery_returned:
+            return ["invalid-timestamp-order"]
+    if first_change is not None and (
+        implementation_started is None or first_change < implementation_started
+    ) and observation.get("profile") == "luna_xhigh":
+        return ["write-before-implementation-dispatch"]
+    if (
+        observation.get("profile") == "luna_xhigh"
+        and changed_files
+        and implementation_started is None
+    ):
+        return ["write-before-implementation-dispatch"]
     return []
 
 
@@ -189,18 +210,27 @@ def checkpoint_reasons(
             checkpoint.get("discovery_complete_at_ms"),
             "discovery_complete_at_ms",
         )
+        require_non_negative_int(
+            observation.get("discovery_returned_at_ms"),
+            "discovery_returned_at_ms",
+        )
     except ValueError:
         reasons.append("invalid-checkpoint-shape")
         return reasons
     if not isinstance(checkpoint.get("edit_path_found"), bool):
         reasons.append("invalid-checkpoint-shape")
         return reasons
+    if checkpoint.get("event") != "discovery_complete":
+        reasons.append("invalid-checkpoint-event")
     try:
         planned_files = string_list(checkpoint.get("planned_files"), "planned_files")
         owned_files = set(string_list(observation.get("owned_files"), "owned_files"))
     except ValueError:
         reasons.append("invalid-checkpoint-shape")
         return reasons
+    evidence_digest = checkpoint.get("evidence_digest")
+    if not isinstance(evidence_digest, str) or not evidence_digest.strip():
+        reasons.append("checkpoint-missing-evidence-digest")
     if checkpoint["edit_path_found"]:
         if not planned_files:
             reasons.append("checkpoint-missing-planned-files")
@@ -209,6 +239,42 @@ def checkpoint_reasons(
     elif planned_files:
         reasons.append("checkpoint-has-unexpected-planned-files")
     return reasons
+
+
+def edit_scope_reasons(observation: dict[str, Any]) -> list[str]:
+    if observation.get("profile") != "luna_xhigh":
+        return []
+    checkpoint = observation.get("checkpoint")
+    if not isinstance(checkpoint, dict):
+        return []
+    try:
+        planned_files = set(string_list(checkpoint.get("planned_files"), "planned_files"))
+        changed_files = string_list(observation.get("changed_files"), "changed_files")
+    except ValueError:
+        return ["invalid-changed-files"]
+    return (
+        ["changed-file-outside-checkpoint"]
+        if any(path not in planned_files for path in changed_files)
+        else []
+    )
+
+
+def scope_extension_reasons(final: dict[str, Any]) -> list[str]:
+    extension = final.get("scope_extension")
+    if extension is None:
+        return []
+    if final.get("status") != "needs_review" or not isinstance(extension, dict):
+        return ["invalid-scope-extension"]
+    try:
+        additional_files = string_list(
+            extension.get("additional_files"), "additional_files"
+        )
+    except ValueError:
+        return ["invalid-scope-extension"]
+    reason = extension.get("reason")
+    if not additional_files or not isinstance(reason, str) or not reason.strip():
+        return ["invalid-scope-extension"]
+    return []
 
 
 def verification_reasons(
@@ -350,7 +416,22 @@ def terminal_reasons(
         )
         if not has_reported_gap:
             reasons.append("baseline-gap-status-without-gap")
+    if observation.get("profile") == "luna_xhigh" and status in {
+        "done",
+        "done_with_baseline_gaps",
+    }:
+        try:
+            changed_files = string_list(
+                observation.get("changed_files", []), "changed_files"
+            )
+        except ValueError:
+            changed_files = []
+        if not changed_files:
+            reasons.append("successful-terminal-without-changes")
+        elif observation.get("first_change_at_ms") is None:
+            reasons.append("successful-terminal-missing-first-change")
     reasons.extend(verification_reasons(observation, final))
+    reasons.extend(scope_extension_reasons(final))
     return reasons
 
 
@@ -358,7 +439,6 @@ def evaluate_run(
     observation: dict[str, Any],
     *,
     now_ms: int,
-    transition_after_ms: int = 15_000,
 ) -> dict[str, Any]:
     if observation.get("schema_version") != SCHEMA_VERSION:
         raise ValueError(f"schema_version must be {SCHEMA_VERSION}")
@@ -366,9 +446,6 @@ def evaluate_run(
     if profile not in PROFILES:
         raise ValueError(f"profile must be one of {', '.join(sorted(PROFILES))}")
     now_ms = require_non_negative_int(now_ms, "now_ms")
-    transition_after_ms = require_non_negative_int(
-        transition_after_ms, "transition_after_ms"
-    )
     final = observation.get("final")
     if final is not None and not isinstance(final, dict):
         raise ValueError("final must be an object")
@@ -377,11 +454,23 @@ def evaluate_run(
         observation, final=final, returned_at=returned_at
     )
     reasons = timeline_reasons(observation, now_ms=now_ms, returned_at=returned_at)
+    reasons.extend(edit_scope_reasons(observation))
     action = "continue"
+    terminal_status: str | None = final.get("status") if final is not None else None
 
     if final is not None:
         reasons.extend(terminal_reasons(observation, final))
         reasons.extend(checkpoint_reasons(observation, require_checkpoint=True))
+        checkpoint = observation.get("checkpoint")
+        if (
+            profile == "luna_xhigh"
+            and isinstance(checkpoint, dict)
+            and checkpoint.get("edit_path_found") is False
+            and observation.get("implementation_started_at_ms") is not None
+        ):
+            reasons.append("implementation-dispatched-without-edit-path")
+        if profile == "luna_xhigh" and observation.get("implementation_started_at_ms") is None:
+            reasons.append("implementation-not-dispatched")
         if metrics["out_of_manifest_commands"]:
             reasons.append("verification-command-outside-manifest")
         if reasons:
@@ -403,17 +492,15 @@ def evaluate_run(
         if reasons:
             action = "contract_violation"
         elif isinstance(checkpoint, dict):
-            checkpoint_at = require_non_negative_int(
-                checkpoint.get("discovery_complete_at_ms"),
-                "discovery_complete_at_ms",
-            )
             if checkpoint["edit_path_found"] is False:
-                action = "return_needs_review"
-            elif (
-                observation.get("first_change_at_ms") is None
-                and now_ms - checkpoint_at >= transition_after_ms
-            ):
-                action = "transition_to_implementation"
+                if observation.get("implementation_started_at_ms") is not None:
+                    action = "contract_violation"
+                    reasons.append("implementation-dispatched-without-edit-path")
+                else:
+                    action = "complete"
+                    terminal_status = "needs_review"
+            elif observation.get("implementation_started_at_ms") is None:
+                action = "dispatch_implementation"
 
     interventions_sent = string_list(
         observation.get("interventions_sent", []), "interventions_sent"
@@ -423,14 +510,28 @@ def evaluate_run(
         for intervention in interventions_sent
     ):
         raise ValueError("interventions_sent contains invalid or duplicate actions")
-    if action in interventions_sent:
+    if (
+        profile == "luna_xhigh"
+        and observation.get("implementation_started_at_ms") is not None
+        and "dispatch_implementation" not in interventions_sent
+    ):
+        reasons.append("implementation-dispatch-not-recorded")
+        action = "contract_violation"
+    if (
+        profile == "luna_xhigh"
+        and observation.get("implementation_started_at_ms") is None
+        and "dispatch_implementation" in interventions_sent
+    ):
+        reasons.append("implementation-dispatch-start-not-recorded")
+        action = "contract_violation"
+    if action != "contract_violation" and action in interventions_sent:
         action = "continue"
 
     return {
         "action": action,
         "metrics": metrics,
         "reasons": list(dict.fromkeys(reasons)),
-        "terminal_status": final.get("status") if final is not None else None,
+        "terminal_status": terminal_status,
     }
 
 
@@ -446,13 +547,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, help="JSON observation; stdin by default")
     parser.add_argument("--now-ms", type=int)
-    parser.add_argument("--transition-after-ms", type=int, default=15_000)
     args = parser.parse_args()
     try:
         result = evaluate_run(
             load_observation(args.input),
             now_ms=args.now_ms if args.now_ms is not None else time.time_ns() // 1_000_000,
-            transition_after_ms=args.transition_after_ms,
         )
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         parser.error(str(exc))

@@ -85,8 +85,10 @@ Broad file count alone does not force `deep` when the work is routine and
 decision-closed. If evidence cannot distinguish `standard` from `deep`, use
 `deep` and record the trigger.
 
-For an execution-ready deep package, dispatch `luna_xhigh` directly and retain
-the required review/security gates. Use nested Compound Master only when the
+For an execution-ready deep package, use the direct two-stage route:
+`luna_xhigh_discovery` read-only discovery followed by `luna_xhigh`
+implementation after checkpoint validation. Retain the required review/security
+gates. Use nested Compound Master only when the
 unit still needs its discovery, planning, work-package, multi-stage review, or
 security pipeline. Do not wrap every ready unit in Compound Master.
 
@@ -158,13 +160,13 @@ fingerprint, and milliseconds spent in `preflight`, `context`,
 
 Also record time to first change, discovery/implementation ratio, commands
 outside the verification manifest, milliseconds from the last required command
-to return, and root interventions. Follow `lightweight-supervision.md`: only
-`luna_xhigh` sends a live discovery checkpoint, and Seneschal evaluates it at
-the existing wait cadence. If no owned change follows the checkpoint within the
-configured threshold, send one transition instruction: `Discovery is complete;
-implement now.` If the worker still cannot implement, it returns `needs_review`
-or `blocked` rather than beginning another pass. Collect repeated-read counts
-only in explicitly sampled diagnostics with native runtime evidence.
+to return, and root actions. Follow `lightweight-supervision.md`:
+`luna_xhigh_discovery` returns one terminal checkpoint from a read-only sandbox.
+Seneschal validates it and immediately launches `luna_xhigh` with ownership
+narrowed to the accepted manifest. A missing edit path completes as
+`needs_review`; an implementation that needs another file returns a scope
+extension without editing it. Collect repeated-read counts only in explicitly
+sampled diagnostics with native runtime evidence.
 
 Only the Seneschal/root writes the timing artifact after collecting leaf timing
 reports. Leaf workers never write the shared file. The recorder also locks its

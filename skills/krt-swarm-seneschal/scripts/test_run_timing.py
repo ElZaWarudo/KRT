@@ -307,7 +307,7 @@ class RunTimingTest(unittest.TestCase):
         cases = (
             ("contract_violation", None, ["invalid-terminal-shape"], "completed"),
             ("complete", "blocked", [], "completed"),
-            ("transition_to_implementation", None, [], "blocked"),
+            ("dispatch_implementation", None, [], "blocked"),
         )
         for action, terminal_status, reasons, status in cases:
             with self.subTest(action=action, status=status):

@@ -32,6 +32,7 @@ REQUIRED_WORKER_FIELDS = {
     "expected_reasoning_effort",
     "model_class",
 }
+SANDBOX_REQUIRED_WORKERS = {"luna_xhigh_discovery"}
 
 
 def default_codex_home() -> Path:
@@ -61,14 +62,20 @@ def load_manifest(skill_dir: Path) -> tuple[dict[str, Any] | None, list[str]]:
         errors.append("worker-manifest-schema-version-must-be-1")
     if not isinstance(manifest.get("workers"), dict) or not manifest["workers"]:
         errors.append("worker-manifest-workers-must-be-a-non-empty-object")
-    lanes = manifest.get("lanes")
-    if not isinstance(lanes, dict) or set(lanes) != {"fast", "standard", "deep"}:
-        errors.append("worker-manifest-lanes-must-map-fast-standard-deep")
+    lane_stages = manifest.get("lane_stages")
+    if not isinstance(lane_stages, dict) or set(lane_stages) != {
+        "fast",
+        "standard",
+        "deep",
+    }:
+        errors.append("worker-manifest-lane-stages-must-map-fast-standard-deep")
     elif any(
-        not isinstance(worker_id, str) or not worker_id
-        for worker_id in lanes.values()
+        not isinstance(stages, list)
+        or not stages
+        or not all(isinstance(worker_id, str) and worker_id for worker_id in stages)
+        for lane, stages in lane_stages.items()
     ):
-        errors.append("worker-manifest-lane-worker-invalid")
+        errors.append("worker-manifest-lane-stages-invalid")
     return manifest, errors
 
 
@@ -77,6 +84,7 @@ def validate_profile(
     expected_name: str,
     expected_model: str | None = None,
     expected_reasoning_effort: str | None = None,
+    expected_sandbox_mode: str | None = None,
 ) -> tuple[dict[str, Any] | None, list[str]]:
     try:
         with profile_path.open("rb") as stream:
@@ -116,6 +124,11 @@ def validate_profile(
             f"expected={expected_reasoning_effort}:"
             f"actual={profile.get('model_reasoning_effort')}"
         )
+    if expected_sandbox_mode is not None and profile.get("sandbox_mode") != expected_sandbox_mode:
+        errors.append(
+            "worker-profile-sandbox-mode-mismatch:"
+            f"expected={expected_sandbox_mode}:actual={profile.get('sandbox_mode')}"
+        )
     return profile, errors
 
 
@@ -151,30 +164,31 @@ def check_profiles(
 
     workers = manifest["workers"]
     if lane is not None:
-        expected_worker = manifest["lanes"].get(lane)
-        if expected_worker is None:
+        expected_workers = manifest["lane_stages"].get(lane)
+        if expected_workers is None:
             result["errors"].append(f"worker-lane-unknown:{lane}")
             return result
-        if requested_workers and requested_workers != [expected_worker]:
+        if requested_workers and requested_workers != expected_workers:
             result["errors"].append(
-                f"worker-lane-mismatch:{lane}:expected={expected_worker}:"
+                f"worker-lane-mismatch:{lane}:expected={','.join(expected_workers)}:"
                 f"actual={','.join(requested_workers)}"
             )
             return result
-        selected_ids = [expected_worker]
+        selected_ids = expected_workers
     else:
         selected_ids = requested_workers or sorted(workers)
-    if model_class is not None and len(selected_ids) != 1:
-        result["errors"].append("model-class-check-requires-exactly-one-worker")
-        return result
-
     for worker_id in selected_ids:
         worker = workers.get(worker_id)
         if not isinstance(worker, dict):
             result["errors"].append(f"worker-not-registered:{worker_id}")
             continue
 
-        missing = sorted(REQUIRED_WORKER_FIELDS - set(worker))
+        required_fields = REQUIRED_WORKER_FIELDS | (
+            {"expected_sandbox_mode"}
+            if worker_id in SANDBOX_REQUIRED_WORKERS
+            else set()
+        )
+        missing = sorted(required_fields - set(worker))
         if missing:
             result["errors"].append(
                 f"worker-manifest-entry-missing:{worker_id}:{','.join(missing)}"
@@ -182,7 +196,14 @@ def check_profiles(
             continue
         if any(
             not isinstance(worker[field], str) or not worker[field].strip()
-            for field in REQUIRED_WORKER_FIELDS
+            for field in required_fields
+        ):
+            result["errors"].append(f"worker-manifest-entry-invalid:{worker_id}")
+            continue
+        expected_sandbox_mode = worker.get("expected_sandbox_mode")
+        if expected_sandbox_mode is not None and (
+            not isinstance(expected_sandbox_mode, str)
+            or not expected_sandbox_mode.strip()
         ):
             result["errors"].append(f"worker-manifest-entry-invalid:{worker_id}")
             continue
@@ -230,6 +251,7 @@ def check_profiles(
                 worker["expected_name"],
                 worker["expected_model"],
                 worker["expected_reasoning_effort"],
+                expected_sandbox_mode,
             )
             if bundled_errors:
                 result["errors"].extend(
@@ -247,6 +269,7 @@ def check_profiles(
             worker["expected_name"],
             worker["expected_model"],
             worker["expected_reasoning_effort"],
+            expected_sandbox_mode,
         )
         if profile_errors:
             result["errors"].extend(
@@ -260,6 +283,7 @@ def check_profiles(
             "profile_name": profile["name"],
             "model": profile.get("model"),
             "model_reasoning_effort": profile.get("model_reasoning_effort"),
+            "sandbox_mode": profile.get("sandbox_mode"),
             "model_class": worker["model_class"],
             "required_runtime": worker["required_runtime"],
             "runtime_discoverable": runtime_discoverable,

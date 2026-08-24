@@ -44,8 +44,7 @@ CLOSEOUT_COUNT_FIELDS = set(CLOSEOUT_METRIC_DEFAULTS) - {
 }
 SUPERVISION_ACTIONS = {
     "continue",
-    "transition_to_implementation",
-    "return_needs_review",
+    "dispatch_implementation",
     "return_now",
     "complete",
     "contract_violation",
@@ -146,7 +145,7 @@ def load_worker_route(skill_dir: Path, lane: str) -> tuple[str, str, str]:
     manifest_path = skill_dir / "assets" / "codex-workers" / "manifest.yaml"
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     try:
-        worker_id = manifest["lanes"][lane]
+        worker_id = manifest["lane_stages"][lane][-1]
         worker = manifest["workers"][worker_id]
         return (
             worker_id,

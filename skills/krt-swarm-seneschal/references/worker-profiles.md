@@ -26,8 +26,10 @@ The registered execution profiles are:
 
 - `spark`: small, completely decision-closed work; Spark remains `xhigh`.
 - `luna`: normal bounded work; Luna uses `high`.
+- `luna_xhigh_discovery`: read-only first stage for every deep unit; Luna uses
+  `xhigh` and returns the terminal discovery checkpoint.
 - `luna_xhigh`: demanding work admitted by `execution-lanes.md`; Luna uses
-  `xhigh`.
+  `xhigh` and implements only after an accepted checkpoint.
 
 Do not mutate reasoning effort dynamically. Select the registered profile whose
 stable effort matches the classified lane.
@@ -52,29 +54,29 @@ verification:
   stop_on_unowned_failure: true
 ```
 
-`luna` and `luna_xhigh` share the same duration and closeout limits. Their only
-difference is reasoning depth and admission trigger. Luna may request one
+`luna` and the two deep stages share the same bounded-round discipline. Luna
+may request one
 extension by returning `needs_review` with a concrete new finding, the exact
 additional round requested, and expected payoff; it may not spend the extension
 before approval.
 
-Supervision differs by profile: `luna` uses terminal-only supervision and adds
-no live message; `luna_xhigh` sends one non-blocking discovery checkpoint with
-`edit_path_found` and `planned_files`. Neither emits per-action telemetry.
-Root records the xhigh checkpoint count, validates planned files against the
-compiled `owned_files`, and records only successfully sent interventions.
+Supervision differs by profile: `luna` uses terminal-only supervision.
+`luna_xhigh_discovery` runs under a runtime-enforced read-only sandbox and
+returns exactly one terminal checkpoint with `edit_path_found`, `planned_files`,
+and `evidence_digest`. Root validates it against compiled `owned_files`, then
+automatically launches a fresh `luna_xhigh` implementation worker with
+ownership narrowed to `planned_files`. Neither stage emits per-action telemetry.
 
-After the xhigh checkpoint, Seneschal may send exactly one transition
-instruction, `Discovery is complete; implement now.`, only when an edit path
-was reported but no owned change appears within the configured threshold. A
-worker that reports no safe edit path returns `needs_review` or `blocked`
-without another discovery pass.
+The implementation stage sends no checkpoint and does not repeat discovery. If
+another file is required, it returns `needs_review` with a structured scope
+extension request without editing that file. Root inspects the actual diff and
+rejects changes outside the accepted manifest.
 
 After the last manifest command and state reconciliation, Luna returns with no
 grace action. It does not reread references, repeat a passing check, run root's
 aggregate suite, or investigate an unowned failure.
 
-Root evaluates the xhigh checkpoint and terminal return through
+Root evaluates the deep-stage checkpoint and terminal return through
 `scripts/evaluate_luna_run.py` as described in
 `lightweight-supervision.md`. Repeated-read tracing is permitted only in an
 explicit diagnostic sample, never as a normal profile default.
@@ -118,8 +120,8 @@ python3 <seneschal-skill-dir>/scripts/check_worker_profiles.py \
 ```
 
 The checker validates discovery location, manifest, TOML syntax, required
-custom-agent fields, lane-to-profile mapping, profile identity, exact model,
-reasoning effort, and model-class match.
+custom-agent fields, every profile in the lane stage sequence, profile identity,
+exact model, reasoning effort, sandbox mode, and model-class match.
 Record the selected source, path, and reasoning effort in dispatch evidence.
 
 `--allow-bundled` exists only to validate the skill package before installing

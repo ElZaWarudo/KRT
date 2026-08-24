@@ -1,42 +1,74 @@
 # Lightweight Luna Supervision
 
 Load this reference when dispatching or reconciling Luna workers. The objective
-is to shorten tail latency without creating an event stream or adding tool calls
-for every worker action.
+is to make deep-lane discovery a technical write barrier without introducing a
+per-action event stream.
 
 ## Supervision Modes
 
-| Profile | Mode | Additional worker message |
+| Profile | Mode | Checkpoint behavior |
 |---|---|---|
-| `luna` | `terminal-only` | none before the final return |
-| `luna_xhigh` | `discovery-checkpoint` | exactly one non-blocking checkpoint |
+| `luna` | `terminal-only` | no checkpoint |
+| `luna_xhigh_discovery` | `read-only-discovery` | exactly one terminal checkpoint |
+| `luna_xhigh` | `manifested-implementation` | no live checkpoint; edits only the accepted manifest |
 
 Spark has no live supervision. Detailed read/action tracing is diagnostic-only
 and must not run in ordinary waves.
 
-## Discovery Checkpoint
+## Two-Stage Deep Lane
 
-After its single discovery pass, `luna_xhigh` sends the parent:
+Deep execution is two fresh worker invocations:
+
+```text
+luna_xhigh_discovery (read-only)
+  -> validated discovery_complete
+  -> luna_xhigh (workspace-write, narrowed manifest)
+```
+
+The discovery profile has runtime-enforced `sandbox_mode = "read-only"`. It
+performs one discovery pass and returns exactly one terminal payload:
 
 ```yaml
 event: discovery_complete
 edit_path_found: true | false
 planned_files: []
+evidence_digest: brief concrete evidence
 ```
 
-The message is non-blocking. When `edit_path_found: true`, the worker begins
-implementation immediately; it does not wait for an acknowledgement. When
-false, it reconciles state and returns `needs_review` without a second pass.
+It sends no intermediate parent message. A valid terminal return makes the
+checkpoint exactly-once for that invocation. When `edit_path_found` is true,
+`planned_files` is non-empty and is a subset of the unit's `owned_files`. When
+false, `planned_files` is empty.
 
-The worker emits no per-read, per-edit, or per-command events. Every Luna
-returns its terminal fields, structured verification accounting, and
-`verification_commands_run` in the existing final return contract.
+Root validates the checkpoint and immediately dispatches a fresh
+`luna_xhigh` implementation worker. The implementation contract carries the
+accepted checkpoint and narrows editable ownership to `planned_files`; it does
+not repeat discovery. The dispatch itself is the editing capability. There is
+no acknowledgement handshake and no permission change inside a live worker.
+
+If discovery finds no safe edit path, root reconciles the unit as
+`needs_review` and does not launch the implementation stage.
+
+## Scope Changes
+
+The implementation worker must not edit outside `planned_files`. If another
+file becomes necessary, it stops and returns:
+
+```yaml
+status: needs_review
+scope_extension:
+  additional_files: []
+  reason: concrete reason the manifest is insufficient
+```
+
+It does not edit the additional files and does not emit another checkpoint.
+Root may create a new reviewed contract later; this version intentionally adds
+no live scope-approval protocol.
 
 ## Root Observation
 
-Root records worker start and return timestamps, timestamps the checkpoint when
-received, and observes the first owned filesystem change in the worker's
-isolation target. It builds a JSON observation for
+Root timestamps worker returns and the implementation dispatch, then inspects
+the real diff. It builds a JSON observation for
 `scripts/evaluate_luna_run.py`:
 
 ```json
@@ -45,12 +77,16 @@ isolation target. It builds a JSON observation for
   "profile": "luna_xhigh",
   "started_at_ms": 1000,
   "owned_files": ["src/service.py"],
+  "changed_files": ["src/service.py"],
   "checkpoint_count": 1,
   "checkpoint": {
     "discovery_complete_at_ms": 5000,
     "edit_path_found": true,
-    "planned_files": ["src/service.py"]
+    "planned_files": ["src/service.py"],
+    "evidence_digest": "Read service and focused tests; safe edit path found."
   },
+  "discovery_returned_at_ms": 5000,
+  "implementation_started_at_ms": 6000,
   "first_change_at_ms": 7000,
   "phase_duration_ms": {
     "discovery": 4000,
@@ -58,11 +94,12 @@ isolation target. It builds a JSON observation for
   },
   "verification_manifest": {
     "focused": ["pytest tests/test_service.py"],
-    "natural": ["pytest tests/"]
+    "natural": ["pytest tests/"],
+    "max_retries_per_command": 1
   },
   "last_required_command_finished_at_ms": 30000,
   "returned_at_ms": 31000,
-  "interventions_sent": [],
+  "interventions_sent": ["dispatch_implementation"],
   "final": {
     "status": "done",
     "phase": "closeout",
@@ -94,18 +131,18 @@ isolation target. It builds a JSON observation for
 }
 ```
 
-Use the root/runtime timestamp for received messages rather than trusting a
-worker clock. `checkpoint_count` is the number of checkpoint messages root
-actually received. `owned_files` comes from the compiled contract. Root appends
-an action to `interventions_sent` only after it successfully sends that message.
-Keep the observation in runtime scratch; the authoritative durable output
-remains the timing record.
+Use root/runtime timestamps rather than worker clocks. `checkpoint_count` is
+the number of terminal discovery payloads actually received. `changed_files`
+comes from inspection of the real isolation target, never from the worker
+report. Root records `dispatch_implementation` only after the second worker was
+successfully launched.
 
-For `luna_xhigh`, a terminal result is valid only after exactly one checkpoint.
-When `edit_path_found` is true, `planned_files` must be non-empty and every path
-must appear in `owned_files`. When it is false, `planned_files` must be empty.
+The evaluator rejects an absent or duplicate checkpoint, missing evidence,
+planned files outside ownership, implementation before a valid checkpoint, a
+first change before the implementation dispatch, and changed files outside the
+accepted manifest.
 
-## Evaluation And Intervention
+## Evaluation
 
 Evaluate the observation with:
 
@@ -117,30 +154,21 @@ rtk python3 <seneschal-skill-dir>/scripts/evaluate_luna_run.py \
 
 The evaluator returns one action:
 
-- `continue`: take no action.
-- `transition_to_implementation`: send exactly `Discovery is complete;
-  implement now.` once. The default fires 15 seconds after a successful
-  checkpoint when no owned change is visible.
-- `return_needs_review`: tell the worker to reconcile and return; do not grant
-  another discovery pass.
-- `return_now`: terminal fields are complete but the worker has not returned;
-  tell it to return without another action.
-- `complete`: accept the terminal return for normal reconciliation.
+- `continue`: wait for the active stage.
+- `dispatch_implementation`: launch `luna_xhigh` immediately with the
+  narrowed contract and record the dispatch once.
+- `return_now`: terminal fields are complete but the implementation worker has
+  not returned; tell it to return without another action.
+- `complete`: accept the terminal result for reconciliation. A discovery with
+  no edit path completes as terminal `needs_review` without an implementation
+  dispatch.
 - `contract_violation`: preserve the result and reconcile it as a bounded
-  failure; do not silently trust its completion status.
+  failure; do not trust its completion status.
 
-Never poll faster than the orchestrator's existing worker wait cadence. The
-supervisor must not add a dedicated busy loop. Count an intervention only when
-the parent actually sends the recommended transition or return message. The
-evaluator never increments the count for a recommendation and never recommends
-an action already present in `interventions_sent`.
-
-The terminal result accounts for every focused and natural command exactly
-once as attempted or skipped. Attempted entries carry an attempt count and
-outcome; skipped entries carry a concrete reason. `verification_commands_run`
-contains one exact command string per actual invocation. The evaluator rejects
-missing commands, excess retries, a mismatched `last_required_command`, an
-xhigh return without its checkpoint, and contradictory root timestamps.
+The terminal implementation result accounts for every focused and natural
+command exactly once as attempted or skipped. The evaluator rejects missing
+commands, excess retries, a mismatched `last_required_command`, and
+contradictory timestamps.
 
 ## Timing Consolidation
 
@@ -154,22 +182,19 @@ rtk python3 <seneschal-skill-dir>/scripts/record_run_timing.py \
 
 The evaluator supplies time to first change, discovery/implementation ratio,
 commands outside the verification manifest, last-command-to-return latency,
-and actual acknowledged root interventions. The recorder validates the full
-evaluation envelope: only `complete` with terminal `done` or
-`done_with_baseline_gaps` may persist as `completed`; a valid terminal
-`needs_review` or `blocked` persists as `blocked`; `contract_violation`
-persists as `failed`; intermediate actions remain `running`. Repeated context
-reads remain unset in normal runs; collect them only in an explicitly sampled
-diagnostic run with native runtime event evidence.
+and actual root actions. Only `complete` with terminal `done` or
+`done_with_baseline_gaps` persists as `completed`; terminal `needs_review` or
+`blocked` persists as `blocked`; `contract_violation` persists as `failed`;
+intermediate actions remain `running`.
 
-This supervision is cooperative. It validates that the worker return is
-self-consistent, but without native runtime hooks it cannot prove that a listed
-command actually ran or observe every worker tool action. Do not present this
-telemetry as an audit trail.
+This design technically prevents discovery-stage writes. Manifest enforcement
+after dispatch is fail-closed reconciliation based on the real diff because the
+current runtime cannot grant path-scoped write tokens. Do not present the
+observation as a native runtime audit log.
 
 ## Overhead Guard
 
-Compare supervised and unsupervised samples before expanding the checkpoint to
-another lane. Keep it only when median overhead is below `max(3%, 2 seconds)`,
-closeout latency improves by at least 20%, and p90 total duration improves by at
-least 10% without a correctness or verification regression.
+Compare deep-lane samples before expanding the two-stage barrier elsewhere.
+Keep it only when correctness improves without unacceptable p90 duration or
+startup overhead. Do not add the second invocation to standard Luna unless
+observed violations justify it.

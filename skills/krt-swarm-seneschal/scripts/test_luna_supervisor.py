@@ -22,6 +22,7 @@ class LunaSupervisorTest(unittest.TestCase):
             "profile": "luna_xhigh",
             "started_at_ms": 1_000,
             "owned_files": ["src/service.py"],
+            "changed_files": [],
             "checkpoint_count": 0,
             "verification_manifest": {
                 "focused": ["pytest tests/test_service.py"],
@@ -29,6 +30,22 @@ class LunaSupervisorTest(unittest.TestCase):
                 "max_retries_per_command": 1,
             },
             "interventions_sent": [],
+        }
+        value.update(overrides)
+        if (
+            "implementation_started_at_ms" in overrides
+            and "interventions_sent" not in overrides
+        ):
+            value["interventions_sent"] = ["dispatch_implementation"]
+        return value
+
+    def checkpoint(self, **overrides: object) -> dict[str, object]:
+        value: dict[str, object] = {
+            "event": "discovery_complete",
+            "discovery_complete_at_ms": 5_000,
+            "edit_path_found": True,
+            "planned_files": ["src/service.py"],
+            "evidence_digest": "Read service and focused tests; safe edit path found.",
         }
         value.update(overrides)
         return value
@@ -65,36 +82,29 @@ class LunaSupervisorTest(unittest.TestCase):
         value.update(overrides)
         return value
 
-    def test_xhigh_transitions_when_checkpoint_stalls_before_first_change(self) -> None:
+    def test_xhigh_dispatches_implementation_after_valid_discovery(self) -> None:
         result = evaluate_run(
             self.observation(
                 checkpoint_count=1,
-                checkpoint={
-                    "discovery_complete_at_ms": 5_000,
-                    "edit_path_found": True,
-                    "planned_files": ["src/service.py"],
-                }
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
             ),
-            now_ms=20_000,
-            transition_after_ms=10_000,
+            now_ms=5_000,
         )
 
-        self.assertEqual(result["action"], "transition_to_implementation")
+        self.assertEqual(result["action"], "dispatch_implementation")
         self.assertEqual(result["metrics"]["root_interventions"], 0)
 
-    def test_xhigh_does_not_repeat_sent_transition(self) -> None:
+    def test_xhigh_does_not_repeat_recorded_dispatch(self) -> None:
         result = evaluate_run(
             self.observation(
                 checkpoint_count=1,
-                checkpoint={
-                    "discovery_complete_at_ms": 5_000,
-                    "edit_path_found": True,
-                    "planned_files": ["src/service.py"],
-                },
-                interventions_sent=["transition_to_implementation"],
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                implementation_started_at_ms=6_000,
+                interventions_sent=["dispatch_implementation"],
             ),
-            now_ms=20_000,
-            transition_after_ms=10_000,
+            now_ms=6_000,
         )
 
         self.assertEqual(result["action"], "continue")
@@ -104,16 +114,14 @@ class LunaSupervisorTest(unittest.TestCase):
         result = evaluate_run(
             self.observation(
                 checkpoint_count=1,
-                checkpoint={
-                    "discovery_complete_at_ms": 5_000,
-                    "edit_path_found": False,
-                    "planned_files": [],
-                }
+                checkpoint=self.checkpoint(edit_path_found=False, planned_files=[]),
+                discovery_returned_at_ms=5_000,
             ),
             now_ms=5_001,
         )
 
-        self.assertEqual(result["action"], "return_needs_review")
+        self.assertEqual(result["action"], "complete")
+        self.assertEqual(result["terminal_status"], "needs_review")
 
     def test_standard_luna_has_no_live_checkpoint_requirement(self) -> None:
         result = evaluate_run(
@@ -128,11 +136,7 @@ class LunaSupervisorTest(unittest.TestCase):
             self.observation(
                 profile="luna",
                 checkpoint_count=1,
-                checkpoint={
-                    "discovery_complete_at_ms": 5_000,
-                    "edit_path_found": True,
-                    "planned_files": ["src/service.py"],
-                },
+                checkpoint=self.checkpoint(),
             ),
             now_ms=20_000,
         )
@@ -144,11 +148,11 @@ class LunaSupervisorTest(unittest.TestCase):
         result = evaluate_run(
             self.observation(
                 checkpoint_count=1,
-                checkpoint={
-                    "discovery_complete_at_ms": 5_000,
-                    "edit_path_found": True,
-                    "planned_files": ["src/service.py"],
-                },
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                implementation_started_at_ms=6_000,
+                changed_files=["src/service.py"],
+                first_change_at_ms=7_000,
                 final=self.terminal_result(),
                 last_required_command_finished_at_ms=30_000,
             ),
@@ -161,11 +165,10 @@ class LunaSupervisorTest(unittest.TestCase):
         result = evaluate_run(
             self.observation(
                 checkpoint_count=1,
-                checkpoint={
-                    "discovery_complete_at_ms": 5_000,
-                    "edit_path_found": True,
-                    "planned_files": ["src/service.py"],
-                },
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                implementation_started_at_ms=6_000,
+                changed_files=["src/service.py"],
                 first_change_at_ms=7_000,
                 phase_duration_ms={"discovery": 4_000, "implementation": 8_000},
                 last_required_command_finished_at_ms=30_000,
@@ -188,11 +191,9 @@ class LunaSupervisorTest(unittest.TestCase):
             self.observation(
                 returned_at_ms=31_000,
                 checkpoint_count=1,
-                checkpoint={
-                    "discovery_complete_at_ms": 5_000,
-                    "edit_path_found": True,
-                    "planned_files": ["src/service.py"],
-                },
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                implementation_started_at_ms=6_000,
                 final=self.terminal_result(
                     last_required_command="npm run ci",
                     verification={
@@ -220,11 +221,9 @@ class LunaSupervisorTest(unittest.TestCase):
             self.observation(
                 returned_at_ms=31_000,
                 checkpoint_count=1,
-                checkpoint={
-                    "discovery_complete_at_ms": 5_000,
-                    "edit_path_found": True,
-                    "planned_files": ["src/service.py"],
-                },
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                implementation_started_at_ms=6_000,
                 final=self.terminal_result(
                     phase="verification",
                     remaining_actions=["one more check"],
@@ -376,7 +375,11 @@ class LunaSupervisorTest(unittest.TestCase):
 
     def test_xhigh_terminal_result_requires_exactly_one_checkpoint(self) -> None:
         result = evaluate_run(
-            self.observation(returned_at_ms=31_000, final=self.terminal_result()),
+            self.observation(
+                implementation_started_at_ms=6_000,
+                returned_at_ms=31_000,
+                final=self.terminal_result(),
+            ),
             now_ms=31_000,
         )
 
@@ -395,11 +398,8 @@ class LunaSupervisorTest(unittest.TestCase):
                 result = evaluate_run(
                     self.observation(
                         checkpoint_count=checkpoint_count,
-                        checkpoint={
-                            "discovery_complete_at_ms": 5_000,
-                            "edit_path_found": True,
-                            "planned_files": planned_files,
-                        },
+                        checkpoint=self.checkpoint(planned_files=planned_files),
+                        discovery_returned_at_ms=5_000,
                     ),
                     now_ms=20_000,
                 )
@@ -407,15 +407,45 @@ class LunaSupervisorTest(unittest.TestCase):
                 self.assertEqual(result["action"], "contract_violation")
                 self.assertIn(expected_reason, result["reasons"])
 
+    def test_xhigh_checkpoint_requires_discovery_event(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(event="progress"),
+                discovery_returned_at_ms=5_000,
+            ),
+            now_ms=5_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("invalid-checkpoint-event", result["reasons"])
+
+    def test_xhigh_checkpoint_requires_nonblank_evidence_digest(self) -> None:
+        for evidence_digest in (None, "", "   \t"):
+            with self.subTest(evidence_digest=evidence_digest):
+                result = evaluate_run(
+                    self.observation(
+                        checkpoint_count=1,
+                        checkpoint=self.checkpoint(evidence_digest=evidence_digest),
+                        discovery_returned_at_ms=5_000,
+                    ),
+                    now_ms=5_000,
+                )
+
+                self.assertEqual(result["action"], "contract_violation")
+                self.assertIn(
+                    "checkpoint-missing-evidence-digest", result["reasons"]
+                )
+
     def test_checkpoint_without_edit_path_rejects_planned_files(self) -> None:
         result = evaluate_run(
             self.observation(
                 checkpoint_count=1,
-                checkpoint={
-                    "discovery_complete_at_ms": 5_000,
-                    "edit_path_found": False,
-                    "planned_files": ["src/service.py"],
-                },
+                checkpoint=self.checkpoint(
+                    edit_path_found=False,
+                    planned_files=["src/service.py"],
+                ),
+                discovery_returned_at_ms=5_000,
             ),
             now_ms=5_001,
         )
@@ -445,17 +475,211 @@ class LunaSupervisorTest(unittest.TestCase):
                 self.assertEqual(result["action"], "contract_violation")
                 self.assertIn("invalid-timestamp-order", result["reasons"])
 
+    def test_xhigh_rejects_write_before_implementation_dispatch(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                first_change_at_ms=5_500,
+            ),
+            now_ms=6_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("write-before-implementation-dispatch", result["reasons"])
+
+    def test_xhigh_rejects_changed_files_before_implementation_dispatch(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                changed_files=["src/service.py"],
+            ),
+            now_ms=6_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("write-before-implementation-dispatch", result["reasons"])
+
+    def test_xhigh_rejects_recorded_dispatch_without_implementation_start(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                interventions_sent=["dispatch_implementation"],
+            ),
+            now_ms=6_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn(
+            "implementation-dispatch-start-not-recorded", result["reasons"]
+        )
+
+    def test_xhigh_requires_recorded_implementation_dispatch(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                implementation_started_at_ms=6_000,
+                interventions_sent=[],
+            ),
+            now_ms=6_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("implementation-dispatch-not-recorded", result["reasons"])
+
+    def test_xhigh_rejects_changed_file_outside_checkpoint_manifest(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                implementation_started_at_ms=6_000,
+                first_change_at_ms=7_000,
+                changed_files=["src/unplanned.py"],
+                returned_at_ms=31_000,
+                final=self.terminal_result(),
+            ),
+            now_ms=31_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("changed-file-outside-checkpoint", result["reasons"])
+
+    def test_xhigh_successful_terminal_requires_observed_changes(self) -> None:
+        for status in ("done", "done_with_baseline_gaps"):
+            with self.subTest(status=status):
+                terminal_overrides: dict[str, object] = {"status": status}
+                if status == "done_with_baseline_gaps":
+                    terminal_overrides["unowned_failures"] = ["baseline failure"]
+                result = evaluate_run(
+                    self.observation(
+                        checkpoint_count=1,
+                        checkpoint=self.checkpoint(),
+                        discovery_returned_at_ms=5_000,
+                        implementation_started_at_ms=6_000,
+                        returned_at_ms=31_000,
+                        final=self.terminal_result(**terminal_overrides),
+                    ),
+                    now_ms=31_000,
+                )
+
+                self.assertEqual(result["action"], "contract_violation")
+                self.assertIn("successful-terminal-without-changes", result["reasons"])
+
+    def test_xhigh_successful_terminal_requires_first_change_timestamp(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                implementation_started_at_ms=6_000,
+                changed_files=["src/service.py"],
+                returned_at_ms=31_000,
+                final=self.terminal_result(),
+            ),
+            now_ms=31_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("successful-terminal-missing-first-change", result["reasons"])
+
+    def test_xhigh_terminal_rejects_implementation_without_edit_path(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(edit_path_found=False, planned_files=[]),
+                discovery_returned_at_ms=5_000,
+                implementation_started_at_ms=6_000,
+                returned_at_ms=31_000,
+                final=self.terminal_result(status="needs_review"),
+            ),
+            now_ms=31_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn(
+            "implementation-dispatched-without-edit-path", result["reasons"]
+        )
+
+    def test_scope_extension_returns_needs_review_without_editing_new_file(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(),
+                discovery_returned_at_ms=5_000,
+                implementation_started_at_ms=6_000,
+                returned_at_ms=20_000,
+                final=self.terminal_result(
+                    status="needs_review",
+                    acceptance_criteria_resolved=False,
+                    scope_extension={
+                        "additional_files": ["src/helper.py"],
+                        "reason": "The existing helper must change with the service.",
+                    },
+                ),
+            ),
+            now_ms=20_000,
+        )
+
+        self.assertEqual(result["action"], "complete")
+        self.assertEqual(result["terminal_status"], "needs_review")
+
+    def test_invalid_scope_extensions_are_contract_violations(self) -> None:
+        valid_extension = {
+            "additional_files": ["src/helper.py"],
+            "reason": "The helper must change with the service.",
+        }
+        cases = (
+            ("done", valid_extension),
+            ("needs_review", "src/helper.py"),
+            ("needs_review", {}),
+            ("needs_review", {"additional_files": [], "reason": "required"}),
+            (
+                "needs_review",
+                {"additional_files": "src/helper.py", "reason": "required"},
+            ),
+            ("needs_review", {"additional_files": ["src/helper.py"]}),
+            (
+                "needs_review",
+                {"additional_files": ["src/helper.py"], "reason": "   \t"},
+            ),
+        )
+        for status, scope_extension in cases:
+            with self.subTest(status=status, scope_extension=scope_extension):
+                result = evaluate_run(
+                    self.observation(
+                        checkpoint_count=1,
+                        checkpoint=self.checkpoint(),
+                        discovery_returned_at_ms=5_000,
+                        implementation_started_at_ms=6_000,
+                        returned_at_ms=20_000,
+                        final=self.terminal_result(
+                            status=status,
+                            acceptance_criteria_resolved=status == "done",
+                            scope_extension=scope_extension,
+                        ),
+                    ),
+                    now_ms=20_000,
+                )
+
+                self.assertEqual(result["action"], "contract_violation")
+                self.assertIn("invalid-scope-extension", result["reasons"])
+
     def test_cli_accepts_observation_on_stdin(self) -> None:
         result = subprocess.run(
             [sys.executable, str(SCRIPT), "--now-ms", "20000"],
             input=json.dumps(
                 self.observation(
                     checkpoint_count=1,
-                    checkpoint={
-                        "discovery_complete_at_ms": 5_000,
-                        "edit_path_found": True,
-                        "planned_files": ["src/service.py"],
-                    }
+                    checkpoint=self.checkpoint(),
+                    discovery_returned_at_ms=5_000,
                 )
             ),
             check=False,
@@ -465,7 +689,7 @@ class LunaSupervisorTest(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(
-            json.loads(result.stdout)["action"], "transition_to_implementation"
+            json.loads(result.stdout)["action"], "dispatch_implementation"
         )
 
 

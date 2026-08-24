@@ -33,9 +33,11 @@ class ExecutionLaneContractTest(unittest.TestCase):
                 encoding="utf-8"
             )
         )
+        self.assertEqual(manifest["lane_stages"]["fast"], ["spark"])
+        self.assertEqual(manifest["lane_stages"]["standard"], ["luna"])
         self.assertEqual(
-            manifest["lanes"],
-            {lane: profile for lane, (profile, _) in expected.items()},
+            manifest["lane_stages"]["deep"],
+            ["luna_xhigh_discovery", "luna_xhigh"],
         )
         self.assertIn("Spark reasoning is intentionally fixed at `xhigh`", lanes)
         self.assertIn("default for normal work", lanes)
@@ -86,9 +88,9 @@ class ExecutionLaneContractTest(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("`luna` | `terminal-only`", supervision)
-        self.assertIn("`luna_xhigh` | `discovery-checkpoint`", supervision)
-        self.assertIn("exactly one non-blocking checkpoint", supervision)
-        self.assertIn("Neither emits per-action telemetry", profiles)
+        self.assertIn("`luna_xhigh_discovery` | `read-only-discovery`", supervision)
+        self.assertIn("exactly one terminal checkpoint", supervision)
+        self.assertIn("Neither stage emits per-action telemetry", profiles)
         self.assertIn("diagnostic sample", profiles)
 
     def test_route_references_delegate_optional_role_admission(self) -> None:

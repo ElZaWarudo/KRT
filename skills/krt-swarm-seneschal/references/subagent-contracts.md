@@ -43,8 +43,8 @@ Terminal protocol:
 - return_when: acceptance criteria resolved, required checks attempted, state reconciled
 - grace_actions: 0
 Supervision:
-- mode: <terminal-only|discovery-checkpoint>
-- transition_after_ms: 15000
+- mode: <terminal-only|read-only-discovery|manifested-implementation>
+- accepted_checkpoint: <none|structured discovery_complete payload>
 Required skills:
 - ...
 Forbidden actions:
@@ -60,7 +60,9 @@ For Luna, compile this envelope using
 only operational contract Luna loads besides repository `AGENTS.md` and the
 files named in `required_context`. Do not send the worker back through the
 Seneschal or Compound Master reference trees. Empty lists must be explicit.
-Use `terminal-only` for `luna` and `discovery-checkpoint` for `luna_xhigh`.
+Use `terminal-only` for `luna`. Deep units first use `read-only-discovery` with
+`luna_xhigh_discovery`, then `manifested-implementation` with `luna_xhigh` only
+after root accepts the terminal checkpoint.
 
 When `Worker profile` names a registered Codex profile, load
 `worker-profiles.md` and pass its static preflight before launching the worker.
@@ -69,9 +71,10 @@ behavior, not the unit-specific contract.
 
 Load `execution-lanes.md` before composing the envelope. Its implementation
 mapping is fixed: `fast` -> `spark`/`xhigh`, `standard` -> `luna`/`high`, and
-`deep` -> `luna_xhigh`/`xhigh`. Spark remains `xhigh` and receives only
-decision-closed contracts. Supporting roles use Luna `high` normally and Luna
-`xhigh` only when their own bounded task has a deep trigger.
+`deep` -> `luna_xhigh_discovery` then `luna_xhigh`, both at `xhigh`. Spark
+remains `xhigh` and receives only decision-closed contracts. Supporting roles
+use Luna `high` normally and Luna `xhigh` only when their own bounded task has a
+deep trigger.
 
 ## Standard Roles
 
@@ -153,19 +156,24 @@ an exploratory, aggregate, or confidence-building verification pass.
 Do not commit, push, open PRs, mutate Jira, request reviewers, or merge.
 ```
 
-For `luna_xhigh`, add exactly one non-blocking parent message after the single
-discovery pass:
+For a deep unit, first launch `luna_xhigh_discovery` under its read-only profile.
+It returns exactly one terminal checkpoint after the single discovery pass:
 
 ```yaml
 event: discovery_complete
 edit_path_found: true | false
 planned_files: []
+evidence_digest: brief concrete evidence
 ```
 
-Begin implementation immediately when the edit path exists. If it does not,
-return `needs_review`; do not start a second discovery pass. `luna` sends no
-live checkpoint. Neither profile emits per-read, per-edit, or per-command
-events.
+Root validates the checkpoint and, when the edit path exists, immediately
+launches a fresh `luna_xhigh` with the checkpoint attached and editable
+ownership narrowed to `planned_files`. The implementation worker does not repeat
+discovery or send a checkpoint. If another file is required, it returns
+`needs_review` with `scope_extension.additional_files` and a concrete reason
+without editing that file. If discovery reports no edit path, reconcile
+`needs_review` without launching implementation. No profile emits per-read,
+per-edit, or per-command events.
 
 ### Reviewer
 
@@ -251,6 +259,7 @@ State updates:
 - <canonical path and reconciled facts>
 Scope notes:
 - <inside scope|outside scope concern>
+Scope extension: null | {additional_files: [<repo-relative path>], reason: <why required>}
 Blockers:
 - type: <product|auth|data|legal|DIAN|accounting|payroll|infrastructure|security|dependency|unknown>
   description: <brief blocker>

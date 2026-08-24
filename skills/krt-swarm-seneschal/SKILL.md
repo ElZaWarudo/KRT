@@ -150,22 +150,23 @@ documentation_gate:
 6. **Dispatch Workers**
 - Confirm `documentation_gate.status == approved` before dispatch.
 - Load `references/subagent-contracts.md`.
-- Load `references/execution-lanes.md` and enforce the lane/profile mapping: `fast` uses `spark` at `xhigh`, `standard` uses `luna` at `high`, and `deep` uses `luna_xhigh` at `xhigh`. Never lower Spark reasoning.
+- Load `references/execution-lanes.md` and enforce the lane/profile mapping: `fast` uses `spark` at `xhigh`, `standard` uses `luna` at `high`, and `deep` uses read-only `luna_xhigh_discovery` followed by `luna_xhigh`, both at `xhigh`. Never lower Spark reasoning.
 - For a named Codex profile, require a successful `check_worker_profiles.py` result. Record whether resolution selected a project or personal custom agent; a bundled-only profile does not authorize dispatch. Never substitute a different profile when resolution or invocation fails.
 - If runtime exposes subagents, launch each worker only with the relevant unit contract and artifact paths.
 - If subagents are unavailable, write exact prompts the user can run in separate Codex threads/worktrees.
 - Use only the role-specific workers admitted by the wave plan. Do not expand the standard role chain speculatively.
-- Use a nested Compound Master Worker when a deep unit needs its brainstorm, plan, work-package, review, security, or CI-prevention pipeline. Dispatch an execution-ready deep package directly to `luna_xhigh` when those artifacts and gates are already settled.
+- Use a nested Compound Master Worker when a deep unit needs its brainstorm, plan, work-package, review, security, or CI-prevention pipeline. Route an execution-ready deep package through the direct two-stage Luna path when those artifacts and gates are already settled.
 - Require nested Compound workers to use `interaction:brokered`: they formulate structured decision requests but never ask the user directly.
 - Each worker must operate in implementation-only/no-shipping mode unless the task is explicitly artifact-only.
 - Assign exactly one Jira subtask or standalone Jira issue per worker when Jira is the backlog source.
 - Forbid workers from committing, pushing, opening PRs, mutating Jira, requesting reviewers, merging, or transitioning issues.
 - Require structured blocker reporting in the worker return contract.
 - Start or update compact timing telemetry with `scripts/record_run_timing.py`; never store prompts, source text, logs, or secrets in timing records.
-- Load `references/lightweight-supervision.md` for Luna. Require no live
-  checkpoint from `luna`; require one non-blocking discovery checkpoint from
-  `luna_xhigh`, evaluate it at the existing wait cadence, and keep detailed
-  action tracing diagnostic-only.
+- Load `references/lightweight-supervision.md` for Luna. Require no checkpoint
+  from `luna`. For deep work, launch `luna_xhigh_discovery` read-only, validate
+  its single terminal checkpoint, and automatically launch `luna_xhigh` with
+  ownership narrowed to the accepted manifest. Keep detailed action tracing
+  diagnostic-only.
 
 7. **Review Reconcile**
 - Load `references/gates-and-reconciliation.md`.

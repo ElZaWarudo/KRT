@@ -48,6 +48,10 @@ class WorkerProfileTest(unittest.TestCase):
         self.assertEqual(
             result["workers"]["luna_xhigh"]["model_reasoning_effort"], "xhigh"
         )
+        self.assertEqual(
+            result["workers"]["luna_xhigh_discovery"]["sandbox_mode"],
+            "read-only",
+        )
 
     def test_bundled_only_profile_blocks_dispatch(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -107,6 +111,29 @@ class WorkerProfileTest(unittest.TestCase):
             result["workers"]["luna"]["model_reasoning_effort"], "high"
         )
 
+    def test_standard_luna_override_without_sandbox_mode_remains_valid(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            repo_root = temp_root / "repo"
+            project_agents = repo_root / ".codex" / "agents"
+            project_agents.mkdir(parents=True)
+            profile = bundled("luna").read_text(encoding="utf-8").replace(
+                'sandbox_mode = "workspace-write"\n',
+                "",
+            )
+            (project_agents / "luna_worker.toml").write_text(
+                profile, encoding="utf-8"
+            )
+            result = check_profiles(
+                skill_dir=SKILL_ROOT,
+                repo_root=repo_root,
+                codex_home=temp_root / "codex-home",
+                requested_workers=["luna"],
+            )
+
+        self.assertTrue(result["allowed"], result["errors"])
+        self.assertIsNone(result["workers"]["luna"]["sandbox_mode"])
+
     def test_demanding_luna_profile_is_runtime_discoverable(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             temp_root = Path(temp_dir)
@@ -128,6 +155,48 @@ class WorkerProfileTest(unittest.TestCase):
         self.assertEqual(result["workers"]["luna_xhigh"]["source"], "project-agent")
         self.assertEqual(
             result["workers"]["luna_xhigh"]["model_reasoning_effort"], "xhigh"
+        )
+
+    def test_deep_lane_requires_discovery_and_implementation_profiles(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            result = check_profiles(
+                skill_dir=SKILL_ROOT,
+                repo_root=temp_root / "repo",
+                codex_home=temp_root / "codex-home",
+                lane="deep",
+                model_class="luna",
+                allow_bundled=True,
+            )
+
+        self.assertTrue(result["allowed"], result["errors"])
+        self.assertEqual(
+            set(result["workers"]),
+            {"luna_xhigh_discovery", "luna_xhigh"},
+        )
+
+    def test_writable_discovery_override_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            repo_root = temp_root / "repo"
+            project_agents = repo_root / ".codex" / "agents"
+            project_agents.mkdir(parents=True)
+            profile = bundled("luna_xhigh_discovery").read_text(
+                encoding="utf-8"
+            ).replace('sandbox_mode = "read-only"', 'sandbox_mode = "workspace-write"')
+            (project_agents / "luna_xhigh_discovery_worker.toml").write_text(
+                profile, encoding="utf-8"
+            )
+            result = check_profiles(
+                skill_dir=SKILL_ROOT,
+                repo_root=repo_root,
+                codex_home=temp_root / "codex-home",
+                requested_workers=["luna_xhigh_discovery"],
+            )
+
+        self.assertFalse(result["allowed"])
+        self.assertTrue(
+            any("worker-profile-sandbox-mode-mismatch" in error for error in result["errors"])
         )
 
     def test_invalid_project_agent_blocks_instead_of_using_personal_agent(self) -> None:
@@ -230,7 +299,10 @@ class WorkerProfileTest(unittest.TestCase):
             )
 
         self.assertTrue(allowed["allowed"], allowed["errors"])
-        self.assertEqual(set(allowed["workers"]), {"luna_xhigh"})
+        self.assertEqual(
+            set(allowed["workers"]),
+            {"luna_xhigh_discovery", "luna_xhigh"},
+        )
         self.assertFalse(rejected["allowed"])
         self.assertTrue(
             any("worker-lane-mismatch" in error for error in rejected["errors"])
@@ -341,8 +413,8 @@ class WorkerProfileTest(unittest.TestCase):
             personal_agents.mkdir(parents=True)
             legacy = personal_agents / "luna-worker.toml"
             customized = bundled("luna").read_text(encoding="utf-8").replace(
-                "Trabaja únicamente sobre el objetivo delegado.",
-                "Conserva estas instrucciones personalizadas.",
+                "Work only on the delegated objective.",
+                "Preserve these customized instructions.",
             )
             legacy.write_text(customized, encoding="utf-8")
 

@@ -31,6 +31,7 @@ dependencies: []
 execution:
   route: root-direct | swarm
   lane: fast | standard | deep | null
+  discovery_profile: luna_xhigh_discovery | null
   worker_profile: spark | luna | luna_xhigh | null
   reasoning_effort: high | xhigh | null
   lane_trigger: null
@@ -84,8 +85,9 @@ A unit is ready only when:
 
 Load `execution-lanes.md` first. Apply its break-even gate before creating a
 wave, then classify every dispatched unit. Use the exact profile mapping:
-`fast` -> `spark`/`xhigh`, `standard` -> `luna`/`high`, and `deep` ->
-`luna_xhigh`/`xhigh`. Record the lane trigger and every optional role trigger.
+`fast` -> `spark`/`xhigh`, `standard` -> `luna`/`high`, and `deep` -> read-only
+`luna_xhigh_discovery` followed by `luna_xhigh`, both at `xhigh`. Record the
+lane trigger and every optional role trigger.
 
 Default wave size is 1 for uncertain queues. In established Jira team flow, default to 2 workers when:
 
@@ -131,7 +133,7 @@ Units:
   Jira: <key or none>
   Source: <path/link>
   Worker role: <compound-master|implementer|reviewer|documenter|fixer>
-  Execution lane/profile: <fast|standard|deep> / <spark|luna|luna_xhigh>
+  Execution lane/profile: <fast/ spark | standard / luna | deep / luna_xhigh_discovery -> luna_xhigh>
   Reasoning effort: <high|xhigh>
   Role triggers: <role: trigger, or none>
   Compound run/state: <run ID and canonical path, or none>
