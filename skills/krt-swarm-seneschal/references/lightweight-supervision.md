@@ -67,6 +67,10 @@ no live scope-approval protocol.
 
 ## Root Observation
 
+Materialize the executable contract first as described in
+`executable-worker-contracts.md`. The deep checkpoint and implementation must
+echo the same `contract_hash`.
+
 Root timestamps worker returns and the implementation dispatch, then inspects
 the real diff. It builds a JSON observation for
 `scripts/evaluate_luna_run.py`:
@@ -144,7 +148,7 @@ accepted manifest.
 
 ## Evaluation
 
-Evaluate the observation with:
+For compatibility, the Luna-only checkpoint evaluator remains available:
 
 ```bash
 rtk python3 <seneschal-skill-dir>/scripts/evaluate_luna_run.py \
@@ -170,6 +174,20 @@ command exactly once as attempted or skipped. The evaluator rejects missing
 commands, excess retries, a mismatched `last_required_command`, and
 contradictory timestamps.
 
+Before readiness, run the cross-lane evaluator with the executable contract:
+
+```bash
+rtk python3 <seneschal-skill-dir>/scripts/evaluate_worker_run.py \
+  --contract <worker-contract.json> \
+  --input <root-observation.json> \
+  --now-ms <root-clock-ms>
+```
+
+It adds contract-hash verification, root-observed file scope for every lane,
+command evidence and trust, acceptance evidence per criterion, and independent
+certificates. Its `complete` action supersedes the compatibility evaluator for
+readiness decisions.
+
 ## Timing Consolidation
 
 Persist calculated metrics through the existing recorder:
@@ -189,8 +207,9 @@ intermediate actions remain `running`.
 
 This design technically prevents discovery-stage writes. Manifest enforcement
 after dispatch is fail-closed reconciliation based on the real diff because the
-current runtime cannot grant path-scoped write tokens. Do not present the
-observation as a native runtime audit log.
+current runtime cannot grant path-scoped write tokens. Command evidence remains
+explicitly `self-reported` unless the runtime supplies independent events. Do
+not present either observation as a native runtime audit log.
 
 ## Overhead Guard
 

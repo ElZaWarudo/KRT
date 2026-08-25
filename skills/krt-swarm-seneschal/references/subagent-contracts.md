@@ -15,6 +15,8 @@ Reasoning effort: <high|xhigh>
 Lane trigger: <deterministic admission reason>
 Profile source: <project-agent|user-agent|runtime-default>
 Unit: <id and title>
+Executable contract: <repo-relative worker-contract.json path>
+Contract hash: <sha256:...>
 Jira issue: <subtask or standalone issue key, when applicable>
 Source artifact: <path or issue URL>
 Intended base: <branch/ref>
@@ -32,6 +34,10 @@ Verification commands:
 - max_retries_per_command: 1
 - baseline_failures: []
 - stop_on_unowned_failure: true
+Command evidence:
+- minimum_trust: <self-reported|runtime-audited>
+- exact_commands: []
+- read_only_prefixes: []
 Wave verification owner: Seneschal/root
 Execution budget:
 - discovery_passes: 1
@@ -54,6 +60,9 @@ Return contract:
 ```
 
 Pass artifact paths and repo-relative paths. Avoid flooding workers with the entire queue.
+The prompt is not the authority. First materialize and validate the executable
+artifact through `executable-worker-contracts.md`; render this envelope from
+that immutable artifact and require the worker to echo its hash.
 
 For Luna, compile this envelope using
 `krt-compound-master/references/fast-contract.md`. The compiled envelope is the
@@ -88,6 +97,13 @@ Not every unit needs every role. The seneschal chooses the smallest role chain t
 Start with the Implementer and add no optional role without its admission
 trigger from `execution-lanes.md`. Record the trigger in the wave plan and
 worker envelope.
+
+Security and CI/platform specialists are functional capacity roles rather than
+default implementation-chain stages. Admit Security only from the existing
+security gate trigger. Admit CI/platform only for a concrete failing pipeline,
+runner, dependency, or environment investigation; it diagnoses without
+expanding the implementation unit. Both consume the global slot budget in
+`parallel-dispatch-policy.md`.
 
 ### Planner
 
@@ -236,6 +252,11 @@ Phase: closeout
 Remaining actions: []
 Terminal ready: true | false
 Acceptance criteria resolved: true | false
+Contract hash: <sha256:...>
+Acceptance evidence:
+- criterion_id: <stable ID from contract>
+  status: <satisfied|not_satisfied>
+  evidence: <concrete path, command result, or finding>
 Last required command: <exact command or none>
 Role: <planner|implementer|reviewer|fixer|integrator|documenter|compound-master-worker>
 Unit: <id>
@@ -253,6 +274,10 @@ Verification:
     reason: <concrete non-empty reason>
 Verification commands run:
 - <exact command once per actual attempt, in execution order>
+Commands observed:
+- command: <exact command>
+  kind: <read-only|exact|verification>
+Command evidence trust: <self-reported|runtime-audited>
 Unowned failures:
 - <command/evidence or none>
 State updates:
@@ -300,6 +325,10 @@ were satisfied. It must be true for `done` and `done_with_baseline_gaps`, but
 may be false for `needs_review` and `blocked`.
 
 If a worker omits the return contract, inspect the diff before trusting its status.
+An omitted or mismatched contract hash, incomplete acceptance evidence, command
+outside the executable contract, or root-observed changed file outside
+`owned_files` is a contract violation. Preserve the changes but do not count the
+terminal, tests, or status as readiness evidence.
 
 If a blocker affects only the worker's unit, the orchestrator records it and continues with independent units. If it affects security, DIAN, accounting, payroll, auth, data, public contracts, or shared foundations, the orchestrator stops dependent dispatch and records a high-risk blocker.
 

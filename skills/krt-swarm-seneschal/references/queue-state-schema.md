@@ -124,6 +124,9 @@ units:
       worker_profile: luna
       reasoning_effort: high
       lane_trigger: bounded-local-decisions
+      worker_contract_path: docs/orchestration/runs/<run-id>/wp-01-ru-02-worker-contract.json
+      worker_contract_hash: null
+      evidence_trust: unknown
       role_triggers:
         reviewer: behavior-change
     risk:
@@ -136,6 +139,9 @@ units:
       focused_evidence: []
       aggregate_owner: wave-root
       aggregate_fingerprint: null
+      fingerprint_artifact: null
+      evidence_registry: docs/orchestration/verification-evidence.json
+      reuse_decision: null
     isolation:
       type: worktree
       branch: null
@@ -150,15 +156,33 @@ units:
 wave_history:
   - id: wave-2026-06-30-001
     selected_units: []
-    concurrency: 2
+    concurrency:
+      implementer_cap: 2
+      cap_reasons: [default-cap]
+      total_slots: 8
+      usable_slots: 7
+      reserve_slots: 1
+      allocation_artifact: docs/orchestration/runs/<run-id>/<wave-id>-allocation.json
     result: planned
+    scope_violations: null
+    merge_conflicts: null
+    review_lagging: null
     verification_summary: []
     aggregate_verification:
       owner: wave-root
       fingerprint: null
+      fingerprint_artifact: null
       commands: []
       evidence: []
+      evidence_registry: docs/orchestration/verification-evidence.json
+      reuse_decision: null
       result: not-run
+    gates:
+      scope: unknown
+      verification: not-run
+      review: unknown
+      security: not-required
+      state: unknown
     timing_artifact: docs/orchestration/runs/<run-id>-timing.json
     review_summary: []
     blockers_recorded: []
@@ -174,6 +198,9 @@ projections without rewriting canonical Compound artifacts.
 Older unit-level `verification.commands` and `verification.evidence` remain
 valid. Migrate them to focused or aggregate ownership when the next wave touches
 the unit; do not rerun passing evidence merely to reshape state.
+Older wave-history entries without explicit `scope_violations`,
+`merge_conflicts`, and `review_lagging` remain valid history but never count as
+green evidence for raising adaptive concurrency.
 
 ## Compound Projection Rules
 

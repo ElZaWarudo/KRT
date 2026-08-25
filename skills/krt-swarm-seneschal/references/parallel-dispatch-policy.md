@@ -4,22 +4,47 @@ Use this reference when selecting wave size and deciding which units may run con
 
 ## Role Pools
 
-Do not treat "2 workers" as the total factory size. It is the default cap for concurrent mutable implementation units.
+Do not treat "2 workers" as the total factory size. It is the default cap for
+concurrent mutable implementation units. Role caps are subordinate to the
+runtime's global capacity and reserve.
 
 Use separate role pools:
 
 ```yaml
-planner_workers: 4-8
+planner_workers: 1
 implementer_workers: 2
-reviewer_workers: 2-4
-fixer_workers: 1-3
+reviewer_workers: 2
+fixer_workers: 1
 integrator_workers: 1
-documenter_workers: 1-3
+documenter_workers: 1
+security_workers: 1
+ci_platform_workers: 1
 ```
 
 Adjust these caps to runtime capacity, repo size, and available isolation. The seneschal may run Planner, Reviewer, Fixer, Integrator, and Documenter work around the Implementer pool as long as shared-state and quality gates stay coherent.
 These are ceilings, never a standing team. The active count for every optional
 role is zero until `execution-lanes.md` admits it with a recorded trigger.
+
+## Global Slot Budget
+
+Before dispatch, materialize a slot plan with `total_slots`, at least one
+`reserve_slot`, role caps, and concrete requests. Evaluate it with:
+
+```bash
+rtk python3 <seneschal-skill-dir>/scripts/allocate_worker_slots.py \
+  --input <slot-plan.json>
+```
+
+Only returned `admitted` requests may launch. `rejected` requests remain queued
+with `role-cap` or `capacity-reserved`; never silently consume the reserve.
+Default functional caps are two Implementers, two Reviewers, and one each for
+Security, CI/platform, Integrator, Fixer, Planner, and Documenter. Optional
+roles still require their lane trigger; the allocator provides capacity, not
+admission authority.
+
+The reserve absorbs root reconciliation, a bounded Fixer, or runtime failure.
+It is not a third speculative Implementer slot. When the runtime exposes fewer
+slots than a documented example, `total_slots` is the runtime fact.
 
 ## Nested Compound Capacity
 
@@ -68,6 +93,11 @@ Suggested Implementer cap progression:
 2 implementers -> 3 implementers after 2 green waves -> 4 implementers after 4 green waves
 ```
 
+Apply this progression through `scripts/plan_adaptive_wave.py`, not by manually
+editing the cap. Supply real history, review capacity, owned paths, risk
+surfaces, blockers, dependencies, and whether manual approval or the autonomy
+ledger authorizes scaling. Dispatch only its returned allocation.
+
 Do not exceed the repo's review capacity or stacked PR cap. If Reviewers or Integrator cannot keep up, reduce Implementer concurrency.
 
 ## Never Parallelize When Overlapping
@@ -114,6 +144,8 @@ For non-implementation roles, use role caps instead of the Implementer cap:
 - Dispatch admitted Fixer workers only for bounded findings or failing checks.
 - Dispatch one admitted Integrator for the affected wave or PR stack.
 - Dispatch admitted Documenter workers by distinct documentation surfaces.
+- Dispatch Security and CI/platform specialists only for their explicit risk or
+  failure triggers, and count them against the same global slot budget.
 
 ## Wave Decision Record
 
@@ -123,16 +155,26 @@ Record for each wave:
 wave_history:
   - id: wave-2026-06-30-001
     concurrency:
+      total_slots: 8
+      reserve_slots: 1
+      implementer_cap: 2
+      cap_reasons: [default-cap]
+      allocation_artifact: docs/orchestration/runs/<run-id>/<wave-id>-allocation.json
       implementers: 2
-      planners: 4
+      planners: 1
       reviewers: 2
       fixers: 1
       integrators: 1
       documenters: 1
+      security: 1
+      ci_platform: 1
     selected_units: []
     skipped_units:
       - unit_id: example
         reason: open-blocker | dependency | surface-overlap | no-isolation | not-ready
     result: planned | running | green | partial | failed
     green: false
+    scope_violations: null
+    merge_conflicts: null
+    review_lagging: null
 ```

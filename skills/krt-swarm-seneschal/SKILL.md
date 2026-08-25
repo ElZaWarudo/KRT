@@ -31,6 +31,9 @@ When subagents are unavailable, produce exact prompts and wave plans.
 - Apply the break-even gate and execution lanes in `references/execution-lanes.md`: keep trivial single units in the root thread, preserve Spark at `xhigh`, use Luna `high` normally, and reserve Luna `xhigh` for demanding work.
 - Cap active mutable implementation work at the smallest safe wave; default to 2 concurrent Implementer workers until repo evidence supports more. Planner, Reviewer, Fixer, Integrator, and Documenter workers use separate role caps.
 - Never let production outrun verification: a wave is not complete until worker output, any trigger-required review, verification evidence, and state reconciliation are captured.
+- Never accept a worker's prose as its execution contract or certification.
+  Materialize a hashed `worker-contract.json`, observe the real diff at root,
+  and pass the contract plus evidence through the fail-closed evaluator.
 - If the user explicitly asks for no human confirmation, convert the instruction into a ledger-bound autonomous run: execute allowed actions after required gates pass, record uncovered decisions as blockers, continue independent work, and leave a morning-ready status packet instead of stopping to ask.
 
 ## Reference Router
@@ -45,12 +48,14 @@ Load only what the current task needs:
 | Build queue, choose ready work, plan waves | `references/queue-and-dispatch.md` |
 | Classify fast/standard/deep lanes, admit roles, assign verification ownership | `references/execution-lanes.md` |
 | Launch or prepare subagent prompts | `references/subagent-contracts.md` |
+| Materialize and validate executable worker contracts | `references/executable-worker-contracts.md` |
 | Resolve a named Codex worker profile | `references/worker-profiles.md` |
 | Monitor Luna checkpoint, closeout, and timing | `references/lightweight-supervision.md` |
 | Reconcile outputs, review gates, hand off release work | `references/gates-and-reconciliation.md` |
 | Run Jira backlog source and drain ready waves | `references/jira-team-flow.md` |
 | Seed Jira from roadmap or work-package backlog | `references/jira-seeding.md` |
 | Decide parallelism surface isolation | `references/parallel-dispatch-policy.md` |
+| Compute/reuse evidence, adapt concurrency, render compact status | `references/automated-wave-control.md` |
 | Maintain persistent documentation gate, queue, Jira issue mapping | `references/queue-state-schema.md` |
 | Record, review, resolve non-fatal blockers | `references/blocker-ledger.md` |
 | Run without interactive confirmations | `references/autonomous-team-flow.md` |
@@ -73,11 +78,13 @@ Supported modes:
 - `overnight-team-flow` or `autonomous-team-flow`: run Jira team flow with an autonomy mandate, still respecting the documentary planning gate.
 - `blocker-review`: read blocker ledger and list open blockers grouped by type, Jira key, wave, and suggested owner.
 - `blocker-resolve`: apply user-supplied decisions to the blocker ledger and mark affected units as candidates for readiness checks.
+- `wave-status`: derive a compact read-only panel from queue state, blockers,
+  gates, evidence, and the latest allocation.
 
 ## Workflow
 
 1. **Preflight**
-- Resolve the user's requested mode: design-only, document-plan, document-review, document-revise, document-approve, wave-plan, dispatch, reconcile, resume, jira-team-flow, jira-seed-and-drain, overnight-team-flow, autonomous-team-flow, blocker-review, or blocker-resolve.
+- Resolve the user's requested mode: design-only, document-plan, document-review, document-revise, document-approve, wave-plan, dispatch, reconcile, resume, jira-team-flow, jira-seed-and-drain, overnight-team-flow, autonomous-team-flow, blocker-review, blocker-resolve, or wave-status.
 - Inspect repo state and active orchestration artifacts before mutating anything.
 - Identify source work: `docs/work-packages/`, GitHub Issues, Linear, backlog file, Jira queue, or user-provided tasks.
 - Read persistent state from `docs/swarm/queue-state.yaml` and `docs/swarm/blockers.yaml` when they exist. Create them only when the requested mode needs local state.
@@ -88,6 +95,8 @@ Supported modes:
 - When a unit selects a named Codex profile, load `references/worker-profiles.md` and run its static profile preflight before dispatch. If only the bundled package profile exists, block dispatch and preview the explicit project or personal installation step; do not install into the user's Codex home without authorization.
 - Before wave selection or dispatch, load `references/execution-lanes.md`, apply its break-even gate, classify every implementation unit, and record the selected profile and trigger.
 - Resolve isolation: worktrees, cloud environments, or manual branches. If isolation is unavailable, plan serial execution.
+- In `wave-status`, load canonical local state and render the derived panel; do
+  not require documentation approval or continue into mutation workflows.
 
 2. **Documentary Planning Gate**
 - Load `references/documentary-planning.md`.
@@ -142,6 +151,13 @@ documentation_gate:
 - Read `docs/swarm/blockers.yaml` before selection. Do not select units with open blockers or units depending on open blockers.
 - Select only dependency-ready, non-overlapping units.
 - Apply concurrency algorithm in `references/parallel-dispatch-policy.md`: default to 2 mutable Implementer workers, role-specific caps for non-implementation workers, increase implementation concurrency only after green wave history, and never parallelize overlapping auth, migrations, public contracts, central models, or lockfiles.
+- Load `references/automated-wave-control.md` and run
+  `scripts/plan_adaptive_wave.py` from canonical history, blockers,
+  dependencies, owned paths, risk surfaces, review capacity, and scale
+  authority. Its allocation replaces manual concurrency selection.
+- Allocate the whole wave against runtime `total_slots` with at least one
+  reserve slot by running `scripts/allocate_worker_slots.py`; role-pool ceilings
+  do not authorize exceeding total capacity.
 - Keep the wave within open-stack reviewability limits already enforced by `krt-compound-master`.
 - Admit Planner, Reviewer, Fixer, Integrator, Documenter, and Compound Master roles only through their explicit triggers in `references/execution-lanes.md`.
 - Assign focused verification to each leaf and one aggregate verification owner/fingerprint to the wave.
@@ -150,6 +166,11 @@ documentation_gate:
 6. **Dispatch Workers**
 - Confirm `documentation_gate.status == approved` before dispatch.
 - Load `references/subagent-contracts.md`.
+- Load `references/executable-worker-contracts.md`. Materialize one immutable
+  `docs/orchestration/runs/<run-id>/<unit-id>-worker-contract.json` with
+  `scripts/materialize_worker_contract.py` before every implementation dispatch.
+  Dispatch only after schema validation and carry its `contract_hash` through
+  discovery, implementation, review, security, timing, and reconciliation.
 - Load `references/execution-lanes.md` and enforce the lane/profile mapping: `fast` uses `spark` at `xhigh`, `standard` uses `luna` at `high`, and `deep` uses read-only `luna_xhigh_discovery` followed by `luna_xhigh`, both at `xhigh`. Never lower Spark reasoning.
 - For a named Codex profile, require a successful `check_worker_profiles.py` result. Record whether resolution selected a project or personal custom agent; a bundled-only profile does not authorize dispatch. Never substitute a different profile when resolution or invocation fails.
 - If runtime exposes subagents, launch each worker only with the relevant unit contract and artifact paths.
@@ -172,15 +193,25 @@ documentation_gate:
 - Load `references/gates-and-reconciliation.md`.
 - Read each worker result, changed-file summary, verification output, blockers, and branch/base facts.
 - Inspect real diff filesystem state before trusting worker reports.
+- Build the observation from the root-inspected diff and available command
+  evidence, then run `scripts/evaluate_worker_run.py` for Spark, Luna, and Luna
+  xhigh. A `contract_violation` never counts as verification or readiness;
+  preserve the code for inspection. `awaiting_certification` cannot advance
+  until every contract-required independent certificate is attached.
 - Run required review and verification gates before marking any unit release-ready.
-- Reuse passing aggregate verification when the wave fingerprint is unchanged. Rerun it only after changed content/commands, failed evidence, or project-defined staleness; do not repeat the same suite in leaf, Reviewer, Compound Master, and Seneschal layers.
+- Load `references/automated-wave-control.md`. Compute the aggregate fingerprint
+  with `scripts/verification_evidence.py`, decide reuse against the evidence
+  registry, and run aggregate verification only when the decision is `run`.
+  Record every executed aggregate result. Never decide reuse by inspection.
 - Reconcile blockers using `references/blocker-ledger.md`: record non-fatal blockers, mark only affected units blocked/deferred, and continue independent ready units.
 - Reconcile each nested Compound result against its canonical state and artifacts. Treat swarm snapshots as stale observations, not authority.
 - Deduplicate decision requests, ask one decision at a time in manual interactive flow, persist the answer in the canonical shared or item artifact, and resume every affected child.
 - When the wave plan admitted an Integrator, use it to inspect merge order, dependency edges, stacked PR choreography, and cross-worker conflicts before release handoff.
 - Decide each unit status: `release-ready`, `needs-fix`, `blocked`, `deferred`, or `split-required`.
 - Update queue and active orchestration state in the same turn as status changes.
-- Close timing telemetry with phase durations, context bytes, review/fix rounds, verification fingerprint, and final status.
+- Close timing telemetry with phase durations, context bytes, review/fix rounds,
+  verification fingerprint, evidence trust, scope violations, repeated
+  verification, review findings, acceptance latency, and final status.
 
 8. **Release Handoff**
 - Confirm `documentation_gate.status == approved` before release handoff.
@@ -212,3 +243,6 @@ End with:
 - Lane/profile decisions and timing artifact path.
 - Queue/state files updated.
 - Exact next invocation.
+
+For `wave-status`, run `scripts/render_swarm_status.py` and return its derived
+panel without mutating queue state or creating a dashboard artifact.

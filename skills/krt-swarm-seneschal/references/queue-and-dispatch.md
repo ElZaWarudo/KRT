@@ -36,6 +36,8 @@ execution:
   reasoning_effort: high | xhigh | null
   lane_trigger: null
   role_triggers: {}
+  worker_contract_path: null
+  worker_contract_hash: null
 risk:
   production: unknown | prototype | preprod | live
   security: low | elevated | high
@@ -46,6 +48,9 @@ verification:
   focused_evidence: []
   aggregate_owner: wave-root
   aggregate_fingerprint: null
+  fingerprint_artifact: null
+  evidence_registry: docs/orchestration/verification-evidence.json
+  reuse_decision: null
 compound:
   run_id: null
   state_path: null
@@ -125,6 +130,8 @@ Wave: <name>
 Mode: design-only | dispatch | reconcile | resume
 Documentation status: <draft|in_review|approved|changes_requested>
 Concurrency: <n>
+Slot budget: <total>/<usable>, reserve <n>
+Adaptive cap: <n and recorded reasons>
 Isolation: branch | worktree | cloud | manual
 jira_provider: cloud | server-datacenter | none
 Blocker ledger: docs/swarm/blockers.yaml
@@ -139,6 +146,7 @@ Units:
   Compound run/state: <run ID and canonical path, or none>
   Intended base: <branch>
   Expected branch/worktree: <name/path>
+  Executable contract/hash: <path> / <sha256:...>
   Verification: <commands or gap>
   Risks: <short list>
 Stop conditions:
@@ -148,6 +156,7 @@ Wave aggregate verification:
 - Commands: <ordered commands>
 - Fingerprint inputs: <base, changed paths/content, commands>
 - Reused evidence: <path or none>
+- Reuse decision: <reuse|run and reason>
 ```
 
 Ask approval before mutating or dispatching in manual flow. In autonomous flow, do not ask after documentation approval; dispatch only ledger-covered mutation classes, record uncovered needs, and continue.

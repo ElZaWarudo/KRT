@@ -132,21 +132,34 @@ class RunTimingTest(unittest.TestCase):
                     Path(temp_dir) / "timing.json",
                     phases={"discovery": 20, "implementation": 80},
                     closeout_metrics={
+                        "acceptance_latency_ms": 125,
+                        "evidence_trust": "runtime-audited",
                         "time_to_first_change_ms": 15,
                         "out_of_manifest_commands": 0,
                         "last_required_command_to_return_ms": 7,
+                        "repeated_verification_commands": 1,
+                        "review_findings_p0": 0,
+                        "review_findings_p1": 1,
+                        "review_findings_p2": 2,
                         "root_interventions": 1,
+                        "scope_violations": 0,
                         "repeated_context_reads": 2,
                     },
                 )
             )
 
         self.assertEqual(record["discovery_implementation_ratio"], 0.25)
+        self.assertEqual(record["acceptance_latency_ms"], 125)
+        self.assertEqual(record["evidence_trust"], "runtime-audited")
         self.assertEqual(record["time_to_first_change_ms"], 15)
         self.assertEqual(record["out_of_manifest_commands"], 0)
         self.assertEqual(record["last_required_command_to_return_ms"], 7)
         self.assertEqual(record["root_interventions"], 1)
         self.assertEqual(record["repeated_context_reads"], 2)
+        self.assertEqual(record["repeated_verification_commands"], 1)
+        self.assertEqual(record["review_findings_p1"], 1)
+        self.assertEqual(record["review_findings_p2"], 2)
+        self.assertEqual(record["scope_violations"], 0)
 
     def test_lane_profile_mismatch_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -177,9 +190,15 @@ class RunTimingTest(unittest.TestCase):
                         )
             for field in (
                 "time_to_first_change_ms",
+                "acceptance_latency_ms",
                 "out_of_manifest_commands",
+                "repeated_verification_commands",
+                "review_findings_p0",
+                "review_findings_p1",
+                "review_findings_p2",
                 "last_required_command_to_return_ms",
                 "root_interventions",
+                "scope_violations",
                 "repeated_context_reads",
             ):
                 with self.subTest(field=field):

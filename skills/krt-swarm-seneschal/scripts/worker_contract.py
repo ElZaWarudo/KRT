@@ -1,0 +1,206 @@
+#!/usr/bin/env python3
+"""Validate and hash executable Seneschal worker contracts."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import PurePosixPath
+from typing import Any
+
+
+SCHEMA_VERSION = 1
+LANE_PROFILE = {"fast": "spark", "standard": "luna", "deep": "luna_xhigh"}
+CERTIFICATIONS = {"reviewer", "security-sentinel"}
+COMMAND_TRUST = {"self-reported": 0, "runtime-audited": 1}
+TOP_LEVEL_FIELDS = {
+    "schema_version",
+    "contract_id",
+    "unit_id",
+    "lane",
+    "profile",
+    "objective",
+    "owned_files",
+    "required_context",
+    "closed_decisions",
+    "forbidden_changes",
+    "acceptance_criteria",
+    "commands",
+    "execution_budget",
+    "supervision",
+    "terminal_protocol",
+    "terminal_schema",
+    "required_certifications",
+    "evidence_policy",
+    "contract_hash",
+}
+
+
+def canonical_payload(contract: dict[str, Any]) -> bytes:
+    unsigned = {key: value for key, value in contract.items() if key != "contract_hash"}
+    return json.dumps(
+        unsigned, ensure_ascii=False, separators=(",", ":"), sort_keys=True
+    ).encode("utf-8")
+
+
+def contract_hash(contract: dict[str, Any]) -> str:
+    return f"sha256:{hashlib.sha256(canonical_payload(contract)).hexdigest()}"
+
+
+def _non_empty_string(value: Any, field: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{field} must be a non-empty string")
+    return value
+
+
+def _string_list(value: Any, field: str) -> list[str]:
+    if not isinstance(value, list):
+        raise ValueError(f"{field} must be a list")
+    result = [_non_empty_string(item, field) for item in value]
+    if len(result) != len(set(result)):
+        raise ValueError(f"{field} must not contain duplicates")
+    return result
+
+
+def _path_list(value: Any, field: str) -> list[str]:
+    paths = _string_list(value, field)
+    for path in paths:
+        candidate = PurePosixPath(path)
+        if candidate.is_absolute() or ".." in candidate.parts:
+            raise ValueError(f"{field} must contain repo-relative paths")
+    return paths
+
+
+def _exact_fields(value: Any, expected: set[str], field: str) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        raise ValueError(f"{field} must be an object")
+    missing = expected - set(value)
+    extra = set(value) - expected
+    if missing or extra:
+        raise ValueError(
+            f"{field} fields invalid; missing={sorted(missing)}, extra={sorted(extra)}"
+        )
+    return value
+
+
+def _non_negative_int(value: Any, field: str) -> int:
+    if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+        raise ValueError(f"{field} must be a non-negative integer")
+    return value
+
+
+def validate_contract(
+    contract: dict[str, Any], *, require_hash: bool = True
+) -> dict[str, Any]:
+    expected_fields = TOP_LEVEL_FIELDS if require_hash else TOP_LEVEL_FIELDS - {"contract_hash"}
+    _exact_fields(contract, expected_fields, "contract")
+    if contract.get("schema_version") != SCHEMA_VERSION:
+        raise ValueError(f"schema_version must be {SCHEMA_VERSION}")
+    for field in ("contract_id", "unit_id", "objective"):
+        _non_empty_string(contract.get(field), field)
+    lane = contract.get("lane")
+    if lane not in LANE_PROFILE:
+        raise ValueError("lane must be fast, standard, or deep")
+    if contract.get("profile") != LANE_PROFILE[lane]:
+        raise ValueError(f"lane {lane} requires profile {LANE_PROFILE[lane]}")
+    _path_list(contract.get("owned_files"), "owned_files")
+    _path_list(contract.get("required_context"), "required_context")
+    _string_list(contract.get("closed_decisions"), "closed_decisions")
+    _string_list(contract.get("forbidden_changes"), "forbidden_changes")
+
+    criteria = contract.get("acceptance_criteria")
+    if not isinstance(criteria, list) or not criteria:
+        raise ValueError("acceptance_criteria must be a non-empty list")
+    criterion_ids: list[str] = []
+    for index, criterion in enumerate(criteria):
+        _exact_fields(criterion, {"id", "description"}, f"acceptance_criteria[{index}]")
+        criterion_ids.append(_non_empty_string(criterion.get("id"), "criterion id"))
+        _non_empty_string(criterion.get("description"), "criterion description")
+    if len(criterion_ids) != len(set(criterion_ids)):
+        raise ValueError("acceptance criterion ids must be unique")
+
+    commands = _exact_fields(
+        contract.get("commands"), {"exact", "read_only_prefixes", "verification"}, "commands"
+    )
+    exact = _string_list(commands.get("exact"), "commands.exact")
+    read_only_prefixes = _string_list(
+        commands.get("read_only_prefixes"), "commands.read_only_prefixes"
+    )
+    if any(len(prefix.split()) < 2 or prefix in {"rtk proxy", "rtk summary"} for prefix in read_only_prefixes):
+        raise ValueError("read_only_prefixes must name a narrow read-only command")
+    verification = _exact_fields(
+        commands.get("verification"),
+        {"focused", "natural", "max_retries_per_command"},
+        "commands.verification",
+    )
+    focused = _string_list(verification.get("focused"), "verification.focused")
+    natural = _string_list(verification.get("natural"), "verification.natural")
+    if len(focused + natural + exact) != len(set(focused + natural + exact)):
+        raise ValueError("exact and verification commands must be globally unique")
+    _non_negative_int(
+        verification.get("max_retries_per_command"), "max_retries_per_command"
+    )
+
+    budget = _exact_fields(
+        contract.get("execution_budget"),
+        {
+            "discovery_passes",
+            "implementation_rounds",
+            "fix_rounds",
+            "review_rounds",
+            "extra_verification",
+        },
+        "execution_budget",
+    )
+    if budget.get("extra_verification") != "forbidden":
+        raise ValueError("execution_budget.extra_verification must be forbidden")
+    for field, value in budget.items():
+        if field == "extra_verification":
+            continue
+        _non_negative_int(value, f"execution_budget.{field}")
+
+    supervision = _exact_fields(
+        contract.get("supervision"), {"mode", "transition_after_ms"}, "supervision"
+    )
+    expected_mode = "discovery-checkpoint" if lane == "deep" else "terminal-only"
+    if supervision.get("mode") != expected_mode:
+        raise ValueError(f"lane {lane} requires supervision mode {expected_mode}")
+    _non_negative_int(supervision.get("transition_after_ms"), "transition_after_ms")
+    terminal = _exact_fields(
+        contract.get("terminal_protocol"),
+        {"return_when", "grace_actions"},
+        "terminal_protocol",
+    )
+    _string_list(terminal.get("return_when"), "terminal_protocol.return_when")
+    if terminal.get("grace_actions") != 0:
+        raise ValueError("terminal_protocol.grace_actions must be 0")
+    if contract.get("terminal_schema") != "worker-terminal-v1":
+        raise ValueError("terminal_schema must be worker-terminal-v1")
+
+    certifications = _string_list(
+        contract.get("required_certifications"), "required_certifications"
+    )
+    if any(role not in CERTIFICATIONS for role in certifications):
+        raise ValueError("required_certifications contains an unsupported role")
+    policy = _exact_fields(
+        contract.get("evidence_policy"),
+        {"minimum_command_trust", "changed_files_source"},
+        "evidence_policy",
+    )
+    if policy.get("minimum_command_trust") not in COMMAND_TRUST:
+        raise ValueError("minimum_command_trust is invalid")
+    if policy.get("changed_files_source") != "root-diff":
+        raise ValueError("changed_files_source must be root-diff")
+    if require_hash:
+        expected_hash = contract_hash(contract)
+        if contract.get("contract_hash") != expected_hash:
+            raise ValueError("contract_hash does not match canonical contract content")
+    return contract
+
+
+def materialize_contract(draft: dict[str, Any]) -> dict[str, Any]:
+    validate_contract(draft, require_hash=False)
+    result = dict(draft)
+    result["contract_hash"] = contract_hash(result)
+    validate_contract(result)
+    return result

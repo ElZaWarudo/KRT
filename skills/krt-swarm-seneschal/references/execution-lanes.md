@@ -130,6 +130,13 @@ Start with one Implementer. Add a role only when its trigger is present:
 Record each admitted optional role and its trigger in the wave plan. Omitted
 roles need no synthetic placeholder or handoff.
 
+Compile admitted `Reviewer` and `Security Sentinel` triggers into the executable
+worker contract's `required_certifications`. The implementer may finish its
+terminal, but the unit remains `awaiting_certification` until a different actor
+certifies the same contract hash and root-observed diff digest. A failed
+certificate routes to `needs-fix`; it is never converted into implementer
+self-approval.
+
 ## Verification Ownership
 
 Verification has two owners, with no third duplicate pass:
@@ -145,6 +152,10 @@ Reuse passing root evidence when that fingerprint is unchanged. Rerun only when
 the fingerprint changed, prior evidence failed, or project policy declares the
 evidence stale. A Reviewer reads existing verification evidence; it does not
 rerun the same suite unless review introduces a new risk-specific check.
+
+Do not compute or compare fingerprints manually. Load
+`automated-wave-control.md` and use `scripts/verification_evidence.py` to
+compute, decide, and record. Only its `reuse` action authorizes reuse.
 
 Record focused leaf evidence per unit and authoritative aggregate evidence on
 the wave. A nested Compound run remains owner of its required inner gates; the
@@ -168,6 +179,11 @@ narrowed to the accepted manifest. A missing edit path completes as
 extension without editing it. Collect repeated-read counts only in explicitly
 sampled diagnostics with native runtime evidence.
 
+For every lane also record command-evidence trust, root-observed scope
+violations, repeated verification commands, P0/P1/P2 findings from independent
+certificates, and elapsed time through final acceptance. Compare these metrics
+by `worker_profile`; do not mix self-reported and runtime-audited samples.
+
 Only the Seneschal/root writes the timing artifact after collecting leaf timing
 reports. Leaf workers never write the shared file. The recorder also locks its
 read-modify-write transaction so overlapping root/resume processes cannot lose
@@ -177,3 +193,13 @@ Telemetry must not contain prompts, source text, command output, credentials,
 or URLs with secrets. Compare median end-to-end time and phase shares by lane;
 do not optimize only worker implementation time while startup and repeated
 verification dominate the run.
+
+Summarize comparable samples by worker profile and evidence trust:
+
+```bash
+rtk python3 <seneschal-skill-dir>/scripts/summarize_worker_metrics.py \
+  --input docs/orchestration/runs/<run-id>-timing.json
+```
+
+Never combine `self-reported` and `runtime-audited` samples into one performance
+or compliance claim.

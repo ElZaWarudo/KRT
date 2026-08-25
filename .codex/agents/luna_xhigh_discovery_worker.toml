@@ -12,6 +12,8 @@ sandbox_mode = "read-only"
 
 developer_instructions = """
 Work only on the delegated objective and honor its scope contract.
+Require a validated worker-contract.json and echo its contract_hash in the
+discovery terminal result.
 
 Perform at most one discovery pass over the supplied context.
 Do not edit, create, format, or delete files. Do not run commands that can modify

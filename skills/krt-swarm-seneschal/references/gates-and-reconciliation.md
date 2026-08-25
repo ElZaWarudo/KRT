@@ -17,6 +17,9 @@ For each unit:
    - Worker stayed inside included scope.
    - Excluded work remains untouched.
    - Any necessary scope expansion is recorded. Manual flow requires approval; autonomous flow marks broad expansion `split-required` unless the ledger allows it.
+   - `changed_files` comes from the root-observed diff and passes
+     `evaluate_worker_run.py` against the hashed contract. A scope violation
+     preserves the code but invalidates the terminal evidence.
 
 2. **Verification gate**
    - Each leaf ran only its assigned focused checks, or a material verification gap is recorded.
@@ -25,6 +28,9 @@ For each unit:
    - The fingerprint includes intended base, ordered changed paths and content
      digests, and ordered aggregate commands. Changed or stale fingerprints and
      failed prior evidence must run again.
+   - `scripts/verification_evidence.py decide` returned `reuse`, or aggregate
+     verification ran and its result was recorded in the canonical evidence
+     registry. Manual fingerprint comparison is not gate evidence.
    - Changed contracts have consumer-aware checks.
    - Generated artifacts or docs were inspected when relevant.
 
@@ -34,6 +40,9 @@ For each unit:
    - When not triggered, the wave records the mechanical/docs-only reason; it
      does not create an empty Reviewer stage.
    - Findings at or above threshold were fixed or explicitly deferred.
+   - Every contract-required Reviewer certificate names a different actor, the
+     exact contract hash, and the reviewed diff digest. Implementer prose cannot
+     satisfy this gate.
 
 4. **Security/production gate**
    - Security-sensitive units ran the security specialist or an explicit fallback.
@@ -41,6 +50,8 @@ For each unit:
      Security Sentinel Gate after the work-review loop; otherwise they must use
      the Compound Master security pipeline.
    - Production-sensitive units preserve compatibility unless manual approval or autonomy ledger policy explicitly allows a breaking change.
+   - A required Security Sentinel certificate follows the same actor/hash/diff
+     rules as Reviewer certification.
 
 5. **State gate**
    - Queue status, branch/base facts, blockers, verification evidence, and downstream-fix notes are current.
@@ -58,6 +69,9 @@ For each unit:
 For each worker result:
 
 - Fetch or inspect the actual changed files.
+- Evaluate the root observation with `scripts/evaluate_worker_run.py`; accept
+  only `complete` as leaf certification evidence. Route
+  `awaiting_certification`, `needs_fix`, and `contract_violation` literally.
 - Compare changes to the unit contract.
 - Identify shared files touched by multiple workers.
 - Detect public contract, auth, data, dependency, config, or generated-artifact changes.
@@ -65,8 +79,9 @@ For each worker result:
 - Compare the recorded execution lane/profile to `execution-lanes.md` and reject
   silent reasoning-effort or worker substitutions.
 - Record focused unit evidence separately from aggregate wave evidence and
-  reuse only an unchanged passing verification fingerprint.
-- Record timing phases, context bytes, and review/fix rounds with
+  reuse only when the automated evidence decision returns `reuse`.
+- Record timing phases, context bytes, review/fix rounds, evidence trust, scope
+  violations, repeated verification, review findings, and acceptance latency with
   `scripts/record_run_timing.py`.
 - Record blockers and whether they affect sibling units.
 - Normalize nested `decision_request` entries, deduplicate them, and route them through the decision broker in `blocker-ledger.md`.

@@ -48,11 +48,15 @@ execution_budget:
   extra_verification: forbidden
 terminal_protocol:
   grace_actions: 0
-verification:
-  aggregate_owner: root
-  max_retries_per_command: 1
-  stop_on_unowned_failure: true
+commands:
+  verification:
+    max_retries_per_command: 1
+evidence_policy:
+  changed_files_source: root-diff
 ```
+
+Wave verification keeps the existing `aggregate_owner: root` invariant; that
+wave-level field is intentionally outside the leaf contract.
 
 `luna` and the two deep stages share the same bounded-round discipline. Luna
 may request one
@@ -80,6 +84,13 @@ Root evaluates the deep-stage checkpoint and terminal return through
 `scripts/evaluate_luna_run.py` as described in
 `lightweight-supervision.md`. Repeated-read tracing is permitted only in an
 explicit diagnostic sample, never as a normal profile default.
+
+All implementation profiles, including Spark, also receive a materialized
+`worker-contract.json` and are reconciled through
+`scripts/evaluate_worker_run.py`. The worker echoes the hash and supplies
+criterion and command evidence; root independently supplies the actual diff and
+certificates. `evaluate_luna_run.py` is retained only for the deep-stage
+checkpoint transition.
 
 An invalid project or personal profile is an error. Never ignore it, use the
 bundled package file directly, or substitute another worker or model class.
@@ -139,6 +150,10 @@ The worker profile defines stable runtime behavior: model, sandbox, reasoning
 effort, and durable role constraints. The unit contract defines the exact
 objective, write scope, decisions, acceptance criteria, verification, and stop
 conditions for one dispatch.
+
+The unit contract is a schema-validated JSON artifact, not only prompt text.
+Materialize it with `scripts/materialize_worker_contract.py` and carry its hash
+unchanged through every worker and certificate.
 
 For Luna, the unit contract is compiled from
 `krt-compound-master/references/fast-contract.md` and is its only operational

@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://krt.local/schemas/seneschal-worker-contract-v1.json",
+  "title": "KRT Seneschal worker contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "contract_id",
+    "unit_id",
+    "lane",
+    "profile",
+    "objective",
+    "owned_files",
+    "required_context",
+    "closed_decisions",
+    "forbidden_changes",
+    "acceptance_criteria",
+    "commands",
+    "execution_budget",
+    "supervision",
+    "terminal_protocol",
+    "terminal_schema",
+    "required_certifications",
+    "evidence_policy",
+    "contract_hash"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "contract_id": {"type": "string", "minLength": 1},
+    "unit_id": {"type": "string", "minLength": 1},
+    "lane": {"enum": ["fast", "standard", "deep"]},
+    "profile": {"enum": ["spark", "luna", "luna_xhigh"]},
+    "objective": {"type": "string", "minLength": 1},
+    "owned_files": {"$ref": "#/$defs/pathList"},
+    "required_context": {"$ref": "#/$defs/pathList"},
+    "closed_decisions": {"$ref": "#/$defs/nonEmptyStringList"},
+    "forbidden_changes": {"$ref": "#/$defs/nonEmptyStringList"},
+    "acceptance_criteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "description"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "description": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "commands": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["exact", "read_only_prefixes", "verification"],
+      "properties": {
+        "exact": {"$ref": "#/$defs/nonEmptyStringList"},
+        "read_only_prefixes": {"$ref": "#/$defs/nonEmptyStringList"},
+        "verification": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["focused", "natural", "max_retries_per_command"],
+          "properties": {
+            "focused": {"$ref": "#/$defs/nonEmptyStringList"},
+            "natural": {"$ref": "#/$defs/nonEmptyStringList"},
+            "max_retries_per_command": {"type": "integer", "minimum": 0}
+          }
+        }
+      }
+    },
+    "execution_budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["discovery_passes", "implementation_rounds", "fix_rounds", "review_rounds", "extra_verification"],
+      "properties": {
+        "discovery_passes": {"type": "integer", "minimum": 0},
+        "implementation_rounds": {"type": "integer", "minimum": 0},
+        "fix_rounds": {"type": "integer", "minimum": 0},
+        "review_rounds": {"type": "integer", "minimum": 0},
+        "extra_verification": {"const": "forbidden"}
+      }
+    },
+    "supervision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "transition_after_ms"],
+      "properties": {
+        "mode": {"enum": ["terminal-only", "discovery-checkpoint"]},
+        "transition_after_ms": {"type": "integer", "minimum": 0}
+      }
+    },
+    "terminal_protocol": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["return_when", "grace_actions"],
+      "properties": {
+        "return_when": {"$ref": "#/$defs/nonEmptyStringList"},
+        "grace_actions": {"const": 0}
+      }
+    },
+    "terminal_schema": {"const": "worker-terminal-v1"},
+    "required_certifications": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"enum": ["reviewer", "security-sentinel"]}
+    },
+    "evidence_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["minimum_command_trust", "changed_files_source"],
+      "properties": {
+        "minimum_command_trust": {"enum": ["self-reported", "runtime-audited"]},
+        "changed_files_source": {"const": "root-diff"}
+      }
+    },
+    "contract_hash": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}
+  },
+  "$defs": {
+    "nonEmptyStringList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "pathList": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+"}
+    }
+  }
+}

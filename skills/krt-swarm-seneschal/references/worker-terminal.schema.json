@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://krt.local/schemas/seneschal-worker-terminal-v1.json",
+  "title": "KRT Seneschal worker terminal",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "status",
+    "phase",
+    "remaining_actions",
+    "terminal_ready",
+    "acceptance_criteria_resolved",
+    "acceptance_evidence",
+    "last_required_command",
+    "verification",
+    "verification_commands_run",
+    "unowned_failures"
+  ],
+  "properties": {
+    "status": {"enum": ["done", "done_with_baseline_gaps", "needs_review", "blocked"]},
+    "phase": {"const": "closeout"},
+    "remaining_actions": {"type": "array", "maxItems": 0},
+    "terminal_ready": {"const": true},
+    "acceptance_criteria_resolved": {"type": "boolean"},
+    "acceptance_evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["criterion_id", "status", "evidence"],
+        "properties": {
+          "criterion_id": {"type": "string", "minLength": 1},
+          "status": {"enum": ["satisfied", "not_satisfied"]},
+          "evidence": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "last_required_command": {"type": ["string", "null"]},
+    "verification": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["attempted", "skipped"],
+      "properties": {
+        "attempted": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["command", "attempts", "outcome"],
+            "properties": {
+              "command": {"type": "string", "minLength": 1},
+              "attempts": {"type": "integer", "minimum": 1},
+              "outcome": {"enum": ["passed", "failed", "baseline_failure", "unowned_failure"]}
+            }
+          }
+        },
+        "skipped": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["command", "reason"],
+            "properties": {
+              "command": {"type": "string", "minLength": 1},
+              "reason": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "verification_commands_run": {"type": "array", "items": {"type": "string"}},
+    "unowned_failures": {"type": "array", "items": {"type": "string"}},
+    "scope_extension": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["additional_files", "reason"],
+      "properties": {
+        "additional_files": {"$ref": "worker-contract.schema.json#/$defs/pathList"},
+        "reason": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

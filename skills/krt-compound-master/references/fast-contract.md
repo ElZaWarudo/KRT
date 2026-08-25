@@ -12,15 +12,37 @@ instead of guessing.
 
 ## Compiled Contract
 
+When Seneschal owns dispatch, materialize this contract as the schema-validated
+JSON artifact defined by
+`../../krt-swarm-seneschal/references/worker-contract.schema.json` and its
+`materialize_worker_contract.py` helper. The hashed artifact, not its prompt
+rendering, is authoritative. Standalone Compound runs may use the equivalent
+YAML rendering but must preserve every field.
+
 Materialize every field; do not leave Luna to infer an omitted boundary:
 
 ```yaml
+schema_version: 1
+contract_id: <run-id:unit-id>
+unit_id: <stable unit ID>
+lane: standard | deep
+profile: luna | luna_xhigh
 objective: <one bounded outcome>
 owned_files: []
 required_context: []
 closed_decisions: []
 forbidden_changes: []
-acceptance_criteria: []
+acceptance_criteria:
+  - id: AC-1
+    description: <observable criterion>
+
+commands:
+  exact: []
+  read_only_prefixes: []
+  verification:
+    focused: []
+    natural: []
+    max_retries_per_command: 1
 
 execution_budget:
   discovery_passes: 1
@@ -29,13 +51,10 @@ execution_budget:
   review_rounds: 1
   extra_verification: forbidden
 
-verification:
-  focused: []
-  natural: []
-  aggregate_owner: root
-  max_retries_per_command: 1
-  baseline_failures: []
-  stop_on_unowned_failure: true
+required_certifications: []
+evidence_policy:
+  minimum_command_trust: self-reported | runtime-audited
+  changed_files_source: root-diff
 
 supervision:
   mode: terminal-only | discovery-checkpoint
@@ -48,23 +67,12 @@ terminal_protocol:
     - state_reconciled
   grace_actions: 0
 
-return_format:
-  status: done | done_with_baseline_gaps | needs_review | blocked
-  required_fields:
-    - phase
-    - remaining_actions
-    - terminal_ready
-    - acceptance_criteria_resolved
-    - last_required_command
-    - changed_files
-    - verification
-    - verification_commands_run
-    - unowned_failures
-    - state_updates
+terminal_schema: worker-terminal-v1
+contract_hash: <materializer-owned sha256>
 ```
 
 Empty lists are explicit decisions, not permission to expand. Commands under
-`focused` and `natural` are the complete worker verification manifest. The
+`commands.verification.focused` and `commands.verification.natural` are the complete worker verification manifest. The
 worker must not add a broad, aggregate, CI-equivalent, or exploratory command.
 Its return must account for every manifest command exactly once under
 `verification.attempted` or `verification.skipped`. An attempted entry includes

@@ -32,15 +32,23 @@ PHASES = (
 SKILL_ROOT = Path(__file__).resolve().parents[1]
 TERMINAL_STATUSES = {"completed", "blocked", "failed"}
 CLOSEOUT_METRIC_DEFAULTS = {
+    "acceptance_latency_ms": None,
     "discovery_implementation_ratio": None,
+    "evidence_trust": "unknown",
     "last_required_command_to_return_ms": None,
     "out_of_manifest_commands": 0,
     "repeated_context_reads": None,
+    "repeated_verification_commands": 0,
+    "review_findings_p0": 0,
+    "review_findings_p1": 0,
+    "review_findings_p2": 0,
     "root_interventions": 0,
+    "scope_violations": 0,
     "time_to_first_change_ms": None,
 }
 CLOSEOUT_COUNT_FIELDS = set(CLOSEOUT_METRIC_DEFAULTS) - {
-    "discovery_implementation_ratio"
+    "discovery_implementation_ratio",
+    "evidence_trust",
 }
 SUPERVISION_ACTIONS = {
     "continue",
@@ -48,6 +56,8 @@ SUPERVISION_ACTIONS = {
     "return_now",
     "complete",
     "contract_violation",
+    "awaiting_certification",
+    "needs_fix",
 }
 WORKER_TERMINAL_STATUSES = {
     "done",
@@ -55,8 +65,12 @@ WORKER_TERMINAL_STATUSES = {
     "needs_review",
     "blocked",
 }
-SUPERVISION_REQUIRED_METRICS = set(CLOSEOUT_METRIC_DEFAULTS) - {
-    "repeated_context_reads"
+SUPERVISION_REQUIRED_METRICS = {
+    "discovery_implementation_ratio",
+    "last_required_command_to_return_ms",
+    "out_of_manifest_commands",
+    "root_interventions",
+    "time_to_first_change_ms",
 }
 
 
@@ -106,6 +120,8 @@ def supervision_metrics_for_status(
         )
     elif action == "contract_violation":
         compatible_status = "failed"
+    elif action == "needs_fix":
+        compatible_status = "blocked"
     else:
         compatible_status = "running"
     if timing_status != compatible_status:
@@ -115,7 +131,7 @@ def supervision_metrics_for_status(
         )
     if action == "contract_violation" and not reasons:
         raise ValueError("contract_violation supervision result requires reasons")
-    if action != "contract_violation" and reasons:
+    if action not in {"contract_violation"} and reasons:
         raise ValueError("non-violation supervision result cannot contain reasons")
     metrics = document["metrics"]
     unknown_metrics = set(metrics) - set(CLOSEOUT_METRIC_DEFAULTS)
@@ -251,6 +267,15 @@ def record_timing(
         or supplied_ratio < 0
     ):
         raise ValueError("discovery/implementation ratio must be non-negative")
+    evidence_trust = supplied_closeout_metrics.get("evidence_trust")
+    if evidence_trust is not None and evidence_trust not in {
+        "unknown",
+        "missing",
+        "not-terminal",
+        "self-reported",
+        "runtime-audited",
+    }:
+        raise ValueError("evidence_trust is invalid")
     unknown_phases = sorted(set(phases) - set(PHASES))
     if unknown_phases or any(value < 0 for value in phases.values()):
         raise ValueError(f"invalid phase durations: {unknown_phases or phases}")
@@ -296,6 +321,11 @@ def record_timing(
             else None
         )
         record = {
+            "acceptance_latency_ms": retained(
+                "acceptance_latency_ms",
+                supplied_closeout_metrics.get("acceptance_latency_ms"),
+                None,
+            ),
             "captured_at": captured_at or utc_now(),
             "context_bytes": retained("context_bytes", context_bytes, 0),
             "discovery_implementation_ratio": (
@@ -308,6 +338,11 @@ def record_timing(
                 )
             ),
             "fix_rounds": retained("fix_rounds", fix_rounds, 0),
+            "evidence_trust": retained(
+                "evidence_trust",
+                supplied_closeout_metrics.get("evidence_trust"),
+                "unknown",
+            ),
             "lane": lane,
             "last_required_command_to_return_ms": retained(
                 "last_required_command_to_return_ms",
@@ -330,12 +365,37 @@ def record_timing(
                 supplied_closeout_metrics.get("repeated_context_reads"),
                 None,
             ),
+            "repeated_verification_commands": retained(
+                "repeated_verification_commands",
+                supplied_closeout_metrics.get("repeated_verification_commands"),
+                0,
+            ),
+            "review_findings_p0": retained(
+                "review_findings_p0",
+                supplied_closeout_metrics.get("review_findings_p0"),
+                0,
+            ),
+            "review_findings_p1": retained(
+                "review_findings_p1",
+                supplied_closeout_metrics.get("review_findings_p1"),
+                0,
+            ),
+            "review_findings_p2": retained(
+                "review_findings_p2",
+                supplied_closeout_metrics.get("review_findings_p2"),
+                0,
+            ),
             "root_interventions": retained(
                 "root_interventions",
                 supplied_closeout_metrics.get("root_interventions"),
                 0,
             ),
             "run_id": run_id,
+            "scope_violations": retained(
+                "scope_violations",
+                supplied_closeout_metrics.get("scope_violations"),
+                0,
+            ),
             "status": status,
             "time_to_first_change_ms": retained(
                 "time_to_first_change_ms",
@@ -377,7 +437,14 @@ def main() -> int:
     parser.add_argument("--review-rounds", type=int)
     parser.add_argument("--fix-rounds", type=int)
     parser.add_argument("--time-to-first-change-ms", type=int)
+    parser.add_argument("--acceptance-latency-ms", type=int)
+    parser.add_argument("--evidence-trust")
     parser.add_argument("--out-of-manifest-commands", type=int)
+    parser.add_argument("--repeated-verification-commands", type=int)
+    parser.add_argument("--review-findings-p0", type=int)
+    parser.add_argument("--review-findings-p1", type=int)
+    parser.add_argument("--review-findings-p2", type=int)
+    parser.add_argument("--scope-violations", type=int)
     parser.add_argument("--last-required-command-to-return-ms", type=int)
     parser.add_argument("--root-interventions", type=int)
     parser.add_argument("--repeated-context-reads", type=int)
@@ -401,15 +468,22 @@ def main() -> int:
             )
 
         direct_metrics = {
+            "acceptance_latency_ms": args.acceptance_latency_ms,
             "discovery_implementation_ratio": (
                 args.discovery_implementation_ratio
             ),
+            "evidence_trust": args.evidence_trust,
             "last_required_command_to_return_ms": (
                 args.last_required_command_to_return_ms
             ),
             "out_of_manifest_commands": args.out_of_manifest_commands,
             "repeated_context_reads": args.repeated_context_reads,
+            "repeated_verification_commands": args.repeated_verification_commands,
+            "review_findings_p0": args.review_findings_p0,
+            "review_findings_p1": args.review_findings_p1,
+            "review_findings_p2": args.review_findings_p2,
             "root_interventions": args.root_interventions,
+            "scope_violations": args.scope_violations,
             "time_to_first_change_ms": args.time_to_first_change_ms,
         }
         closeout_metrics: dict[str, Any] = {}

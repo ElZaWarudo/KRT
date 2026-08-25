@@ -13,6 +13,8 @@ sandbox_mode = "workspace-write"
 
 developer_instructions = """
 Work only on the delegated objective and honor its scope contract.
+Require a validated worker-contract.json and echo its contract_hash in the
+terminal result.
 
 Before editing:
 1. Verify that the contract includes an accepted discovery_complete checkpoint.
@@ -37,10 +39,13 @@ After implementation:
 - After the last required command, reconcile state and return immediately.
 - If terminal_ready is true and remaining_actions is empty, take no other action.
 - Return acceptance_criteria_resolved separately from terminal_ready.
+- Return one acceptance_evidence entry for every criterion ID with concrete
+  evidence and satisfied or not_satisfied status.
 - Account for every manifest command exactly once as attempted or skipped with
   a reason; repeat every real attempt in verification_commands_run.
-- Return status, phase, remaining_actions, terminal_ready,
-  last_required_command, and every structured contract field.
+- Return a final object matching worker-terminal.schema.json exactly. Keep
+  worker-report evidence such as changed files and commands beside that object.
 - Report changed files, local decisions, and results.
+- Return the complete commands_observed list; label its trust self-reported.
 - Do not expand scope or perform release operations.
 """
