@@ -1,55 +1,55 @@
-# Protocolo de evidencia, calificación e informe
+# Evidence, Rating, and Reporting Protocol
 
-## Contenido
+## Contents
 
-1. Etiquetas de evidencia
-2. Calificación por dimensión
-3. Severidad de hallazgos
-4. Contrato de retorno del evaluador
-5. Reglas de síntesis
-6. Formato del informe final
-7. Regresión después de corregir
+1. Evidence labels
+2. Dimension ratings
+3. Finding severity
+4. Evaluator return contract
+5. Synthesis rules
+6. Final report format
+7. Regression after remediation
 
-## 1. Etiquetas de evidencia
+## 1. Evidence Labels
 
-- `observed`: reproducido directamente en runtime, grabación o artefacto equivalente.
-- `code`: demostrado por código, configuración o prueba, pero no reproducido en runtime.
-- `declared`: intención confirmada en el atlas con una fuente autorizada.
-- `inferred`: conclusión razonable todavía no confirmada.
-- `unverified`: condición o superficie conocida sin evidencia suficiente.
+- `observed`: reproduced directly at runtime, in a recording, or through an equivalent artifact.
+- `code`: demonstrated by code, configuration, or a test, but not reproduced at runtime.
+- `declared`: intent confirmed in the atlas by an authoritative source.
+- `inferred`: a reasonable conclusion that has not yet been confirmed.
+- `unverified`: a known condition or surface without sufficient evidence.
 
-Preferir `observed` para comportamiento y `declared` para intención. El código no demuestra por sí solo que una interacción sea alcanzable o comprensible. Una inferencia nunca debe sostener por sí sola un P0 o P1.
+Prefer `observed` for behavior and `declared` for intent. Code alone does not prove that an interaction is reachable or understandable. An inference must never support a P0 or P1 by itself.
 
-## 2. Calificación por dimensión
+## 2. Dimension Ratings
 
-Usar una escala corta y acompañarla siempre de confianza:
+Use a short scale and always include confidence:
 
-- **0 — Roto o ausente**: impide completar o comprender flujos materiales, o expone pérdida grave.
-- **1 — Frágil**: funciona en el camino ideal, pero falla de forma frecuente, incoherente o difícil de recuperar.
-- **2 — Sólido**: cubre el uso normal y los riesgos principales; conserva huecos concretos de calidad.
-- **3 — Pulido**: resulta predecible, tolerante y consistente en los flujos y condiciones examinados.
-- **NA — Sin evidencia/aplicación**: la dimensión o condición no aplica al alcance o no pudo verificarse.
+- **0 — Broken or absent**: prevents completion or understanding of material flows, or exposes serious loss.
+- **1 — Fragile**: works on the happy path but fails frequently, inconsistently, or in ways that are hard to recover from.
+- **2 — Solid**: covers normal use and the main risks, with specific quality gaps remaining.
+- **3 — Polished**: behaves predictably, tolerantly, and consistently across the examined flows and conditions.
+- **NA — No evidence/not applicable**: the dimension or condition does not apply to the scope or could not be verified.
 
-Confianza:
+Confidence:
 
-- `high`: evidencia directa en todos los flujos materiales asignados;
-- `medium`: evidencia directa parcial más código o documentación coherente;
-- `low`: predominan inferencias, capturas aisladas o zonas inaccesibles.
+- `high`: direct evidence across all assigned material flows;
+- `medium`: partial direct evidence plus consistent code or documentation;
+- `low`: mostly inferences, isolated screenshots, or inaccessible areas.
 
-No calcular una media global. Mostrar el perfil completo y destacar la calificación material más baja. Un `NA` no equivale a cero.
+Do not calculate a global average. Show the full profile and highlight the lowest material rating. `NA` is not zero.
 
-## 3. Severidad de hallazgos
+## 3. Finding Severity
 
-- **P0 — Bloqueo o daño grave**: flujo principal imposible, pérdida/corrupción de trabajo, estado engañoso con consecuencia grave, inaccesibilidad total del flujo o acción irreversible sin control suficiente.
-- **P1 — Fallo de confianza o recuperación**: alta probabilidad de error, repetición, desorientación, abandono o incapacidad de recuperarse en un flujo importante.
-- **P2 — Fricción sistemática**: inconsistencia, lentitud percibida, ambigüedad o deuda de calidad que dificulta el uso pero conserva la tarea.
-- **P3 — Costura o refinamiento**: defecto real de acabado con impacto limitado; oportunidad de pulido después de P0-P2.
+- **P0 — Blocker or serious harm**: primary flow is impossible; work is lost or corrupted; misleading state has serious consequences; the flow is completely inaccessible; or an irreversible action lacks sufficient protection.
+- **P1 — Trust or recovery failure**: high likelihood of error, repetition, disorientation, abandonment, or inability to recover in an important flow.
+- **P2 — Systemic friction**: inconsistency, perceived slowness, ambiguity, or quality debt that makes the task harder but does not prevent it.
+- **P3 — Seam or refinement**: a real finish defect with limited impact; a polish opportunity after P0-P2.
 
-Dentro de una severidad, ordenar por frecuencia, centralidad del flujo, número de roles/plataformas afectados y reversibilidad. Estimar esfuerzo `S`, `M` o `L` solo después de definir una corrección; no reducir severidad porque arreglar sea costoso.
+Within a severity, sort by frequency, flow centrality, number of affected roles or platforms, and reversibility. Estimate effort as `S`, `M`, or `L` only after defining a correction; do not lower severity because the fix is expensive.
 
-## 4. Contrato de retorno del evaluador
+## 4. Evaluator Return Contract
 
-Devolver YAML o Markdown estructurado con estos campos:
+Return structured YAML or Markdown with these fields:
 
 ```text
 evaluator: <NN — name>
@@ -85,24 +85,24 @@ cross_refs:
 - <dimension and evidence for another evaluator/lead>
 ```
 
-Permitir `findings: []`. No inventar deuda para llenar el contrato.
+Allow `findings: []`. Do not invent debt to fill the contract.
 
-## 5. Reglas de síntesis
+## 5. Synthesis Rules
 
-1. Validar que cada hallazgo tiene evidencia, efecto, corrección y verificación.
-2. Rechazar o degradar afirmaciones cuya evidencia no sostenga la severidad.
-3. Asignar una dimensión primaria por causa; conservar dimensiones secundarias como referencias.
-4. Fusionar hallazgos cuando comparten causa, flujo y criterio de corrección. Mantener separadas causas distintas aunque aparezcan en la misma pantalla.
-5. Detectar patrones sistémicos: una misma convención rota en tres superficies vale más que tres tickets cosméticos aislados.
-6. Identificar el eslabón más débil por severidad, centralidad y calificación; no por promedio.
-7. Formar un backlog:
-   - `Now`: P0/P1 y causas sistémicas que bloquean confianza o recuperación;
-   - `Next`: P2 frecuentes o transversales;
-   - `Later`: P3 y refinamientos acotados.
-8. Conservar una lista `Keep` para evitar que la corrección destruya patrones que ya funcionan.
-9. Separar deuda confirmada de huecos de verificación.
+1. Validate that every finding has evidence, an effect, a correction, and verification.
+2. Reject or downgrade claims whose evidence does not support the severity.
+3. Assign one primary dimension per cause; keep secondary dimensions as cross-references.
+4. Merge findings when they share a cause, flow, and correction criterion. Keep different causes separate even when they appear on the same screen.
+5. Detect systemic patterns: one broken convention across three surfaces matters more than three isolated cosmetic tickets.
+6. Identify the weakest link by severity, centrality, and rating, not by average.
+7. Build a backlog:
+   - `Now`: P0/P1 and systemic causes that block trust or recovery;
+   - `Next`: frequent or cross-cutting P2 findings;
+   - `Later`: P3 findings and bounded refinements.
+8. Keep a `Keep` list so remediation does not destroy patterns that already work.
+9. Separate confirmed debt from verification gaps.
 
-## 6. Formato del informe final
+## 6. Final Report Format
 
 ```text
 # Product Polish Audit
@@ -148,14 +148,14 @@ Permitir `findings: []`. No inventar deuda para llenar el contrato.
 <audit complete | implementation authorized | blocked by named evidence>
 ```
 
-Mantener trazabilidad desde cada slice a IDs `POL-*`, `FLOW-*` y `SURF-*`. Evitar tablas gigantes: si el detalle es extenso, dejar el resumen en el informe y enlazar evidencia versionada.
+Maintain traceability from every slice to `POL-*`, `FLOW-*`, and `SURF-*` IDs. Avoid giant tables: when detail is extensive, keep the summary in the report and link to versioned evidence.
 
-## 7. Regresión después de corregir
+## 7. Regression After Remediation
 
-1. Actualizar el atlas si cambió un elemento cartografiado.
-2. Ejecutar el preflight de frescura.
-3. Reproducir cada criterio `verify` de los hallazgos corregidos.
-4. Reejecutar las dimensiones primarias y las referencias cruzadas afectadas.
-5. Hacer un smoke pass por los doce evaluadores sobre el flujo modificado.
-6. Marcar cada hallazgo `resolved`, `partially-resolved`, `not-reproduced` o `open` con evidencia nueva.
-7. No elevar la calificación de una dimensión por un cambio de código que no se haya verificado en el comportamiento cuando el runtime esté disponible.
+1. Update the atlas if a mapped element changed.
+2. Run the freshness preflight.
+3. Reproduce every `verify` criterion for remediated findings.
+4. Rerun the affected primary dimensions and cross-references.
+5. Make a smoke pass with all twelve evaluators over the modified flow.
+6. Mark each finding `resolved`, `partially-resolved`, `not-reproduced`, or `open` with new evidence.
+7. Do not raise a dimension's rating based on a code change that was not behaviorally verified when runtime verification is available.

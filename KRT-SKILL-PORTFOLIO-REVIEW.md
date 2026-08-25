@@ -1,80 +1,80 @@
-# Revisión consolidada de la cartera KRT
+# Consolidated KRT Skill Portfolio Review
 
-Estado de la revisión: 2026-07-27
+Review status: 2026-07-27
 
-Rama revisada: `feat/skill-portfolio-corrections`
+Branch reviewed: `feat/skill-portfolio-corrections`
 
-Base integrada: `origin/main` (`6da13b4`)
+Integrated base: `origin/main` (`6da13b4`)
 
-HEAD de partida: `001a4f9`; las correcciones descritas permanecen sin commit en
-el working tree para revisión del usuario.
+Starting HEAD: `001a4f9`; the corrections described here remain uncommitted in
+the working tree for user review.
 
-## Resultado ejecutivo
+## Executive Result
 
-La cartera queda compuesta por 27 skills KRT con identidad canónica, metadata de
-autocompletado y validación estructural correctas. Veinte se clasifican como
-`safety_critical` y cargan un contrato de seguridad local indexado desde
+The portfolio now consists of 27 KRT skills with correct canonical identities,
+autocomplete metadata, and structural validation. Twenty are classified as
+`safety_critical` and load a local security contract indexed from
 `docs/safety.md`.
 
-La revisión no se limitó a reescribir prompts. Se comprobaron los contratos
-entre skills, los límites de autoridad, los efectos externos, la recuperación
-tras interrupciones, los scripts deterministas, los tests y la correspondencia
-entre lo que cada `SKILL.md` promete y lo que sus herramientas ejecutan.
+The review was not limited to rewriting prompts. It checked contracts between
+skills, authority boundaries, external effects, interruption recovery,
+deterministic scripts, tests, and whether each `SKILL.md` promise matches what
+its tools execute.
 
-Resultados verificables:
+Verifiable results:
 
-- 27 de 27 skills pasan `quick_validate.py`.
-- 19 archivos de test, con 219 métodos `test_*`, terminan sin fallos.
-- El corpus de Skill Arbiter contiene 12 casos estructuralmente válidos en seis
-  categorías; este check no equivale a ejecutarlos contra modelos ni a un pass
-  rate.
-- El catálogo reconoce 27 skills y 20 skills críticas.
-- `git diff --check` no detecta errores de whitespace en el diff tracked; los
-  archivos nuevos se comprobaron además de forma explícita.
-- La prueba de render real de Word queda pendiente en este host porque no están
-  instalados LibreOffice, `pdftoppm` ni PyMuPDF. El preflight lo detecta y
-  bloquea correctamente una falsa declaración de documento final.
+- All 27 skills pass `quick_validate.py`.
+- Nineteen test files containing 219 `test_*` methods finish without failures.
+- The Skill Arbiter corpus contains 12 structurally valid cases in six
+  categories; this check does not mean they were executed against models or
+  establish a pass rate.
+- The catalog recognizes 27 skills and 20 critical skills.
+- `git diff --check` finds no whitespace errors in the tracked diff; new files
+  were also checked explicitly.
+- Real Word rendering remains pending on this host because LibreOffice,
+  `pdftoppm`, and PyMuPDF are not installed. The preflight detects this and
+  correctly blocks a false declaration of a final document.
 
-## Criterios de revisión
+## Review Criteria
 
-La evaluación usó estas dimensiones:
+The evaluation used these dimensions:
 
-1. Activación: descripción concreta, límites negativos y routing no ambiguo.
-2. Divulgación progresiva: `SKILL.md` operativo y detalle reutilizable en
-   `references/`, `scripts/`, `schemas/` o `assets/`.
-3. Autoridad: lectura antes de mutación, aprobaciones explícitas y ausencia de
-   permisos implícitos para push, merge, Jira, despliegue o borrado.
-4. Determinismo: validadores y scripts para contratos comprobables, sin delegar
-   invariantes críticas al juicio del modelo.
-5. Reinicio y estado: artefactos versionables, esquemas y reconciliación cuando
-   una operación puede quedar a medias.
-6. Seguridad: secretos redactados, inputs no confiables, rutas y outputs
-   acotados, y contratos locales para las skills críticas.
-7. Evaluabilidad: casos positivos, negativos, routing, permisos, fallback,
-   reinicio y resultado observable.
-8. Simplicidad: eliminación de duplicación, referencias cargadas solo cuando
-   son necesarias y separación clara entre orquestadores y especialistas.
+1. Activation: concrete description, negative boundaries, and unambiguous routing.
+2. Progressive disclosure: operational `SKILL.md` with reusable detail in
+   `references/`, `scripts/`, `schemas/`, or `assets/`.
+3. Authority: read before mutation, explicit approvals, and no implied
+   permission to push, merge, mutate Jira, deploy, or delete.
+4. Determinism: validators and scripts for testable contracts, without
+   delegating critical invariants to model judgment.
+5. Restart and state: versioned artifacts, schemas, and reconciliation when an
+   operation can be interrupted.
+6. Security: redacted secrets, untrusted inputs, bounded paths and outputs,
+   and local contracts for critical skills.
+7. Evaluability: positive, negative, routing, permission, fallback, restart,
+   and observable-outcome cases.
+8. Simplicity: duplication removed, references loaded only when needed, and a
+   clear separation between orchestrators and specialists.
 
-## Base de investigación actual
+## Current Research Basis
 
-Las decisiones se contrastaron con documentación vigente de diseño, seguridad
-y evaluación de skills:
+Decisions were compared with current skill-design, security, and evaluation
+documentation:
 
-- OpenAI, [Build skills](https://learn.chatgpt.com/docs/build-skills) y
+- OpenAI, [Build skills](https://learn.chatgpt.com/docs/build-skills) and
   [Agent approvals & security](https://learn.chatgpt.com/docs/agent-approvals-security).
 - Agent Skills,
   [Specification](https://agentskills.io/specification),
-  [Best practices for skill creators](https://agentskills.io/skill-creation/best-practices)
-  y
+  [Best practices for skill creators](https://agentskills.io/skill-creation/best-practices),
+  and
   [Evaluating skill output quality](https://agentskills.io/skill-creation/evaluating-skills).
 - Anthropic,
   [Agent Skills](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview),
   [Skills for enterprise](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/enterprise),
-  [Define success criteria and build evaluations](https://platform.claude.com/docs/en/test-and-evaluate/develop-tests)
-  y [Mitigate jailbreaks and prompt injections](https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks).
+  [Define success criteria and build evaluations](https://platform.claude.com/docs/en/test-and-evaluate/develop-tests),
+  and [Mitigate jailbreaks and prompt injections](https://platform.claude.com/docs/en/test-and-evaluate/strengthen-guardrails/mitigate-jailbreaks).
 - Agent Skills,
   [Adding skills support to your agent](https://agentskills.io/client-implementation/adding-skills-support),
-  para colisiones, recarga, deduplicación y preservación tras compaction.
+  for collisions, reloads, deduplication, and preservation after compaction.
 - Anthropic,
   [Permission policies](https://platform.claude.com/docs/en/managed-agents/permission-policies).
 - OWASP,
@@ -82,137 +82,142 @@ y evaluación de skills:
 - Microsoft,
   [Macros from the internet are blocked by default in Office](https://learn.microsoft.com/en-us/microsoft-365-apps/security/internet-macros-blocked).
 
-El consenso respalda metadata concisa, `SKILL.md` operativo, carga progresiva,
-scripts para invariantes mecánicas, evals con negativos, sandbox separado de
-aprobaciones y contenido externo tratado como datos. También motivó clasificar
-Document Forge como crítica: el texto convertido puede contener prompt
-injection aunque la conversión técnica sea correcta.
+The consensus supports concise metadata, operational `SKILL.md` files,
+progressive loading, scripts for mechanical invariants, evaluations with
+negative cases, separation between sandboxing and approvals, and treatment of
+external content as data. It also motivated classifying Document Forge as
+critical: converted text can contain prompt injection even when the technical
+conversion is correct.
 
-## Cambios transversales aplicados
+## Cross-Cutting Changes Applied
 
-### Autoridad y efectos externos
+### Authority and External Effects
 
-- Se separaron planificación, autorización local y mutaciones remotas.
-- Rebase, push, merge, comentarios, transiciones Jira y despliegues requieren
-  una autoridad visible y específica.
-- Los modos autónomos quedan ligados a un ledger versionado y a validadores
-  deterministas; una etiqueta de autonomía no amplía permisos por sí sola.
-- Jira Server/Data Center y Jira Cloud se resuelven por proveedor y entorno, sin
-  imprimir tokens ni mezclar APIs.
+- Planning, local authorization, and remote mutations were separated.
+- Rebase, push, merge, comments, Jira transitions, and deployments require
+  visible, specific authority.
+- Autonomous modes are bound to a versioned ledger and deterministic
+  validators; an autonomy label does not expand permissions by itself.
+- Jira Server/Data Center and Jira Cloud are resolved by provider and
+  environment without printing tokens or mixing APIs.
 
-### Evidencia y publicación
+### Evidence and Publication
 
-- Document Forge conserva fuentes y sidecars privados; no publica resúmenes
-  directamente.
-- Harness Wise promociona evidencia solo después de validación determinista y
-  cribado de secretos.
-- Los artefactos de staging, procedencia y render se mantienen separados de los
-  entregables versionables.
+- Document Forge keeps sources and sidecars private; it does not publish
+  summaries directly.
+- Harness Wise promotes evidence only after deterministic validation and
+  secret screening.
+- Staging, provenance, and rendering artifacts remain separate from versioned
+  deliverables.
 
-### Gobernanza de la cartera
+### Portfolio Governance
 
-- Se creó `krt-skill-arbiter`, nombre KRT único que no reutiliza “forge”.
-- Su catálogo comprueba identidad, metadata, wiring de seguridad y cobertura de
-  las 27 carpetas `krt-*`.
-- Su corpus versionado mide routing, negative triggers, permisos, reinicio,
-  fallback y resultado, y mantiene `pass`, `fail` e `inconclusive` separados.
+- `krt-skill-arbiter` was created with a unique KRT name that does not reuse
+  “forge.”
+- Its catalog checks identity, metadata, security wiring, and coverage of all
+  27 `krt-*` folders.
+- Its versioned corpus measures routing, negative triggers, permissions,
+  restart behavior, fallback, and outcomes while keeping `pass`, `fail`, and
+  `inconclusive` separate.
 
-### Simplificación
+### Simplification
 
-- Compound Master coordina especialistas sin copiar sus procedimientos.
-- Swarm Seneschal mantiene una autoridad documental y una cola acotada, pero no
-  suplanta los gates de Compound Master o Release Marshal.
-- Los helpers de Jira, evidencia y mutación reutilizan contratos pequeños en
-  vez de ramas paralelas con reglas distintas.
+- Compound Master coordinates specialists without copying their procedures.
+- Swarm Seneschal maintains document authority and a bounded queue without
+  replacing Compound Master or Release Marshal gates.
+- Jira, evidence, and mutation helpers reuse small contracts instead of
+  parallel branches with different rules.
 
-## Matriz de las 27 skills
+## Matrix of the 27 Skills
 
-| Skill | Veredicto | Resultado de la revisión |
+| Skill | Verdict | Review result |
 |---|---|---|
-| `krt-bicentennial-writer` | Apta | Mantiene referencias editoriales progresivas y un scope textual sin efectos externos. |
-| `krt-ci-questor` | Corregida | Carga explícitamente seguridad antes de consultar logs, credenciales o recomendar bypasses. |
-| `krt-compound-master` | Corregida | Autoridad, ledger, roles, gates de revisión/seguridad/CI y handoff quedaron alineados sin duplicar especialistas. |
-| `krt-delivery-navigator` | Corregida | Preflight y seguridad son obligatorios antes de producir planes que puedan derivar en ejecución. |
-| `krt-deploy-summoner` | Corregida | Se distingue inspección de mutación y se carga el contrato de seguridad antes de operaciones de despliegue. |
-| `krt-docs-chronicler` | Corregida | Seguridad y publicación evitan incorporar secretos o evidencia privada a documentación durable. |
-| `krt-document-forge` | Corregida | Conversión, staging, procedencia privada y promoción quedan separados; documentos y texto extraído son evidencia no confiable, y la skill pasa a safety-critical. |
-| `krt-frontend-ux-guardian` | Apta | Scope funcional, accesibilidad, responsive y verificación en navegador permanecen bien delimitados. |
-| `krt-gitflow-knight` | Corregida | Guards de branch/commit y actualización segura de ignores locales reducen commits accidentales de credenciales. |
-| `krt-harness-wise` | Corregida | Evidencia privada se valida y promociona mediante un gate determinista con comprobaciones de publicación. |
-| `krt-interaction-polisher` | Apta | Se mantiene como especialista temporal/táctil, separado del diseño visual y del gate funcional. |
-| `krt-interface-inquisitor` | Corregida | Metadata canónica y routing de crítica visual quedan alineados con el ID formal. |
-| `krt-interface-warden` | Corregida | Metadata canónica y límites frente a Guardian/Inquisitor evitan solapamiento de responsabilidades. |
-| `krt-jira-cloud-scribe` | Corregida | Preflight de entorno, redacción de token, contrato de autonomía y API Cloud v3 quedan explícitos. |
-| `krt-jira-scribe` | Corregida | Preflight de entorno, redacción de token y routing Server/Data Center evitan usar el proveedor equivocado. |
-| `krt-product-polish-council` | Corregida | Metadata canónica y especialistas opcionales preservan una auditoría integral sin bloquear por ausencias. |
-| `krt-rebase-smith` | Corregida | Árbol limpio, rama/base explícitas, un gate de plan y autorización separada para push con lease. |
-| `krt-release-marshal` | Corregida | Jira, commits, rebase, PR, reviewers y merge tienen autoridad y validadores separados; no heredan permisos ambiguos. |
-| `krt-repo-medic` | Corregida | Diagnóstico de salud se conecta con Skill Arbiter para checks reproducibles sin convertirse en otro orquestador. |
-| `krt-requirements-weaver` | Corregida | Safety preflight y evidencia mantienen la clarificación separada de planificación o implementación. |
-| `krt-review-herald` | Corregida | Triage, aplicación de fixes y respuestas remotas distinguen lectura, cambios locales y mutaciones en GitHub. |
-| `krt-roadmap-cartographer` | Corregida | Context gate, procedencia y safety preflight limitan el output a un único roadmap/readiness report. |
-| `krt-security-sentinel` | Corregida | Threat model agentic, rubric y conexión con evaluaciones cubren inputs, secretos, permisos y efectos externos. |
-| `krt-skill-arbiter` | Nueva | Añade catálogo determinista, corpus versionado, scoring supervisor-captured y wiring de seguridad. |
-| `krt-state-archivist` | Corregida | Metadata y seguridad preservan historia completa sin convertir el archivo en autoridad ejecutiva. |
-| `krt-swarm-seneschal` | Corregida | Cola, blockers, reconciliación y contrato de autoridad evitan que el swarm salte planes, gates o release ownership. |
-| `krt-word-illuminator` | Corregida | Incorporada tras integrar `origin/main`; añade seguridad OOXML, QA ligada por hashes, privacidad estricta y routing frente a Document Forge. |
+| `krt-bicentennial-writer` | Fit | Retains progressively loaded editorial references and text-only scope with no external effects. |
+| `krt-ci-questor` | Corrected | Explicitly loads security before querying logs or credentials or recommending bypasses. |
+| `krt-compound-master` | Corrected | Authority, ledger, roles, review/security/CI gates, and handoff are aligned without duplicating specialists. |
+| `krt-delivery-navigator` | Corrected | Preflight and security are mandatory before producing plans that may lead to execution. |
+| `krt-deploy-summoner` | Corrected | Distinguishes inspection from mutation and loads the security contract before deployment operations. |
+| `krt-docs-chronicler` | Corrected | Security and publication rules prevent secrets or private evidence from entering durable documentation. |
+| `krt-document-forge` | Corrected | Conversion, staging, private provenance, and promotion are separate; documents and extracted text are untrusted evidence, and the skill is now safety-critical. |
+| `krt-frontend-ux-guardian` | Fit | Functional scope, accessibility, responsiveness, and browser verification remain well bounded. |
+| `krt-gitflow-knight` | Corrected | Branch/commit guards and safe updates to local ignore files reduce accidental credential commits. |
+| `krt-harness-wise` | Corrected | Private evidence is validated and promoted through a deterministic gate with publication checks. |
+| `krt-interaction-polisher` | Fit | Remains a temporal/tactile specialist, separate from visual design and the functional gate. |
+| `krt-interface-inquisitor` | Corrected | Canonical metadata and visual-critique routing align with the formal ID. |
+| `krt-interface-warden` | Corrected | Canonical metadata and boundaries against Guardian/Inquisitor prevent overlapping responsibilities. |
+| `krt-jira-cloud-scribe` | Corrected | Environment preflight, token redaction, autonomy contract, and Cloud API v3 are explicit. |
+| `krt-jira-scribe` | Corrected | Environment preflight, token redaction, and Server/Data Center routing prevent use of the wrong provider. |
+| `krt-product-polish-council` | Corrected | Canonical metadata and optional specialists preserve a comprehensive audit without blocking on absences. |
+| `krt-rebase-smith` | Corrected | Requires a clean tree, explicit branch/base, a plan gate, and separate authorization for push with lease. |
+| `krt-release-marshal` | Corrected | Jira, commits, rebase, PR, reviewers, and merge have separate authority and validators; they do not inherit ambiguous permissions. |
+| `krt-repo-medic` | Corrected | Health diagnosis connects to Skill Arbiter for reproducible checks without becoming another orchestrator. |
+| `krt-requirements-weaver` | Corrected | Safety preflight and evidence keep clarification separate from planning or implementation. |
+| `krt-review-herald` | Corrected | Triage, fix application, and remote replies distinguish reads, local changes, and GitHub mutations. |
+| `krt-roadmap-cartographer` | Corrected | The context gate, provenance, and safety preflight limit output to one roadmap/readiness report. |
+| `krt-security-sentinel` | Corrected | Agentic threat model, rubric, and evaluation connection cover inputs, secrets, permissions, and external effects. |
+| `krt-skill-arbiter` | New | Adds a deterministic catalog, versioned corpus, supervisor-captured scoring, and security wiring. |
+| `krt-state-archivist` | Corrected | Metadata and security preserve complete history without turning the archive into execution authority. |
+| `krt-swarm-seneschal` | Corrected | Queue, blockers, reconciliation, and the authority contract prevent the swarm from skipping plans, gates, or release ownership. |
+| `krt-word-illuminator` | Corrected | Added after integrating `origin/main`; provides OOXML security, hash-bound QA, strict privacy, and routing against Document Forge. |
 
-## Revisión específica de `krt-word-illuminator`
+## Specific Review of `krt-word-illuminator`
 
-Word Illuminator era la skill ausente de la primera pasada porque llegó a
-`origin/main` en una línea de historia paralela. Tras el rebase se revisaron
-`SKILL.md`, metadata, referencias, schemas, template, librerías y los nueve
-scripts originales.
+Word Illuminator was absent from the first pass because it arrived on
+`origin/main` through a parallel line of history. After the rebase, the review
+covered `SKILL.md`, metadata, references, schemas, template, libraries, and the
+nine original scripts.
 
-Correcciones aplicadas:
+Corrections applied:
 
-- Preflight previo a `python-docx`, `zipfile` y LibreOffice.
-- Límites configurables de miembros y tamaños ZIP, tamaño por miembro y ratio de
-  compresión, más límites físicos y del directorio central antes de `ZipFile`;
-  rechazo de cifrado, duplicados y traversal.
-- Rechazo por defecto de macros, tipos MIME macro-enabled, ActiveX, OLE,
-  embeddings y relaciones externas recuperables, incluidas formas XML
-  codificadas; los hyperlinks pasivos se conservan como datos y no se abren.
-- Render report ligado al SHA-256 del DOCX, PDF y cada PNG.
-- Validación final que exige exactamente una imagen por página, cobertura
-  completa, estado `passed`, hashes vigentes y cero bloqueantes abiertos.
-- Edición de párrafo limitada a texto simple de un único run; los párrafos con
-  formato, hyperlinks, campos, dibujos o referencias abortan en vez de perder
-  semántica silenciosamente.
-- `--final --privacy` convierte propiedades custom y posible PII en errores,
-  salvo excepción explícita; inspecciona stories completas, alt text, notas,
-  propiedades extendidas y metadata ZIP. Los reportes muestran campos y
-  conteos, no autores ni valores originales.
-- Inspección y comparación redactan contenido por defecto; `--include-content`
-  queda como opt-in para artefactos de trabajo protegidos.
-- Outputs no-clobber se publican atómicamente y rechazan componentes symlink;
-  rutas embebidas en request/patch no pueden escapar de las raíces aprobadas.
-- Cada consumidor abre el DOCX con `O_NOFOLLOW`, copia desde ese mismo
-  descriptor a un snapshot privado, comprueba que no cambió durante la copia y
-  consume solo la versión admitida; sustituir después la ruta original no altera
-  lo inspeccionado, editado, comparado, scrubbed, validado o renderizado.
-- Creación publica DOCX y sidecar como una transacción recuperable; el render
-  prepara PDF, PNG e informe completos en staging y conserva la evidencia
-  anterior si un overwrite autorizado falla. Solo reemplaza directorios con su
-  marcador/manifiesto válido y rechaza entradas desconocidas para no borrar
-  artefactos ajenos.
-- LibreOffice usa perfil efímero y namespace sin red. Un preview explícitamente
-  conectado puede generarse, pero su informe no supera validación final. Como
-  un JSON editable no autentica su propia procedencia, el gate final exige
-  reconocer explícitamente la afirmación de aislamiento y solo permite hacerlo
-  cuando el agente controló directamente la ejecución y conservó la evidencia.
-- El escaneo de privacidad cuenta comentarios y revisiones por namespace y
-  local-name, incluidos prefijos XML alternativos, y rechaza partes sensibles
-  renombradas mediante tipos de relación o contenido.
-- Tras scrub se exige render, inspección y QA nuevos para esa variante.
-- `check_runtime.py` comprueba dependencias sin instalarlas.
-- Contrato `references/safety.md`, registro como `safety_critical` y routing
-  inequívoco: Document Forge convierte fuentes a Markdown; Word Illuminator
-  produce entregables DOCX.
+- Preflight before `python-docx`, `zipfile`, and LibreOffice.
+- Configurable limits for ZIP member counts and sizes, per-member size, and
+  compression ratio, plus physical and central-directory limits before
+  `ZipFile`; encrypted, duplicate, and traversal entries are rejected.
+- Macros, macro-enabled MIME types, ActiveX, OLE, embeddings, and recoverable
+  external relationships are rejected by default, including encoded XML
+  forms; passive hyperlinks remain data and are not opened.
+- The rendering report is bound to the SHA-256 of the DOCX, PDF, and every PNG.
+- Final validation requires exactly one image per page, complete coverage,
+  `passed` status, current hashes, and zero open blockers.
+- Paragraph editing is limited to plain text in a single run; paragraphs with
+  formatting, hyperlinks, fields, drawings, or references abort instead of
+  silently losing semantics.
+- `--final --privacy` turns custom properties and possible PII into errors
+  unless explicitly excepted; it inspects complete stories, alt text, notes,
+  extended properties, and ZIP metadata. Reports show fields and counts, not
+  authors or original values.
+- Inspection and comparison redact content by default; `--include-content` is
+  opt-in for protected working artifacts.
+- Non-clobber outputs publish atomically and reject symlink components;
+  embedded paths in requests or patches cannot escape approved roots.
+- Every consumer opens the DOCX with `O_NOFOLLOW`, copies from that same
+  descriptor into a private snapshot, verifies that it did not change during
+  the copy, and consumes only the admitted version. Replacing the original
+  path afterward does not alter what is inspected, edited, compared, scrubbed,
+  validated, or rendered.
+- Creation publishes the DOCX and sidecar as a recoverable transaction;
+  rendering prepares the complete PDF, PNGs, and report in staging and
+  preserves earlier evidence if an authorized overwrite fails. It replaces
+  only directories carrying its valid marker/manifest and rejects unknown
+  entries to avoid deleting unrelated artifacts.
+- LibreOffice uses an ephemeral profile and a networkless namespace. An
+  explicitly connected preview can be generated, but its report cannot pass
+  final validation. Because editable JSON cannot authenticate its own
+  provenance, the final gate requires explicit acknowledgment of the isolation
+  claim and permits it only when the agent directly controlled execution and
+  retained the evidence.
+- Privacy scanning counts comments and revisions by namespace and local name,
+  including alternate XML prefixes, and rejects sensitive parts renamed
+  through relationship or content types.
+- Scrubbing requires new rendering, inspection, and QA for that variant.
+- `check_runtime.py` checks dependencies without installing them.
+- The `references/safety.md` contract, `safety_critical` registration, and
+  routing are unambiguous: Document Forge converts sources to Markdown; Word
+  Illuminator produces DOCX deliverables.
 
-## Evidencia de validación
+## Validation Evidence
 
-Comandos principales:
+Primary commands:
 
 ```bash
 rtk python3 skills/krt-word-illuminator/scripts/test_word_illuminator.py
@@ -226,51 +231,51 @@ rtk python3 skills/krt-skill-arbiter/scripts/check_corpus.py \
 rtk git diff --check
 ```
 
-Resultado:
+Results:
 
-| Check | Resultado |
+| Check | Result |
 |---|---|
-| Suites Python | 19 archivos, 219 métodos de test, sin fallos |
-| Word Illuminator | 30 workflow + 13 package safety + 2 runtime tests |
+| Python suites | 19 files, 219 test methods, no failures |
+| Word Illuminator | 30 workflow + 13 package-safety + 2 runtime tests |
 | Quick validation | 27/27 |
 | Portfolio | 27 skills, 20 safety-critical |
-| Corpus | 12 casos, seis categorías, estructura válida; no ejecutados contra modelos |
-| Runtime de render real | Bloqueado correctamente por herramientas ausentes |
+| Corpus | 12 cases, six categories, valid structure; not executed against models |
+| Real rendering runtime | Correctly blocked by missing tools |
 
-## Riesgo residual y siguiente ciclo
+## Residual Risk and Next Cycle
 
-Tras corregir los dos P1 y el P2 encontrados en la última revisión adversarial,
-no quedan defectos conocidos que justifiquen bloquear la cartera. Permanecen
-limitaciones explícitas y mejoras para el siguiente ciclo:
+After correcting the two P1 findings and one P2 from the last adversarial
+review, no known defects remain that justify blocking the portfolio. Explicit
+limitations and improvements remain for the next cycle:
 
-1. Ejecutar periódicamente los 12 casos de Skill Arbiter con varios modelos y
-   versiones, conservando resultados supervisor-captured por separado y
-   registrando modelo, runtime, host, tokens, tiempo y repetición.
-2. Añadir un baseline A/B contra la versión anterior o sin skill para medir
-   mejora real, no solo cumplimiento absoluto.
-3. Añadir CI con LibreOffice y un rasterizador para probar render DOCX real,
-   además de los fixtures rápidos existentes.
-4. Ejecutar LibreOffice en un sandbox sin red y con límites de CPU, memoria,
-   procesos y tiempo definidos por el runtime.
-5. Añadir al portfolio checker un presupuesto agregado de metadata: algunos
-   hosts limitan el catálogo inicial al 2 % del contexto o 8.000 caracteres.
-6. Probar colisiones y coexistencia de triggers entre ámbitos repo, usuario,
-   plugin y sistema, no solo cada skill de forma aislada.
-7. Añadir casos de runtime para actualización de una skill durante una sesión,
-   instalación de plugin, cambios de permisos y expectativa de reinicio.
-8. Ampliar el corpus cuando un incidente real revele una nueva clase de fallo;
-   no aumentar casos solo para inflar cobertura.
-9. Revisar trimestralmente descripciones y negative triggers a partir de
-   confusiones de routing observadas, no por cambios cosméticos de tendencia.
-10. Ejecutar cada evaluación en una sesión limpia, manteniendo constantes
-    corpus, modelo y runtime al comparar versiones.
-11. Ampliar el portfolio checker con indicadores declarados y observados de
-    ejecución de código, red, MCP, credenciales y alcance de filesystem.
+1. Periodically run the 12 Skill Arbiter cases with several models and
+   versions, keeping supervisor-captured results separate and recording the
+   model, runtime, host, tokens, time, and repetition.
+2. Add an A/B baseline against the previous version or no skill to measure real
+   improvement, not only absolute compliance.
+3. Add CI with LibreOffice and a rasterizer to test real DOCX rendering in
+   addition to the existing fast fixtures.
+4. Run LibreOffice in a networkless sandbox with CPU, memory, process, and time
+   limits defined by the runtime.
+5. Add an aggregate metadata budget to the portfolio checker: some hosts limit
+   the initial catalog to 2% of context or 8,000 characters.
+6. Test trigger collisions and coexistence across repository, user, plugin,
+   and system scopes, not only each skill in isolation.
+7. Add runtime cases for updating a skill during a session, installing a
+   plugin, changing permissions, and restart expectations.
+8. Expand the corpus when a real incident reveals a new failure class; do not
+   add cases merely to inflate coverage.
+9. Review descriptions and negative triggers quarterly based on observed
+   routing confusion, not cosmetic trend changes.
+10. Run every evaluation in a clean session, holding corpus, model, and runtime
+    constant when comparing versions.
+11. Extend the portfolio checker with declared and observed indicators for code
+    execution, network access, MCP, credentials, and filesystem scope.
 
-## Conclusión
+## Conclusion
 
-La cartera ya no depende solo de instrucciones persuasivas. Sus zonas críticas
-combinan contratos escritos, límites de autoridad, scripts deterministas,
-fixtures negativos y checks de portfolio. La mejora más importante no es una
-skill aislada, sino el bucle de mantenimiento: diagnosticar, corregir, evaluar y
-volver a revisar con evidencia.
+The portfolio no longer depends on persuasive instructions alone. Its critical
+areas combine written contracts, authority boundaries, deterministic scripts,
+negative fixtures, and portfolio checks. The most important improvement is not
+an isolated skill, but the maintenance loop: diagnose, correct, evaluate, and
+review again with evidence.

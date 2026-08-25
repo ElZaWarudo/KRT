@@ -1,125 +1,125 @@
-# Catálogo de evaluadores de pulido
+# Polish Evaluator Catalog
 
-## Contenido
+## Contents
 
-1. Contrato común
-2. Evaluador 01 — Alcance y foco
-3. Evaluador 02 — Coherencia de comportamiento
-4. Evaluador 03 — Estado y feedback
-5. Evaluador 04 — Estados no ideales
-6. Evaluador 05 — Protección del usuario
-7. Evaluador 06 — Jerarquía de interfaz
-8. Evaluador 07 — Contenido y lenguaje
-9. Evaluador 08 — Rendimiento percibido
-10. Evaluador 09 — Convenciones de plataforma
-11. Evaluador 10 — Accesibilidad incorporada
-12. Evaluador 11 — Continuidad de contexto
-13. Evaluador 12 — Finalización y costuras
+1. Shared contract
+2. Evaluator 01 — Scope and focus
+3. Evaluator 02 — Behavioral consistency
+4. Evaluator 03 — Status and feedback
+5. Evaluator 04 — Non-ideal states
+6. Evaluator 05 — User protection
+7. Evaluator 06 — Interface hierarchy
+8. Evaluator 07 — Content and language
+9. Evaluator 08 — Perceived performance
+10. Evaluator 09 — Platform conventions
+11. Evaluator 10 — Built-in accessibility
+12. Evaluator 11 — Context continuity
+13. Evaluator 12 — Completeness and seams
 
-## 1. Contrato común
+## 1. Shared Contract
 
-Entregar a cada agente el atlas validado, el paquete común de evidencia, los flujos asignados y `references/evidence-and-report-protocol.md`.
+Give each agent the validated atlas, shared evidence packet, assigned flows, and `references/evidence-and-report-protocol.md`.
 
-Prompt base:
+Base prompt:
 
 ```text
-Actúa como Evaluador <NN — nombre>. Trabaja en solo lectura y limita el diagnóstico a tu dimensión. Usa el atlas como mapa, no como prueba suficiente. Recorre los flujos asignados y contrasta evidencia observable. No implementes, no inventes estados y no leas hallazgos de otros evaluadores. Devuelve exactamente el contrato de evaluador, incluidos rating, confidence, coverage, findings, keep, unknowns y cross_refs. Todo hallazgo debe citar evidencia, explicar el efecto, proponer una corrección acotada y definir una verificación observable.
+Act as Evaluator <NN — name>. Work read-only and limit the diagnosis to your dimension. Use the atlas as a map, not as sufficient proof. Walk the assigned flows and compare observable evidence. Do not implement, invent states, or read other evaluators' findings. Return exactly the evaluator contract, including rating, confidence, coverage, findings, keep, unknowns, and cross_refs. Every finding must cite evidence, explain the effect, propose a bounded correction, and define an observable verification.
 ```
 
-No duplicar una observación dentro del mismo pase. Si una causa parece pertenecer principalmente a otra dimensión, devolverla en `cross_refs` con evidencia breve y mantener solo el aspecto propio.
+Do not duplicate an observation within the same pass. If a cause appears to belong mainly to another dimension, return it in `cross_refs` with brief evidence and keep only the dimension-specific aspect.
 
-## 2. Evaluador 01 — Alcance y foco
+## 2. Evaluator 01 — Scope and Focus
 
-**Misión:** determinar si el producto comunica con precisión qué problema resuelve y organiza la experiencia alrededor de la acción principal.
+**Mission:** determine whether the product communicates precisely what problem it solves and organizes the experience around the primary action.
 
-Examinar promesa, entradas, onboarding, navegación, jerarquía de acciones, funciones secundarias, callejones sin salida y correspondencia con el modelo mental declarado. Comprobar si cada pantalla ayuda a iniciar, completar, comprender o recuperar un trabajo real. Buscar controles que existen sin propósito visible, acciones primarias que compiten y arquitectura interna filtrada a la interfaz.
+Examine the promise, entry points, onboarding, navigation, action hierarchy, secondary features, dead ends, and alignment with the declared mental model. Check whether each screen helps start, complete, understand, or recover real work. Look for controls with no visible purpose, competing primary actions, and internal architecture leaking into the interface.
 
-No penalizar un alcance pequeño ni una restricción deliberada. Penalizar ambigüedad, competencia o expansión superficial que debilite el flujo principal.
+Do not penalize a small scope or deliberate constraint. Penalize ambiguity, competition, or superficial expansion that weakens the main flow.
 
-## 3. Evaluador 02 — Coherencia de comportamiento
+## 3. Evaluator 02 — Behavioral Consistency
 
-**Misión:** comprobar que acciones, conceptos y patrones equivalentes se comportan y se nombran de forma predecible.
+**Mission:** check that equivalent actions, concepts, and patterns behave predictably and use consistent names.
 
-Comparar guardar, cerrar, volver, editar, eliminar, seleccionar, abrir detalle, confirmar y navegar a través de superficies y plataformas. Revisar terminología, jerarquía, estados interactivos, posición de acciones, conservación al volver y efecto de patrones repetidos. Buscar casos en que el usuario deba reaprender una convención ya enseñada.
+Compare save, close, back, edit, delete, select, open details, confirm, and navigate across surfaces and platforms. Review terminology, hierarchy, interactive states, action placement, state preservation on return, and the effect of repeated patterns. Find cases where users must relearn a convention they were already taught.
 
-Distinguir diferencias justificadas por riesgo, plataforma o contexto de inconsistencias accidentales. Exigir que toda excepción tenga una razón comprensible.
+Distinguish differences justified by risk, platform, or context from accidental inconsistencies. Require every exception to have an understandable reason.
 
-## 4. Evaluador 03 — Estado y feedback
+## 4. Evaluator 03 — Status and Feedback
 
-**Misión:** verificar que antes, durante y después de cada acción quede claro qué ocurre y qué puede hacerse a continuación.
+**Mission:** verify that before, during, and after every action, users understand what is happening and what they can do next.
 
-Examinar reconocimiento inmediato del input, estados pendientes, botones bloqueados, prevención de doble envío, progreso, éxito, fallo, sincronización, optimismo y rollback. Probar acciones rápidas o repetidas y transiciones de uno o varios segundos. Revisar si la señal aparece junto al objeto afectado y si anuncia cambios importantes a tecnologías de asistencia.
+Examine immediate input acknowledgment, pending states, disabled buttons, duplicate-submit prevention, progress, success, failure, synchronization, optimism, and rollback. Test quick or repeated actions and transitions lasting one or several seconds. Check whether the signal appears beside the affected object and whether important changes are announced to assistive technology.
 
-Priorizar silencios, estado falso y causalidad ambigua antes que animaciones o microinteracciones decorativas.
+Prioritize silence, false state, and ambiguous causality over decorative animation or microinteractions.
 
-## 5. Evaluador 04 — Estados no ideales
+## 5. Evaluator 04 — Non-Ideal States
 
-**Misión:** determinar si la aplicación sigue siendo comprensible y recuperable fuera del camino feliz.
+**Mission:** determine whether the application remains understandable and recoverable outside the happy path.
 
-Cubrir vacío inicial y por filtros, exceso de datos, lentitud, offline, errores del servidor, permisos, sesión expirada, contenido ausente, texto largo, archivo inválido, flujo abandonado, viewport estrecho y operación prolongada cuando apliquen. Comprobar que cada estado explica qué ocurrió, qué se conservó y cuál es la siguiente acción útil.
+Cover initial and filtered empty states, excess data, slowness, offline behavior, server errors, permissions, expired sessions, missing content, long text, invalid files, abandoned flows, narrow viewports, and long-running operations when applicable. Check that every state explains what happened, what was preserved, and the next useful action.
 
-No exigir estados irrelevantes. Marcar como hueco del atlas cualquier condición aplicable que no pueda provocarse de forma segura.
+Do not demand irrelevant states. Mark any applicable condition that cannot be triggered safely as an atlas gap.
 
-## 6. Evaluador 05 — Protección del usuario
+## 6. Evaluator 05 — User Protection
 
-**Misión:** comprobar que el producto tolera errores humanos y aplica fricción proporcional al riesgo.
+**Mission:** check that the product tolerates human error and applies friction proportional to risk.
 
-Revisar deshacer, autoguardado, borradores, validación contextual, valores predeterminados, preservación de entrada, prevención de incompatibilidades, historial y recuperación. Comparar acciones reversibles, destructivas y destructivas irreversibles. Detectar confirmaciones rutinarias que entrenan a aceptar sin leer y acciones graves con lenguaje o controles insuficientes.
+Review undo, autosave, drafts, contextual validation, defaults, input preservation, incompatibility prevention, history, and recovery. Compare reversible, destructive, and irreversibly destructive actions. Find routine confirmations that train users to accept without reading and serious actions with inadequate language or controls.
 
-No ejecutar consecuencias reales fuera de un entorno seguro. Usar código, pruebas o simulación cuando la operación sea financiera, pública, irreversible o sensible.
+Do not execute real consequences outside a safe environment. Use code, tests, or simulation when an operation is financial, public, irreversible, or sensitive.
 
-## 7. Evaluador 06 — Jerarquía de interfaz
+## 7. Evaluator 06 — Interface Hierarchy
 
-**Misión:** evaluar si la composición permite entender importancia, relación, interactividad y secuencia sin depender de ornamentación.
+**Mission:** assess whether the composition communicates importance, relationships, interactivity, and sequence without relying on ornament.
 
-Revisar acción dominante, agrupación, alineación, espaciado, escala tipográfica, contraste, densidad, color, iconografía, tamaños, estados y adaptación responsive. Buscar proliferación de estilos, márgenes arbitrarios, superficies injustificadas, controles que no parecen interactivos y pantallas diseñadas de forma aislada.
+Review the dominant action, grouping, alignment, spacing, type scale, contrast, density, color, iconography, sizes, states, and responsive adaptation. Look for proliferating styles, arbitrary margins, unjustified surfaces, controls that do not look interactive, and screens designed in isolation.
 
-No imponer un gusto visual nuevo. Medir regularidad, legibilidad y adecuación a la tarea; preservar una identidad existente que funcione.
+Do not impose a new visual taste. Measure regularity, legibility, and fitness for the task; preserve an existing identity that works.
 
-## 8. Evaluador 07 — Contenido y lenguaje
+## 8. Evaluator 07 — Content and Language
 
-**Misión:** comprobar que el texto reduce incertidumbre y habla desde la tarea del usuario.
+**Mission:** check that text reduces uncertainty and speaks from the user's task.
 
-Revisar etiquetas, botones, títulos, ayudas, vacíos, errores, confirmaciones, estados, terminología, tono y capitalización. Buscar nombres técnicos o de base de datos, verbos genéricos como “Aceptar” o “Continuar”, errores sin recuperación, explicaciones largas que compensan un diseño confuso y sinónimos para el mismo concepto.
+Review labels, buttons, headings, help, empty states, errors, confirmations, statuses, terminology, tone, and capitalization. Look for technical or database names, generic verbs such as “Accept” or “Continue,” errors without recovery, long explanations compensating for confusing design, and synonyms for the same concept.
 
-Proponer texto concreto y accionable sin inventar políticas, garantías o resultados. Tratar el contenido como mecánica, no como decoración.
+Propose concrete, actionable copy without inventing policies, guarantees, or outcomes. Treat content as mechanics, not decoration.
 
-## 9. Evaluador 08 — Rendimiento percibido
+## 9. Evaluator 08 — Perceived Performance
 
-**Misión:** evaluar la latencia entre intención y respuesta visible, la estabilidad visual y la continuidad mientras el sistema trabaja.
+**Mission:** assess latency between intent and visible response, visual stability, and continuity while the system works.
 
-Observar primer reconocimiento, carga priorizada, conservación de contenido anterior, skeletons o placeholders, bloqueo local frente a global, saltos de layout, recargas completas, parpadeo, tareas en segundo plano y capacidad de continuar. Contrastar cuando sea posible con trazas o mediciones para distinguir percepción de tiempo real.
+Observe first acknowledgment, prioritized loading, preservation of previous content, skeletons or placeholders, local versus global blocking, layout shifts, full reloads, flicker, background tasks, and the ability to continue. Where possible, compare against traces or measurements to distinguish perceived from actual time.
 
-No recomendar animación para ocultar lentitud. Priorizar respuesta inmediata, dimensiones estables, trabajo incremental y honestidad del estado.
+Do not recommend animation to hide slowness. Prioritize immediate response, stable dimensions, incremental work, and honest status.
 
-## 10. Evaluador 09 — Convenciones de plataforma
+## 10. Evaluator 09 — Platform Conventions
 
-**Misión:** comprobar que la aplicación coopera con las expectativas de cada plataforma soportada.
+**Mission:** check that the application cooperates with the expectations of every supported platform.
 
-En web, revisar URLs, deep links, recarga, back/forward, nueva pestaña, foco y teclado. En móvil, revisar navegación posterior, áreas táctiles, teclado de campo, zonas seguras, permisos, interrupciones y rotación. En escritorio, revisar atajos, menús contextuales, selección múltiple, drag and drop, ventanas, densidad y operaciones con archivos.
+On the web, review URLs, deep links, reload, back/forward, new tabs, focus, and keyboard use. On mobile, review back navigation, touch targets, field keyboards, safe areas, permissions, interruptions, and rotation. On desktop, review shortcuts, context menus, multiselect, drag and drop, windows, density, and file operations.
 
-Evaluar solo plataformas declaradas. Distinguir una decisión multiplataforma consciente de una convención rota que obliga a luchar contra el dispositivo.
+Evaluate only declared platforms. Distinguish a deliberate cross-platform decision from a broken convention that forces users to fight the device.
 
-## 11. Evaluador 10 — Accesibilidad incorporada
+## 11. Evaluator 10 — Built-In Accessibility
 
-**Misión:** verificar que estructura, operación y feedback sean utilizables con distintas capacidades y preferencias.
+**Mission:** verify that structure, operation, and feedback work for different abilities and preferences.
 
-Comprobar contraste, foco visible, orden lógico, nombres accesibles, semántica, teclado, objetivos táctiles, alternativas al color, zoom y reflow, texto ampliado, movimiento reducido, mensajes asociados y anuncios de estado. Recorrer el flujo principal sin ratón y, cuando sea posible, con lector de pantalla o árbol de accesibilidad.
+Check contrast, visible focus, logical order, accessible names, semantics, keyboard use, touch targets, alternatives to color, zoom and reflow, enlarged text, reduced motion, associated messages, and status announcements. Walk the primary flow without a mouse and, when possible, with a screen reader or accessibility tree.
 
-No limitarse a una inspección automática. Separar infracciones observadas de riesgos detectados solo en código y declarar las tecnologías no probadas.
+Do not stop at automated inspection. Separate observed violations from risks found only in code, and name technologies that were not tested.
 
-## 12. Evaluador 11 — Continuidad de contexto
+## 12. Evaluator 11 — Context Continuity
 
-**Misión:** comprobar que el usuario no necesita reconstruir innecesariamente su trabajo al navegar, editar, fallar o volver.
+**Mission:** check that users do not needlessly reconstruct their work when navigating, editing, failing, or returning.
 
-Revisar scroll, filtros, búsqueda, orden, selección, pestaña, foco, borradores, posición en listas, contexto de navegación y estado entre sesiones cuando corresponda. Probar detalle-retorno, edición-retorno, back/forward, recarga, reapertura y fallo con recuperación. Detectar movimientos inesperados o refrescos que sustituyen una actualización local.
+Review scroll position, filters, search, sort order, selection, tabs, focus, drafts, list position, navigation context, and cross-session state where appropriate. Test detail-return, edit-return, back/forward, reload, reopen, and failure with recovery. Find unexpected movement or refreshes that replace a local update.
 
-No exigir persistencia de datos sensibles o efímeros cuando borrarlos sea una decisión de seguridad o privacidad declarada.
+Do not require sensitive or ephemeral data to persist when clearing it is a declared security or privacy choice.
 
-## 13. Evaluador 12 — Finalización y costuras
+## 13. Evaluator 12 — Completeness and Seams
 
-**Misión:** localizar señales de implementación parcial que impiden que el producto se perciba como una unidad terminada.
+**Mission:** locate signs of partial implementation that keep the product from feeling complete and unified.
 
-Recorrer los flujos completos buscando botones muertos, enlaces sin salida, texto provisional, datos falsos, estilos o iconos discordantes, elementos inestables, animaciones cortadas, formularios sin capacidades esperadas, contenido real que rompe componentes, errores de consola y funciones a medias. Revisar transiciones entre módulos y no solo cada pantalla aislada.
+Walk complete flows looking for dead buttons, broken links, placeholder text, fake data, mismatched styles or icons, unstable elements, cut-off animations, forms missing expected capabilities, real content that breaks components, console errors, and half-finished features. Review transitions between modules, not only isolated screens.
 
-No convertir preferencias menores en defectos. Priorizar costuras reproducibles que dañan confianza, comprensión o conclusión del trabajo.
+Do not turn minor preferences into defects. Prioritize reproducible seams that damage trust, understanding, or task completion.

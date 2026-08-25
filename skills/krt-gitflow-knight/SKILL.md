@@ -5,7 +5,7 @@ description: >
   branch (propose/confirm branch name if missing or off-convention), split
   pending changes into atomic commits with clear messages, present a commit plan
   for user authorization, then stage and create the commits. Use when the user
-  asks to hacer commits / commit changes, wants to follow gitflow, or wants help
+  asks to commit changes, wants to follow gitflow, or wants help
   preparing commits before pushing/opening a PR. Never add any LLM co-author
   lines to commit messages. Runtime aliases may expose this as krt:gitflow-knight.
 ---

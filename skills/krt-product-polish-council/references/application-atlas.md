@@ -1,59 +1,59 @@
-# Atlas versionable de la aplicación
+# Versioned Application Atlas
 
-## Contenido
+## Contents
 
-1. Propósito y autoridad
-2. Preflight de frescura
-3. Entrevista de intención
-4. Procedimiento del Cartógrafo
-5. Esquema del archivo
-6. Puerta de cobertura
-7. Estrategia según tamaño
-8. Mantenimiento
+1. Purpose and authority
+2. Freshness preflight
+3. Intent interview
+4. Cartographer procedure
+5. File schema
+6. Coverage gate
+7. Size-based strategy
+8. Maintenance
 
-## 1. Propósito y autoridad
+## 1. Purpose and Authority
 
-Crear un mapa factual y compartido de lo que la aplicación pretende hacer y de lo que realmente expone. Guardarlo por defecto en `docs/product/application-atlas.md`.
+Create a shared factual map of what the application intends to do and what it actually exposes. Store it at `docs/product/application-atlas.md` by default.
 
-Separar siempre:
+Always separate:
 
-- **Declared**: intención confirmada por una fuente con autoridad.
-- **Observed**: comportamiento reproducido en la aplicación o demostrado por evidencia directa.
-- **Code**: capacidad o ruta presente en código/configuración, aunque no se haya reproducido.
-- **Inferred**: hipótesis útil pendiente de confirmación.
-- **Unverified**: zona conocida que no pudo examinarse.
+- **Declared**: intent confirmed by an authoritative source.
+- **Observed**: behavior reproduced in the application or demonstrated by direct evidence.
+- **Code**: a capability or route present in code or configuration but not reproduced.
+- **Inferred**: a useful hypothesis awaiting confirmation.
+- **Unverified**: a known area that could not be examined.
 
-El atlas no es un informe de auditoría. No incluir calificativos como “malo”, severidades ni recomendaciones. Registrar diferencias entre intención y observación como hechos neutrales; el consejo decidirá después si constituyen un hallazgo.
+The atlas is not an audit report. Do not include labels such as “bad,” severities, or recommendations. Record differences between intent and observation as neutral facts; the council will decide later whether they constitute findings.
 
-## 2. Preflight de frescura
+## 2. Freshness Preflight
 
-El primer acto al usar la skill es comprobar el atlas contra el commit actual.
+The first action when using the skill is to check the atlas against the current commit.
 
-El frontmatter conserva:
+The frontmatter stores:
 
-- `verified_source_commit`: commit presente al realizar la última exploración completa;
-- `application_fingerprint`: SHA-256 del listado de objetos Git cubiertos en el commit;
-- `tracked_paths`: rutas cuyo cambio puede volver obsoleto el atlas;
-- `excluded_paths`: artefactos que no describen la aplicación, incluido el propio atlas;
-- `last_verified_at`: fecha ISO de la última verificación sustantiva.
+- `verified_source_commit`: the commit present during the last complete exploration;
+- `application_fingerprint`: SHA-256 of the covered Git object listing in that commit;
+- `tracked_paths`: paths whose changes can make the atlas stale;
+- `excluded_paths`: artifacts that do not describe the application, including the atlas itself;
+- `last_verified_at`: ISO date of the last substantive verification.
 
-Ejecutar:
+Run:
 
 ```bash
 rtk python3 <skill-path>/scripts/check_atlas_freshness.py \
   --atlas docs/product/application-atlas.md
 ```
 
-Interpretar:
+Interpret the result:
 
-- `fresh`: el contenido cubierto coincide con `HEAD` y no hay cambios relevantes sin confirmar;
-- `stale`: cambió al menos un archivo cubierto o el working tree contiene cambios relevantes;
-- `missing`: no existe el atlas;
-- `invalid`: faltan metadatos o el esquema no se puede leer.
+- `fresh`: covered content matches `HEAD` and no relevant uncommitted changes exist;
+- `stale`: at least one covered file changed or the working tree contains relevant changes;
+- `missing`: the atlas does not exist;
+- `invalid`: metadata is missing or the schema cannot be read.
 
-No exigir que `verified_source_commit` sea idéntico a `HEAD`: un commit que añade el propio atlas cambiaría el SHA y crearía una autorreferencia imposible. Exigir en su lugar que el fingerprint del árbol cubierto coincida. Usar el commit como procedencia y el fingerprint como prueba.
+Do not require `verified_source_commit` to equal `HEAD`: a commit that adds the atlas itself changes the SHA and creates impossible self-reference. Require the covered-tree fingerprint to match instead. Use the commit for provenance and the fingerprint as proof.
 
-Para obtener el fingerprint que debe copiarse al atlas después de una exploración sobre un commit limpio:
+To obtain the fingerprint to copy into the atlas after exploring a clean commit:
 
 ```bash
 rtk python3 <skill-path>/scripts/check_atlas_freshness.py \
@@ -61,44 +61,44 @@ rtk python3 <skill-path>/scripts/check_atlas_freshness.py \
   --compute
 ```
 
-## 3. Entrevista de intención
+## 3. Intent Interview
 
-Revisar antes los documentos existentes. Preguntar solo lo que siga sin respuesta: omitir por completo cada dato ya declarado y reformular preguntas compuestas para no pedirlo de nuevo. Hacer una única ronda, mantenerla corta y esperar antes de fijar la intención declarada.
+Review existing documents first. Ask only what remains unanswered: omit every fact already declared and reformulate compound questions to avoid asking for it again. Ask one short round and wait before fixing declared intent.
 
-Preguntas base:
+Base questions:
 
-1. ¿Quién es el usuario principal y qué problema viene a resolver?
-2. ¿Qué tarea debe poder completar con confianza en una sesión normal?
-3. ¿Cuál es la acción principal y qué señal confirma que terminó bien?
-4. ¿Qué roles, plataformas o contextos de uso siguen sin documentar y están realmente soportados?
-5. ¿Qué errores o resultados serían inaceptables: pérdida de trabajo, exposición, cobro, publicación, bloqueo u otros?
-6. ¿Qué límites, ausencias o fricciones son deliberados y no deben interpretarse como defectos?
-7. ¿Qué flujos son más frecuentes, valiosos o críticos para el negocio y para el usuario?
+1. Who is the primary user, and what problem are they trying to solve?
+2. What task must they be able to complete confidently in a normal session?
+3. What is the primary action, and what signal confirms successful completion?
+4. Which roles, platforms, or usage contexts remain undocumented but are actually supported?
+5. Which errors or outcomes would be unacceptable: loss of work, exposure, charges, publication, lockout, or something else?
+6. Which boundaries, omissions, or points of friction are deliberate and must not be interpreted as defects?
+7. Which flows are most frequent, valuable, or critical to the business and the user?
 
-Registrar cada respuesta con fuente y fecha. Si dos fuentes autorizadas se contradicen, no resolverlo por intuición: anotar el conflicto y pedir decisión.
+Record every answer with its source and date. If two authoritative sources conflict, do not resolve the conflict by intuition: record it and request a decision.
 
-Si el usuario pide continuar sin responder, registrar las respuestas provisionales como `Inferred`. No usar esas inferencias para emitir P0/P1 por falta de alineación de producto.
+If the user asks to continue without answering, record provisional answers as `Inferred`. Do not use those inferences to issue P0/P1 findings for product misalignment.
 
-## 4. Procedimiento del Cartógrafo
+## 4. Cartographer Procedure
 
-Explorar de ancho a profundidad:
+Explore breadth first, then depth:
 
-1. Inventariar plataformas, puntos de entrada, rutas, ventanas, pestañas y superficies principales.
-2. Identificar actores, roles, permisos, estados de sesión y diferencias por plan o tenant.
-3. Recorrer navegación global y local; registrar entradas, salidas, retorno y enlaces profundos.
-4. Definir los flujos importantes con precondiciones, acción principal, resultado, datos modificados y recuperación.
-5. Catalogar por superficie los estados ideal, vacío, carga, progreso, éxito, validación, error, offline, permiso, sesión expirada, contenido extremo y volumen alto cuando apliquen.
-6. Mapear persistencia: borradores, autoguardado, selección, filtros, scroll, historial y estado entre sesiones.
-7. Registrar integraciones, trabajos asíncronos, archivos, notificaciones, pagos u otros límites externos.
-8. Señalar acciones destructivas, irreversibles, financieras, públicas o sensibles sin ejecutarlas fuera de un entorno seguro.
-9. Registrar convenciones de entrada y plataforma: teclado, táctil, lector de pantalla, back/forward, deep links, ventanas, archivos y responsive.
-10. Mantener un ledger de cobertura con evidencia y huecos.
+1. Inventory platforms, entry points, routes, windows, tabs, and primary surfaces.
+2. Identify actors, roles, permissions, session states, and differences by plan or tenant.
+3. Walk global and local navigation; record entries, exits, return behavior, and deep links.
+4. Define important flows with preconditions, primary action, outcome, modified data, and recovery.
+5. Catalog the happy, empty, loading, progress, success, validation, error, offline, permission, expired-session, extreme-content, and high-volume states for each surface when applicable.
+6. Map persistence: drafts, autosave, selection, filters, scroll position, history, and cross-session state.
+7. Record integrations, asynchronous jobs, files, notifications, payments, and other external boundaries.
+8. Flag destructive, irreversible, financial, public, or sensitive actions without executing them outside a safe environment.
+9. Record input and platform conventions: keyboard, touch, screen reader, back/forward, deep links, windows, files, and responsive behavior.
+10. Maintain a coverage ledger with evidence and gaps.
 
-Preferir comportamiento reproducido en runtime. Usar rutas, componentes, pruebas y configuración para descubrir zonas ocultas; usar documentación para explicar intención. No copiar secretos ni datos personales al atlas.
+Prefer behavior reproduced at runtime. Use routes, components, tests, and configuration to find hidden areas; use documentation to explain intent. Do not copy secrets or personal data into the atlas.
 
-## 5. Esquema del archivo
+## 5. File Schema
 
-Usar esta estructura y conservar IDs entre versiones:
+Use this structure and preserve IDs across versions:
 
 ```markdown
 ---
@@ -174,42 +174,42 @@ last_verified_at: "YYYY-MM-DD"
 - YYYY-MM-DD: <factual atlas change and reason>
 ```
 
-Usar `status: "validated"` únicamente cuando pase la puerta de cobertura. Usar `status: "stale"` en cuanto se detecte un cambio relevante que aún no se haya cartografiado.
+Use `status: "validated"` only after passing the coverage gate. Use `status: "stale"` as soon as a relevant change has not yet been mapped.
 
-## 6. Puerta de cobertura
+## 6. Coverage Gate
 
-Abrir el consejo solo si:
+Convene the council only when:
 
-- la promesa, el usuario, la tarea, la acción principal y la señal de éxito están declarados o marcados como hipótesis;
-- todas las plataformas y roles conocidos tienen disposición;
-- todas las superficies alcanzables dentro del alcance aparecen en el mapa;
-- cada flujo principal o de alta consecuencia tiene entrada, final, datos, estados y recuperación;
-- permisos, sesión, integraciones y acciones destructivas tienen cobertura o hueco explícito;
-- existen muestras para vacío, carga, error, contenido extremo, volumen, viewport e input cuando aplican;
-- el ledger distingue `covered`, `partial`, `unverified` y `out-of-scope`;
-- el fingerprint corresponde al commit actual y no hay cambios relevantes sin confirmar.
+- the promise, user, job, primary action, and success signal are declared or marked as hypotheses;
+- every known platform and role has a disposition;
+- every reachable in-scope surface appears on the map;
+- every primary or high-consequence flow has an entry, completion, data, states, and recovery path;
+- permissions, session behavior, integrations, and destructive actions have coverage or an explicit gap;
+- samples exist for empty, loading, error, extreme-content, volume, viewport, and input conditions when applicable;
+- the ledger distinguishes `covered`, `partial`, `unverified`, and `out-of-scope`;
+- the fingerprint matches the current commit and no relevant uncommitted changes exist.
 
-Si falta evidencia, el Líder puede continuar solo con alcance reducido y debe declarar la limitación. Nunca presentar una muestra parcial como auditoría exhaustiva.
+If evidence is missing, the Lead may continue only with reduced scope and must declare the limitation. Never present a partial sample as a comprehensive audit.
 
-## 7. Estrategia según tamaño
+## 7. Size-Based Strategy
 
-- **Aplicación pequeña**: cubrir todas las superficies, roles y estados alcanzables.
-- **Aplicación mediana**: cubrir todas las superficies; profundizar en todos los flujos principales y de alta consecuencia.
-- **Aplicación grande**: inventariar toda la amplitud; profundizar por riesgo y representatividad, incluyendo al menos un flujo por rol, plataforma, patrón de interacción e integración crítica.
+- **Small application**: cover every reachable surface, role, and state.
+- **Medium application**: cover every surface; examine all primary and high-consequence flows in depth.
+- **Large application**: inventory the full breadth; go deep based on risk and representativeness, including at least one flow per role, platform, interaction pattern, and critical integration.
 
-“Todos los recovecos” significa que cada zona conocida tiene una disposición de cobertura, no que se afirme haber ejecutado combinaciones imposibles o inaccesibles.
+“Every nook and cranny” means every known area has a coverage disposition, not that impossible or inaccessible combinations were claimed as executed.
 
-## 8. Mantenimiento
+## 8. Maintenance
 
-Actualizar el atlas en el mismo cambio que altere:
+Update the atlas in the same change that modifies:
 
-- rutas, navegación o superficies;
-- roles, permisos o estados de sesión;
-- inicio, resultado o recuperación de un flujo;
-- persistencia, borradores o contexto conservado;
-- integraciones o trabajos asíncronos;
-- plataformas soportadas o convenciones de entrada;
-- límites de datos, archivos o volumen;
-- intención de producto o restricciones deliberadas.
+- routes, navigation, or surfaces;
+- roles, permissions, or session states;
+- a flow's entry, outcome, or recovery;
+- persistence, drafts, or preserved context;
+- integrations or asynchronous jobs;
+- supported platforms or input conventions;
+- data, file, or volume limits;
+- product intent or deliberate constraints.
 
-Preservar IDs y filas no afectadas. Añadir una entrada breve al change log. Volver a calcular el fingerprint sobre un commit limpio y ejecutar el preflight antes de una nueva auditoría.
+Preserve unaffected IDs and rows. Add a short change-log entry. Recalculate the fingerprint from a clean commit and run the preflight before another audit.

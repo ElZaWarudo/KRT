@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-bicentennial-writer"
-  short_description: "Redacta textos naturales y academicos con criterio"
+  short_description: "Write natural, well-reasoned academic prose"
   default_prompt: "Use krt-bicentennial-writer to draft or revise a text so it sounds natural, specific, context-aware, and academically reasoned."

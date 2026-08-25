@@ -59,13 +59,13 @@ Keep the work at the requirements level. Do not jump into architecture, schema d
    - Rewrite statements so they are testable and stakeholder-readable. Prefer active voice, singular obligations, explicit conditions, and measurable outcomes.
    - When a statement is solution-biased, restate the underlying need before keeping or discarding the proposed solution.
    - When useful, apply a lightweight EARS-style pattern:
-     - ubiquitous: `El sistema debera ...`
-     - event-driven: `Cuando <evento>, el sistema debera ...`
-     - state-driven: `Mientras <estado>, el sistema debera ...`
-     - unwanted behavior: `Si <condicion anomala>, el sistema debera ...`
+     - ubiquitous: `The system shall ...`
+     - event-driven: `When <event>, the system shall ...`
+     - state-driven: `While <state>, the system shall ...`
+     - unwanted behavior: `If <abnormal condition>, the system shall ...`
 
 5. Validate.
-   - Present a concise "esto es lo que vamos a construir" summary before closing.
+   - Present a concise “this is what we are going to build” summary before closing.
    - Check each material requirement set for completeness, consistency, feasibility, traceability, and verifiability.
    - Highlight remaining assumptions, conflicts, dependencies, and decision points.
    - Ask for confirmation or correction before handing off to planning when the scope is still materially ambiguous.

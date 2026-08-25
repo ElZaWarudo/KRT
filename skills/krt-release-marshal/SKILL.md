@@ -124,86 +124,87 @@ Run a PR scope guardrail before building the plan:
 - Treat these `check_pr_scope.py` results as soft blockers before PR creation: lines printed as `BLOCKING:`, generated/mechanical files dominating functional review, or ~1,000+ human-authored changed lines. Mixed orchestration/planning docs are a warning to assess relevance and noise, never a blocking reason by themselves, and not a reason to silently exclude related documentation from the branch or PR.
 - Do not respond to documentation warnings by moving related docs into stash, another worktree, a side branch, or an otherwise unshipped local state. Either keep the docs in the current PR/branch, or show an explicit user-approved split plan that names where those docs will ship.
 - Treat >900 human-authored changed lines as an advisory warning that must be visible in the plan.
-- If a soft blocker appears, do not bury it as a normal warning. The plan must include an explicit `Decisión de tamaño/alcance:` line with exactly one of: `separar antes de PR` or `aprobar PR grande por <rationale>`.
-- The accepted release plan only authorizes an oversized/mixed PR when that `Decisión de tamaño/alcance` line names the rationale and the remote mutations covered by approval include the oversized override.
-- If the user or enclosing workflow already approved a broad review unit, carry that rationale into the release plan and `Decisión de tamaño/alcance`, not the PR body.
+- If a soft blocker appears, do not bury it as a normal warning. The plan must include an explicit `Size/scope decision:` line with exactly one of: `split before PR` or `approve large PR because <rationale>`.
+- The accepted release plan only authorizes an oversized/mixed PR when that `Size/scope decision` line names the rationale and the remote mutations covered by approval include the oversized override.
+- If the user or enclosing workflow already approved a broad review unit, carry that rationale into the release plan and `Size/scope decision`, not the PR body.
 
-Build and show a phase plan in the user's language. The visible message should read like an editorial release proposal, not a raw workflow dump. For a single PR/release unit, prefer a compact structure such as:
+Build and show a phase plan in the user's language. The visible message should read like an editorial release proposal, not a raw workflow dump. The English labels below are canonical examples; translate every visible label into the user's language except the machine-readable `Size/scope decision:` control line and its `split before PR` / `approve large PR because <rationale>` values, which must remain exact. For a single PR/release unit, prefer a compact structure such as:
 
 ```markdown
-**Plan de release**
-- Objetivo:
-- Rama actual:
-- Rama base:
-- Alcance:
+**Release plan**
+- Objective:
+- Current branch:
+- Base branch:
+- Scope:
 - Commits:
 - Jira:
-- Guardarraíl de alcance:
-- Push exacto: `<exact push command or none>`
+- Scope guardrail:
+- Size/scope decision: `<split before PR | approve large PR because rationale | not required>`
+- Exact push: `<exact push command or none>`
 - PR:
 - Reviewers:
 - Merge:
-- Mutaciones remotas cubiertas por esta aprobación:
-- Cosas sobre las que todavía preguntaré:
+- Remote mutations covered by this approval:
+- Items I will still ask about:
 
-¿Apruebas este plan de release?
+Do you approve this release plan?
 ```
 
 Adapt the labels when another short shape is clearer, but keep the same idea: summarize the release decision, not the tool choreography. The push is the exception: show the exact push command so approval binds remote, branch/refspec, and first-push versus force-with-lease mode. Use exact branch names and concrete Jira/PR intent when known. Summarize checker/script outcomes in plain language instead of pasting raw diagnostics. In manual/guarded flow, make clear that merge is not part of this step and that the PR will wait for human review plus later merge authorization. In autonomous flow, summarize merge posture in one sentence instead of dumping validator details unless the user needs them. If a value is not known yet, say what local read-only step will resolve it inside the accepted plan.
 When a PR comment is in scope, add the target PR and the exact English comment text to the visible plan. Approval covers only that target and text; present any later edit as a new external mutation.
-When commit work is needed, the visible plan should include the proposed commit messages plus the main files or surfaces for each commit. Do not summarize commits as just "necesarios" or "uno o varios commits"; show the intended grouping when it can be inferred safely.
+When commit work is needed, the visible plan should include the proposed commit messages plus the main files or surfaces for each commit. Do not summarize commits as merely “needed” or “one or more commits”; show the intended grouping when it can be inferred safely.
 When branch work is needed, the visible plan should include the proposed branch name. Prefer semantic branch names derived from the shipped capability, not from work-package labels, review-unit numbering, or planning traceability.
 When the release plan spans two or more stacked or sibling PRs, do not compress them into one generic phase summary. Prefer this visible structure instead:
 
 ```markdown
-Listo. <one-line readiness summary>
+Ready. <one-line readiness summary>
 
-Estado local:
+Local state:
 
 - <branch or stack fact 1>
 - <branch or stack fact 2>
 - <validation status / warning>
 
-Plan de despliegue actualizado:
+Updated delivery plan:
 
 PR1
 
-- Rama:
+- Branch:
 - Base:
-- Commit: / Commits:
-- Alcance: / Alcance funcional: / Alcance docs:
-- Título:
-- Cuerpo: / Cuerpo validado:
+- Commit / Commits:
+- Scope / Functional scope / Documentation scope:
+- Title:
+- Body / Validated body:
 
 PR2
 
-- Rama:
+- Branch:
 - Base:
-- Commit: / Commits:
-- Alcance: / Alcance funcional: / Alcance docs:
-- Título:
-- Cuerpo: / Cuerpo validado:
+- Commit / Commits:
+- Scope / Functional scope / Documentation scope:
+- Title:
+- Body / Validated body:
 
-Nota sobre PR2:
+Note about PR2:
 
 - <stacking or retarget note when relevant>
 
-Reviewer inferido:
+Inferred reviewer:
 
-- <reviewer or "ninguno claro">
+- <reviewer or “none clearly identified”>
 
 Jira:
 
 - <runtime/mutation status>
 - <what is still pending>
 
-Si quieres, siguiente paso exacto:
+Exact next steps, if desired:
 
 1. ...
 2. ...
 3. ...
 
-Si quieres que lo ejecute, responde sí, <acción concreta>.
+To have me execute it, reply yes and name the concrete action.
 ```
 
 Use this multi-PR structure by default when the message needs to explain stacked branches, retargeting after a base PR merge, per-PR commit groupings, or a split between functional and docs scope. Keep each PR block editorial and concrete. Do not hide stacked-PR prerequisites in prose if they materially affect PR body wording, base branch choice, or reviewer understanding.
@@ -217,7 +218,7 @@ If PR1 is expected to merge by squash and PR2 is stacked on PR1, this note is ma
 
 The plan must be in the final/user-visible response for the gate. Do not only summarize that a plan exists. Do not continue into commit, rebase, Jira creation/update, push, PR creation/update, reviewer request, Jira PR backlink, or Jira transition until the user accepts this visible plan.
 
-If the plan includes `aprobar PR grande`, `mixed-scope override`, or any equivalent oversized/split override, that approval is only valid for the specific branch, base, Jira issue, and changed-line counts shown in the plan. If the diff grows materially before PR creation, rerun the scope guardrail and ask again.
+If the plan includes `approve large PR because <rationale>`, the legacy `aprobar PR grande`, `mixed-scope override`, or any equivalent oversized/split override, that approval is only valid for the specific branch, base, Jira issue, and changed-line counts shown in the plan. If the diff grows materially before PR creation, rerun the scope guardrail and ask again.
 
 Plan these phases:
 
@@ -283,18 +284,18 @@ Build PR body text deterministically:
 3. Run `<release-marshal-skill-dir>/scripts/check_pr_body.py --file <tmp-body-file>`.
 4. If the formatter cannot find change lines or the checker fails, fix the draft body before asking for PR approval. Do not fall back to `Summary`, `Verification`, stacked-context, reviewer, retargeting, or test-command sections.
 
-Before push or PR creation/update, show a concise user-facing PR proposal in the user's language. For Spanish-language interactions, prefer a shape such as:
+Before push or PR creation/update, show a concise user-facing PR proposal in the user's language. The English labels below are canonical examples; translate every visible label into the user's language. Prefer a shape such as:
 
 ```markdown
-**Propuesta de PR**
-- Rama actual:
-- Rama base:
-- Commits propuestos:
-- Título:
-- Estado:
-- Alcance:
-- Archivos o superficies clave:
-- Push exacto:
+**PR proposal**
+- Current branch:
+- Base branch:
+- Proposed commits:
+- Title:
+- Status:
+- Scope:
+- Key files or surfaces:
+- Exact push:
 - Jira:
 - Reviewers:
 ```
@@ -302,12 +303,12 @@ Before push or PR creation/update, show a concise user-facing PR proposal in the
 Then show:
 
 ```markdown
-**Cuerpo de la PR**
+**PR body**
 - ...
 ```
 
-Keep this proposal editorial and review-oriented, but always show the exact push command. Summarize PR body validation as a short confidence note such as "cuerpo validado" or "ajusté el cuerpo para cumplir el formato", not raw checker output, unless the checker is failing and the failure itself needs discussion. If Jira backlinking or transition will happen automatically after PR creation, mention that briefly in the proposal only when it affects the user's approval decision.
-When there are multiple PRs in scope, emit one `PR1` / `PR2` / `PR3` block per branch instead of one merged proposal, and add a short `Estado local:` section above them with the current stack/base relationships and any non-blocking validation warnings. Keep the block labels stable so users can approve "abre las dos PR" against a concrete structure.
+Keep this proposal editorial and review-oriented, but always show the exact push command. Summarize PR body validation as a short confidence note such as “body validated” or “I adjusted the body to match the format,” not raw checker output, unless the checker is failing and the failure itself needs discussion. If Jira backlinking or transition will happen automatically after PR creation, mention that briefly in the proposal only when it affects the user's approval decision.
+When there are multiple PRs in scope, emit one `PR1` / `PR2` / `PR3` block per branch instead of one merged proposal, and add a short `Local state:` section above them with the current stack/base relationships and any non-blocking validation warnings. Keep the block labels stable so users can approve “open both PRs” against a concrete structure.
 If the current branch name includes planning/review-unit identifiers or otherwise reads like traceability instead of capability, treat that as branch hygiene debt. When the branch has not been pushed yet, propose a semantic rename in the visible plan. When it has already been pushed, call out the mismatch in the plan and ask before renaming.
 For semantic renames, prefer the primary user-visible or architectural capability in the slug, for example `feat/drive-watch-renewal` over `feat/wp3-watch`, or `fix/release-plan-jira-backlink` over `fix/ru2-jira`.
 Ask for approval before the next remote mutation.

@@ -172,7 +172,7 @@ Adds regulatory-api manifest discovery, central-client publishing support, and g
 $JIRA_HOST/browse/PDP-93
 ```
 
-Before remote mutation, present the body under a short `**Cuerpo de la PR**` section and summarize validation as a confidence note such as `cuerpo validado` unless the checker is failing.
+Before remote mutation, present the body under a short `**PR body**` section and summarize validation with a confidence note such as `body validated` unless the checker is failing.
 
 ## Create PR
 

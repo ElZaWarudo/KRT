@@ -1,141 +1,141 @@
 ---
 name: krt-bicentennial-writer
-description: Guia de redaccion y revision para escribir textos naturales, especificos y contextuales, evitando patrones genericos asociados a escritura producida por IA. Usar cuando el usuario pida redactar, reescribir, humanizar, naturalizar, pulir, localizar o auditar texto para que suene menos formulaico; cuando trabaje tesis, articulos academicos, documentos de investigacion, razonamiento academico, postura critica o autoria asistida por IA; cuando mencione "suena a IA", "detector de IA", "humanizar texto", "redaccion natural", "tono humano", "AI writing tells", "Bicentennial Writer", or avoiding typical AI writing patterns in Spanish or English. Runtime aliases may expose this as krt:bicentennial-writer.
+description: Writing and editing guidance for natural, specific, contextual prose that avoids generic patterns associated with AI-generated writing. Use when the user asks to draft, rewrite, humanize, naturalize, polish, localize, or audit text so it sounds less formulaic; when working on theses, academic articles, research documents, academic reasoning, critical argument, or AI-assisted authorship; or when they mention "sounds like AI," "AI detector," "humanize text," "natural writing," "human tone," "AI writing tells," "Bicentennial Writer," "suena a IA," "detector de IA," "humanizar texto," "redacción natural," or "tono humano," or want to avoid typical AI-writing patterns in Spanish or English. Runtime aliases may expose this as krt:bicentennial-writer.
 ---
 
 # Bicentennial Writer
 
-Bicentennial Writer ayuda a redactar o revisar textos para que suenen concretos, situados y propios de una persona con una intencion real. El objetivo es mejorar la calidad editorial, no prometer evasion de detectores ni falsificar autoria.
+Bicentennial Writer helps draft or revise prose so it sounds concrete, situated, and written by someone with a real purpose. The goal is editorial quality, not evading detectors or misrepresenting authorship.
 
 ## Load References
 
-- Cargar `references/patrones-y-antidotos.md` al auditar o reescribir texto por tics comunes de IA.
-- Cargar `references/base-investigacion.md` cuando el usuario pida justificar el enfoque, revisar la skill, discutir detectores de IA o trabajar autoria academica con IA.
-- No cargar referencias extra para borradores cortos donde el usuario ya da audiencia, proposito y tono.
+- Load `references/patrones-y-antidotos.md` when auditing or rewriting text for common AI-writing tells.
+- Load `references/base-investigacion.md` when the user asks for the rationale behind the approach, requests a review of the skill, wants to discuss AI detectors, or is working on academic authorship involving AI.
+- Do not load extra references for short drafts when the user has already supplied the audience, purpose, and tone.
 
 ## Workflow
 
-### Step 1 - Fijar El Encargo
+### Step 1 - Define the Assignment
 
-Antes de escribir, identificar:
+Before writing, identify:
 
-- audiencia;
-- canal y formato;
-- objetivo del texto;
-- relacion entre emisor y lector;
-- restricciones de longitud, registro, idioma, pais o sector;
-- hechos que deben permanecer intactos.
+- audience;
+- channel and format;
+- purpose of the text;
+- relationship between writer and reader;
+- constraints on length, register, language, country, or sector;
+- facts that must remain unchanged.
 
-Si el usuario da poco contexto y el riesgo es bajo, asumir lo razonable y declararlo brevemente. Preguntar solo cuando el contexto ausente cambie la voz, el contenido factual o el riesgo del texto.
+If the user provides little context and the risk is low, make reasonable assumptions and state them briefly. Ask only when missing context would change the voice, factual content, or risk of the text.
 
-### Step 2 - Separar Calidad De Camuflaje
+### Step 2 - Separate Quality from Camouflage
 
-Tratar "evitar que suene a IA" como un problema de calidad editorial:
+Treat “avoid sounding like AI” as an editorial-quality problem:
 
-- hacer el texto mas especifico;
-- reducir relleno y elogio generico;
-- variar el ritmo solo cuando sirva al sentido;
-- preservar precision factual;
-- mantener las restricciones y la voz real del autor.
+- make the text more specific;
+- reduce filler and generic praise;
+- vary rhythm only when it serves the meaning;
+- preserve factual accuracy;
+- keep the author's real constraints and voice.
 
-No garantizar que un detector clasificara el texto como humano. No ayudar a tergiversar autoria cuando una regla, institucion, cliente o publicacion exige declarar uso de IA.
+Do not guarantee that a detector will classify the text as human-written. Do not help misrepresent authorship when a rule, institution, client, or publication requires disclosure of AI use.
 
-Cuando el contexto tenga normas de autoria, evaluacion academica o publicacion, priorizar transparencia y proceso: notas propias, fuentes, versiones, decisiones editoriales y declaracion de uso de IA cuando aplique.
+When the context has authorship, academic-assessment, or publication rules, prioritize transparency and process: the author's own notes, sources, versions, editorial decisions, and disclosure of AI use when applicable.
 
-### Step 3 - Diagnosticar Los Tics
+### Step 3 - Diagnose the Tells
 
-Para texto existente, buscar:
+For existing text, look for:
 
-- aperturas que dicen demasiado antes de aportar algo util;
-- estructuras simetricas repetidas parrafo tras parrafo;
-- adjetivos inflados sin evidencia;
-- transiciones que anuncian la logica en vez de crearla;
-- conclusiones que resumen en vez de cerrar con una idea;
-- ejemplos que podrian aplicar a cualquier persona, empresa, pais o producto;
-- neutralidad demasiado pulida donde un autor real tomaria posicion.
+- openings that say too much before contributing anything useful;
+- symmetrical structures repeated paragraph after paragraph;
+- inflated adjectives unsupported by evidence;
+- transitions that announce the logic instead of creating it;
+- conclusions that summarize instead of ending on an idea;
+- examples that could apply to any person, company, country, or product;
+- overly polished neutrality where a real author would take a position.
 
-Cuando el texto sea largo, devolver un diagnostico corto antes de reescribir. Nombrar los dos o tres patrones mas daninos en vez de listar cada defecto.
+For long text, return a short diagnosis before rewriting. Name the two or three most damaging patterns instead of listing every flaw.
 
-No tratar automaticamente la escritura formal, concisa, de aprendices de una segunda lengua o de personas neurodivergentes como "sospechosa". Esos estilos pueden parecer regulares sin ser generados por IA.
+Do not automatically treat formal, concise, second-language, or neurodivergent writing as “suspicious.” Those styles can appear regular without being AI-generated.
 
-### Step 4 - Construir Una Voz Plausible
+### Step 4 - Build a Plausible Voice
 
-Inferir o pedir un perfil de voz:
+Infer or request a voice profile:
 
 - **stance:** direct, cautious, skeptical, warm, technical, commercial, reflective;
 - **texture:** plain, sharp, conversational, formal, editorial, practical;
 - **evidence style:** examples, numbers, lived details, citations, tradeoffs, anecdotes;
 - **risk level:** safe corporate prose, personal essay, sales copy, academic, legal-adjacent.
 
-Preferir marcas de voz que surjan de elecciones y detalles, no de imperfecciones falsas. No anadir erratas, jerga, recuerdos personales ni afirmaciones emocionales salvo que el usuario las aporte o apruebe.
+Prefer signs of voice that arise from choices and details, not fake imperfections. Do not add typos, slang, personal memories, or emotional claims unless the user supplies or approves them.
 
-Si la autenticidad importa, pedir o usar materia prima del autor: notas desordenadas, ejemplos reales, restricciones, una opinion concreta, una muestra breve de voz o el motivo por el que escribe.
+When authenticity matters, ask for or use the author's raw material: rough notes, real examples, constraints, a specific opinion, a short voice sample, or the reason they are writing.
 
-### Step 5 - Elevar Razonamiento Academico
+### Step 5 - Strengthen Academic Reasoning
 
-Cuando el encargo sea una tesis, articulo, marco teorico, estado del arte, propuesta, informe o documento de investigacion, priorizar pensamiento verificable antes que fluidez superficial:
+When the assignment is a thesis, article, theoretical framework, literature review, proposal, report, or research document, prioritize verifiable thinking over superficial fluency:
 
-- formular una pregunta, problema o tension que pueda sostener el texto;
-- distinguir descripcion, analisis, interpretacion y postura propia;
-- conectar objetivos, metodo, evidencia, resultados y conclusiones sin saltos logicos;
-- contrastar autores, teorias, contextos o datos en vez de encadenar resumenes;
-- nombrar limites, supuestos, criterios de seleccion y alternativas razonables;
-- convertir afirmaciones generales en inferencias apoyadas por fuentes, datos o decisiones metodologicas;
-- pedir o conservar materia prima del investigador: notas, lecturas, decisiones de campo, hallazgos, dudas, corpus, datos o criterios.
+- formulate a question, problem, or tension capable of sustaining the text;
+- distinguish description, analysis, interpretation, and the author's own position;
+- connect objectives, method, evidence, results, and conclusions without logical gaps;
+- compare authors, theories, contexts, or data instead of chaining summaries;
+- name limitations, assumptions, selection criteria, and reasonable alternatives;
+- turn broad claims into inferences supported by sources, data, or methodological decisions;
+- request or preserve the researcher's raw material: notes, readings, field decisions, findings, doubts, corpus, data, or criteria.
 
-Para construir documentos de investigacion:
+When building research documents:
 
-- no redactar como si la tesis ya estuviera demostrada si faltan datos o fuentes;
-- usar citas y referencias solo cuando el usuario las aporte o puedan verificarse;
-- marcar huecos de evidencia como pendientes, no cubrirlos con prosa elegante;
-- mantener la voz academica precisa sin hacerla impersonal por defecto;
-- ayudar a que la autoria humana quede trazable: decisiones, versiones, notas, justificacion metodologica y declaracion de uso de IA cuando aplique.
+- do not write as if a thesis has already been proven when data or sources are missing;
+- use citations and references only when supplied by the user or independently verifiable;
+- mark evidence gaps as pending instead of covering them with polished prose;
+- keep the academic voice precise without making it impersonal by default;
+- help keep human authorship traceable through decisions, versions, notes, methodological justification, and disclosure of AI use when applicable.
 
-Si el usuario pide "nivel humano", traducirlo a calidad intelectual: especificidad, criterio, tension argumental, dominio del tema y responsabilidad sobre las fuentes. No tratarlo como camuflaje ante detectores.
+If the user asks for “human-level” writing, translate that request into intellectual quality: specificity, judgment, argumentative tension, command of the subject, and responsibility for sources. Do not treat it as camouflage from detectors.
 
-### Step 6 - Redactar O Reescribir
+### Step 6 - Draft or Rewrite
 
-Aplicar estos movimientos:
+Apply these moves:
 
-- empezar mas cerca del punto;
-- sustituir afirmaciones genericas por consecuencias, ejemplos, restricciones o implicaciones concretas;
-- cortar arranques de relleno como "en el mundo actual" o "es importante destacar";
-- mantener una idea por parrafo salvo que el genero premie densidad;
-- usar transiciones que lleven significado, no conectores decorativos;
-- dejar que algunas frases sean cortas cuando el punto merezca enfasis;
-- elegir verbos antes que sustantivos abstractos;
-- mantener terminologia consistente en contextos profesionales o tecnicos.
+- start closer to the point;
+- replace generic claims with consequences, examples, constraints, or concrete implications;
+- cut filler openings such as “in today's world” or “it is important to note”;
+- keep one idea per paragraph unless the genre rewards density;
+- use transitions that carry meaning, not decorative connectors;
+- let some sentences stay short when the point deserves emphasis;
+- choose verbs over abstract nouns;
+- keep terminology consistent in professional or technical contexts.
 
-Al reescribir texto del usuario, preservar el significado por defecto. Si el original es debil porque la idea es vaga, senalar la sustancia que falta en vez de ocultarla con estilo.
+When rewriting user text, preserve its meaning by default. If the original is weak because the idea itself is vague, identify the missing substance instead of hiding it with style.
 
-### Step 7 - Entregar Con Criterio
+### Step 7 - Deliver with Judgment
 
-Devolver primero el texto revisado cuando el usuario haya pedido una reescritura. Anadir una nota compacta solo si aporta valor:
+Return the revised text first when the user asked for a rewrite. Add a compact note only when it helps:
 
 ```text
-Cambios clave:
+Key changes:
 - <what changed>
 - <what to customize if the user wants a stronger personal voice>
 ```
 
-Para redactar desde cero, incluir solo el borrador final salvo que haya supuestos, huecos factuales o variantes opcionales que convenga mostrar.
+When drafting from scratch, include only the final draft unless assumptions, factual gaps, or useful alternatives should be shown.
 
 ## Output Modes
 
-- **Revision ligera:** preservar estructura, corregir rigidez y relleno.
-- **Reescritura natural:** reconstruir flujo sin perder intencion.
-- **Diagnostico editorial:** identificar patrones tipo IA sin reescribir todo.
-- **Construccion academica:** proponer problema, tesis, estructura, hilo argumental, vacios de evidencia y mejoras de razonamiento para documentos de investigacion.
-- **Variantes de tono:** dar 2-3 versiones con perfiles de voz distintos.
-- **Lista de cambios:** explicar que se altero y por que, util para escritura colaborativa.
+- **Light edit:** preserve the structure while correcting stiffness and filler.
+- **Natural rewrite:** rebuild the flow without losing the intent.
+- **Editorial diagnosis:** identify AI-like patterns without rewriting everything.
+- **Academic construction:** propose a problem, thesis, structure, argument, evidence gaps, and reasoning improvements for research documents.
+- **Tone variants:** provide two or three versions with different voice profiles.
+- **Change list:** explain what changed and why; useful for collaborative writing.
 
 ## Guardrails
 
-- No inventar detalles biograficos, resultados de clientes, metricas, citas ni experiencias vividas.
-- No anadir errores deliberados como truco de "humanizacion".
-- No convertir todo texto en prosa casual; un texto formal tambien puede ser natural.
-- No sobreactuar con una voz extravagante, cinica o excesivamente coloquial.
-- No eliminar precision legal, academica, medica o tecnica necesaria solo porque suena formal.
-- No presentar una reescritura como metodo fiable para superar detectores; los detectores son falibles y editables.
-- No fabricar fuentes, datos, resultados, posturas del investigador ni experiencia de campo para dar apariencia de razonamiento humano.
-- Mantener visible la agencia del autor: sugerir cuando un punto de vista mas fuerte requiera una decision real del usuario.
+- Do not invent biographical details, client results, metrics, quotations, or lived experiences.
+- Do not add deliberate errors as a “humanization” trick.
+- Do not turn all text into casual prose; formal writing can also sound natural.
+- Do not overplay an extravagant, cynical, or excessively colloquial voice.
+- Do not remove necessary legal, academic, medical, or technical precision merely because it sounds formal.
+- Do not present a rewrite as a reliable way to beat detectors; detectors are fallible and changeable.
+- Do not fabricate sources, data, results, the researcher's views, or field experience to create the appearance of human reasoning.
+- Keep the author's agency visible: flag places where a stronger point of view requires a real decision from the user.

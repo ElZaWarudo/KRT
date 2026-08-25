@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-product-polish-council"
-  short_description: "Audita 12 dimensiones de pulido de producto"
-  default_prompt: "Use krt-product-polish-council para validar el atlas, auditar los flujos clave de esta aplicación y priorizar mejoras verificables."
+  short_description: "Audit 12 dimensions of product polish"
+  default_prompt: "Use krt-product-polish-council to validate the atlas, audit this application's key flows, and prioritize verifiable improvements."

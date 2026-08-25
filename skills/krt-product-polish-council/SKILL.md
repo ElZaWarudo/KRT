@@ -1,117 +1,117 @@
 ---
 name: krt-product-polish-council
-description: Orquesta una auditoría integral y basada en evidencia del pulido de aplicaciones web, móviles y de escritorio mediante un atlas versionable, un cartógrafo y doce evaluadores especializados en alcance, coherencia, feedback, estados no ideales, protección, jerarquía, contenido, rendimiento percibido, convenciones de plataforma, accesibilidad, continuidad y finalización. Usar cuando se pida pulir una aplicación, evaluar su madurez de producto, recorrer flujos de extremo a extremo, detectar costuras o comportamiento amateur, producir un backlog priorizado de mejoras o verificar que una ronda de cambios elevó la calidad percibida.
+description: Orchestrates a comprehensive, evidence-based polish audit of web, mobile, and desktop applications through a versioned atlas, a cartographer, and twelve evaluators specializing in scope, consistency, feedback, non-ideal states, protection, hierarchy, content, perceived performance, platform conventions, accessibility, continuity, and completeness. Use when asked to polish an application, assess its product maturity, walk end-to-end flows, find rough seams or amateur behavior, produce a prioritized improvement backlog, or verify that a round of changes raised perceived quality.
 ---
 
 # krt-product-polish-council
 
-Evaluar la aplicación como un sistema de comportamiento, no como una colección de pantallas. Tratar la calidad percibida como una relación casi multiplicativa entre coherencia, fiabilidad, claridad, respuesta y cuidado: una dimensión muy débil limita el conjunto aunque el promedio sea alto.
+Evaluate the application as a system of behavior, not a collection of screens. Treat perceived quality as a nearly multiplicative relationship among consistency, reliability, clarity, responsiveness, and care: one very weak dimension limits the whole even when the average is high.
 
-## Principios de operación
+## Operating Principles
 
-- Usar `docs/product/application-atlas.md` como contexto compartido y versionable, salvo que el repositorio ya tenga una convención equivalente.
-- Separar intención declarada, comportamiento observado e inferencias. No convertir una inferencia en requisito ni en defecto.
-- Auditar flujos reales de extremo a extremo. Usar capturas como evidencia parcial, nunca como sustituto automático del comportamiento.
-- Hacer que los doce evaluadores trabajen en modo de solo lectura y con el mismo paquete de evidencia.
-- Reservar al agente líder la síntesis, deduplicación, priorización y decisión sobre cobertura.
-- Tratar una solicitud de revisión como auditoría, no como autorización para cambiar código. Implementar solo cuando el usuario lo pida.
+- Use `docs/product/application-atlas.md` as shared, versioned context unless the repository already has an equivalent convention.
+- Separate declared intent, observed behavior, and inference. Do not turn an inference into a requirement or defect.
+- Audit real end-to-end flows. Use screenshots as partial evidence, never as an automatic substitute for behavior.
+- Have all twelve evaluators work read-only from the same evidence packet.
+- Reserve synthesis, deduplication, prioritization, and coverage decisions for the lead agent.
+- Treat a review request as authorization to audit, not to change code. Implement only when the user asks.
 
-## Elegir el modo
+## Choose the Mode
 
-- **Atlas**: crear, actualizar o validar únicamente el atlas versionable.
-- **Auditoría**: construir o validar el atlas, ejecutar el consejo y entregar diagnóstico y backlog. Modo predeterminado.
-- **Auditoría y corrección**: completar primero la auditoría; después implementar cambios autorizados y verificarlos.
-- **Regresión de pulido**: comparar una versión nueva con un atlas y una auditoría anteriores, actualizar evidencia y reabrir solo los hallazgos afectados.
+- **Atlas**: create, update, or validate only the versioned atlas.
+- **Audit**: build or validate the atlas, run the council, and deliver a diagnosis and backlog. This is the default.
+- **Audit and remediation**: complete the audit first, then implement authorized changes and verify them.
+- **Polish regression**: compare a new version with an earlier atlas and audit, update the evidence, and reopen only affected findings.
 
-## Cargar referencias
+## Load References
 
-- Leer `references/application-atlas.md` antes de comprobar, crear o actualizar el atlas.
-- Leer `references/evaluator-catalog.md` antes de despachar o ejecutar cualquiera de los doce roles.
-- Leer `references/evidence-and-report-protocol.md` antes de calificar hallazgos o sintetizar el informe.
+- Read `references/application-atlas.md` before checking, creating, or updating the atlas.
+- Read `references/evaluator-catalog.md` before dispatching or running any of the twelve roles.
+- Read `references/evidence-and-report-protocol.md` before rating findings or synthesizing the report.
 
-## Flujo de trabajo
+## Workflow
 
-### 1. Verificar la frescura del atlas
+### 1. Check Atlas Freshness
 
-Hacer de esta comprobación el primer paso de toda invocación:
+Make this the first step of every invocation:
 
-1. Resolver la raíz del repositorio, el `HEAD` actual y la ruta del atlas.
-2. Si el atlas no existe, marcarlo como `missing` y pasar a la entrevista de intención.
-3. Si existe, ejecutar `scripts/check_atlas_freshness.py` desde esta skill contra `docs/product/application-atlas.md`.
-4. Considerar el atlas `fresh` solo cuando el fingerprint de los archivos cubiertos coincide con el árbol del commit actual y no existen cambios relevantes sin confirmar.
-5. Si el resultado es `stale`, actualizar el atlas antes de lanzar evaluadores. No confundir un atlas desactualizado con un defecto del producto.
+1. Resolve the repository root, current `HEAD`, and atlas path.
+2. If the atlas does not exist, mark it `missing` and continue to the intent interview.
+3. If it exists, run this skill's `scripts/check_atlas_freshness.py` against `docs/product/application-atlas.md`.
+4. Consider the atlas `fresh` only when the fingerprint of covered files matches the current commit tree and no relevant uncommitted changes exist.
+5. If the result is `stale`, update the atlas before launching evaluators. Do not mistake an outdated atlas for a product defect.
 
-Usar el SHA como procedencia y el fingerprint de los archivos cubiertos como autoridad de frescura. El propio atlas debe quedar fuera del fingerprint para evitar autorreferencia.
+Use the SHA for provenance and the covered-file fingerprint as the authority on freshness. Exclude the atlas itself from the fingerprint to avoid self-reference.
 
-### 2. Resolver la intención del producto
+### 2. Resolve Product Intent
 
-Leer primero briefs, requisitos, decisiones, analítica disponible y documentación de producto. Si no responden las preguntas de intención definidas en `references/application-atlas.md`, hacer una única ronda compacta al responsable y esperar su respuesta.
+Read briefs, requirements, decisions, available analytics, and product documentation first. If they do not answer the intent questions in `references/application-atlas.md`, ask the product owner one compact round of questions and wait for the response.
 
-No preguntar por hechos que puedan descubrirse en el repositorio o en la aplicación. Preguntar por propósito, usuario, resultado esperado, riesgos y límites deliberados. Si el usuario exige continuar sin responder, registrar hipótesis y reducir la confianza; no penalizar como fallo una discrepancia contra una intención no confirmada.
+Do not ask about facts discoverable in the repository or application. Ask about purpose, user, expected outcome, risks, and deliberate boundaries. If the user insists on continuing without answering, record assumptions and lower confidence; do not penalize a discrepancy against unconfirmed intent as a failure.
 
-### 3. Construir o actualizar el atlas
+### 3. Build or Update the Atlas
 
-Asignar al **Cartógrafo** la exploración factual de la aplicación. Inventariar plataformas, actores, roles, superficies, navegación, flujos, estados, datos, permisos, integraciones, acciones destructivas, condiciones reales y huecos de evidencia.
+Assign the **Cartographer** to explore the application factually. Inventory platforms, actors, roles, surfaces, navigation, flows, states, data, permissions, integrations, destructive actions, real-world conditions, and evidence gaps.
 
-Mantener IDs estables como `ROLE-01`, `SURF-03`, `FLOW-07` y `STATE-12`. Actualizar por diff; no reordenar ni regenerar todo el archivo sin necesidad. No incluir conclusiones de calidad ni recomendaciones dentro del atlas.
+Keep IDs such as `ROLE-01`, `SURF-03`, `FLOW-07`, and `STATE-12` stable. Update by diff; do not reorder or regenerate the whole file without need. Do not put quality judgments or recommendations in the atlas.
 
-No abrir el consejo hasta que pase la puerta de cobertura descrita en la referencia o los huecos queden explícitamente aceptados.
+Do not convene the council until the coverage gate in the reference passes or the gaps are explicitly accepted.
 
-### 4. Preparar el paquete común de evidencia
+### 4. Prepare the Shared Evidence Packet
 
-Entregar a todos los evaluadores la misma instantánea:
+Give every evaluator the same snapshot:
 
-- ruta y fingerprint del atlas;
-- commit, entorno, plataforma, viewport y métodos de entrada examinados;
-- flujos y roles dentro y fuera de alcance;
-- credenciales o datos de prueba permitidos, sin copiar secretos;
-- capturas, grabaciones, trazas, archivos y observaciones disponibles;
-- restricciones para red, mutaciones, acciones destructivas y servicios externos;
-- huecos y zonas no observadas.
+- atlas path and fingerprint;
+- commit, environment, platform, viewport, and input methods examined;
+- in-scope and out-of-scope flows and roles;
+- permitted credentials or test data, without copying secrets;
+- available screenshots, recordings, traces, files, and observations;
+- restrictions on network access, mutations, destructive actions, and external services;
+- gaps and unobserved areas.
 
-No entregar a un evaluador los hallazgos de otro antes de que termine su pase; evitar anclaje y consenso artificial.
+Do not give an evaluator another evaluator's findings before their pass is complete; avoid anchoring and artificial consensus.
 
-### 5. Ejecutar el consejo de doce evaluadores
+### 5. Run the Twelve-Evaluator Council
 
-Usar un agente independiente por dimensión cuando el runtime permita subagentes. Ejecutarlos en olas si hay menos de doce espacios. Mantenerlos en solo lectura y sin archivos compartidos mutables. Si no hay subagentes, ejecutar los doce contratos secuencialmente en el hilo principal sin omitir ninguno.
+Use one independent agent per dimension when the runtime supports subagents. Run them in waves if fewer than twelve slots are available. Keep them read-only and without mutable shared files. If subagents are unavailable, run all twelve contracts sequentially in the main thread without omitting any.
 
-Cada evaluador debe:
+Each evaluator must:
 
-1. Recorrer los flujos del atlas desde su lente exclusiva.
-2. Contrastar camino ideal, transición, fallo y condición real cuando sean relevantes.
-3. Citar evidencia exacta y etiquetarla como `observed`, `code`, `declared`, `inferred` o `unverified`.
-4. Devolver calificación, confianza, hallazgos, aspectos que conviene conservar y huecos.
-5. Proponer para cada hallazgo una corrección acotada y una comprobación observable.
+1. Walk the atlas flows through its exclusive lens.
+2. Compare the happy path, transition, failure, and real-world condition when relevant.
+3. Cite exact evidence and label it `observed`, `code`, `declared`, `inferred`, or `unverified`.
+4. Return a rating, confidence, findings, behaviors to preserve, and gaps.
+5. Propose a bounded correction and an observable check for each finding.
 
-### 6. Sintetizar sin diluir los puntos débiles
+### 6. Synthesize Without Diluting Weaknesses
 
-Aplicar el protocolo común. Asignar cada problema a una dimensión primaria y usar referencias cruzadas para las demás. Fusionar duplicados por causa y flujo, no por coincidencia de palabras.
+Apply the shared protocol. Assign each problem one primary dimension and cross-reference the others. Merge duplicates by cause and flow, not by matching words.
 
-No promediar las doce calificaciones para declarar éxito. Identificar el eslabón más débil, los fallos sistémicos y los flujos de mayor frecuencia o consecuencia. Priorizar operabilidad, pérdida de trabajo, confianza y recuperación antes que ornamentación.
+Do not average the twelve ratings to declare success. Identify the weakest link, systemic failures, and the highest-frequency or highest-consequence flows. Prioritize operability, loss of work, trust, and recovery before ornament.
 
-Entregar un único informe coherente, no doce miniinformes yuxtapuestos.
+Deliver one coherent report, not twelve juxtaposed mini-reports.
 
-### 7. Corregir y volver a verificar cuando esté autorizado
+### 7. Remediate and Reverify When Authorized
 
-Convertir el backlog aceptado en unidades pequeñas con archivos, criterio de aceptación y prueba. Reutilizar las convenciones y componentes de la aplicación. Para una profundización opcional, usar `krt-frontend-ux-guardian` en UX funcional, `krt-interface-inquisitor` en composición visual o `krt-interaction-polisher` en respuesta temporal cuando estén disponibles; su ausencia no debe bloquear el flujo.
+Turn the accepted backlog into small units with files, acceptance criteria, and tests. Reuse the application's conventions and components. For optional deeper work, use `krt-frontend-ux-guardian` for functional UX, `krt-interface-inquisitor` for visual composition, or `krt-interaction-polisher` for temporal response when available; their absence must not block the flow.
 
-Después de cambiar rutas, roles, navegación, estados o flujos, actualizar el atlas y su fingerprint. Volver a ejecutar los evaluadores afectados y hacer un pase corto por las doce dimensiones para detectar regresiones cruzadas.
+After changing routes, roles, navigation, states, or flows, update the atlas and its fingerprint. Rerun affected evaluators and make a short pass across all twelve dimensions to catch cross-cutting regressions.
 
-## Topología de agentes
+## Agent Topology
 
-- **Líder**: fija alcance, protege restricciones, acepta la puerta de cobertura y sintetiza.
-- **Cartógrafo**: entrevista por intención cuando haga falta y mantiene el atlas factual.
-- **Evaluadores 01-12**: aplican de forma independiente los contratos de `references/evaluator-catalog.md`.
-- **Verificador**: en modo de corrección, reproduce criterios de aceptación sin reabrir decisiones de producto.
+- **Lead**: sets scope, protects constraints, accepts the coverage gate, and synthesizes.
+- **Cartographer**: interviews for intent when needed and maintains the factual atlas.
+- **Evaluators 01-12**: independently apply the contracts in `references/evaluator-catalog.md`.
+- **Verifier**: in remediation mode, reproduces acceptance criteria without reopening product decisions.
 
-El Líder no debe delegar la síntesis final ni permitir que un evaluador implemente durante su pase diagnóstico.
+The Lead must not delegate final synthesis or allow an evaluator to implement during a diagnostic pass.
 
-## No negociables
+## Non-Negotiables
 
-- No inventar rutas, estados, roles, permisos, datos ni comportamiento que no se haya observado o declarado.
-- No calificar como fallo una zona no accesible; marcarla `unverified` y explicar qué falta.
-- No probar acciones destructivas, financieras, externas o sobre producción sin autorización y datos seguros.
-- No ocultar el eslabón débil con un promedio, una puntuación estética o una lista larga de mejoras menores.
-- No recomendar funcionalidades nuevas cuando una corrección de claridad, consistencia, feedback o recuperación resuelve el problema.
-- No aceptar un hallazgo sin evidencia, efecto sobre el usuario, corrección concreta y verificación observable.
-- No declarar la aplicación pulida si el atlas está ausente, desactualizado o materialmente incompleto.
+- Do not invent routes, states, roles, permissions, data, or behavior that was not observed or declared.
+- Do not rate an inaccessible area as a failure; mark it `unverified` and explain what is missing.
+- Do not test destructive, financial, external, or production actions without authorization and safe data.
+- Do not hide the weakest link behind an average, an aesthetic score, or a long list of minor improvements.
+- Do not recommend new features when a clarity, consistency, feedback, or recovery fix solves the problem.
+- Do not accept a finding without evidence, user effect, a concrete correction, and observable verification.
+- Do not declare the application polished when the atlas is absent, stale, or materially incomplete.

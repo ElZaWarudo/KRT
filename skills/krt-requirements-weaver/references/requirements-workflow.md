@@ -88,7 +88,7 @@ Do not let refinement hide uncertainty. If you cannot refine a requirement hones
 
 Initial statement:
 
-`El sistema debe permitir registrar usuarios.`
+`The system must allow users to register.`
 
 Refined result:
 
@@ -107,7 +107,7 @@ Validate before planning or coding. The point is not only to improve wording, bu
 
 Run a final stakeholder-facing confirmation:
 
-`Esto es lo que vamos a construir. Esto es lo que queda fuera. Estas son las dudas o supuestos pendientes.`
+`This is what we are going to build. This is what remains out of scope. These are the open questions or assumptions.`
 
 Check:
 

@@ -1,104 +1,116 @@
-# Patrones Y Antidotos
+# Patterns and Antidotes
 
-Usar esta referencia cuando un texto se sienta generico, demasiado pulido o reconociblemente mecanico. Tratar la lista como guia diagnostica, no como checklist mecanico.
+Use this reference when text feels generic, overly polished, or recognizably mechanical. Treat the list as diagnostic guidance, not a mechanical checklist.
 
-## Patrones Tipo IA
+## AI-Like Patterns
 
-| Patron | Por Que Suena Artificial | Movimiento Mejor |
+| Pattern | Why It Sounds Artificial | Better Move |
 |---|---|---|
-| Aperturas tipo "En el mundo actual..." | Empiezan con un panorama vacio antes del asunto real | Empezar con el problema, afirmacion o escena concreta del usuario |
-| "Es fundamental/importante destacar..." | Anuncia importancia en vez de demostrarla | Mostrar consecuencia, coste o tradeoff |
-| Triadas perfectamente equilibradas | Crean ritmo sin sustancia | Mantener solo distinciones que cambien la decision del lector |
-| "No solo X, sino tambien Y" repetido | Suena plantillado cuando es el contraste por defecto | Usar contraste directo, ejemplo o vinculo causal |
-| Adjetivos inflados: innovador, transformador, robusto, integral | Suenan promocionales sin evidencia | Anadir prueba o elegir un adjetivo mas sobrio |
-| Empatia generica: "entiendo lo importante que es..." | Representa calidez sin contexto | Referirse a la presion, plazo, frustracion u objetivo concreto |
-| Pilas de sustantivos abstractos | Ocultan accion y agencia | Convertir sustantivos en verbos y nombrar quien hace que |
-| Neutralidad segura en todos los lados | Evita compromiso | Declarar el tradeoff o la recomendacion real |
-| Conclusiones resumen | Repiten la introduccion con otras palabras | Terminar con implicacion, siguiente paso, tension abierta o decision |
+| Openings like “In today's world...” | They begin with an empty panorama before reaching the subject | Start with the user's concrete problem, claim, or scene |
+| “It is essential/important to note...” | It announces importance instead of demonstrating it | Show the consequence, cost, or tradeoff |
+| Perfectly balanced triads | They create rhythm without substance | Keep only distinctions that change the reader's decision |
+| Repeated “not only X, but also Y” | It sounds templated when it becomes the default contrast | Use a direct contrast, example, or causal link |
+| Inflated adjectives: innovative, transformative, robust, comprehensive | They sound promotional without evidence | Add proof or choose a more restrained adjective |
+| Generic empathy: “I understand how important this is...” | It performs warmth without context | Refer to the specific pressure, deadline, frustration, or goal |
+| Stacks of abstract nouns | They hide action and agency | Turn nouns into verbs and name who does what |
+| Safe neutrality on every side | It avoids commitment | State the actual tradeoff or recommendation |
+| Summary conclusions | They repeat the introduction in different words | End with an implication, next step, open tension, or decision |
 
-## Frases En Espanol A Cuestionar
+## Spanish Phrases to Question
 
-Cuestionar estas frases cuando aparezcan sin contenido especifico:
+Question these phrases when they appear without specific content:
 
-- "en el panorama actual"
-- "en la era digital"
-- "es crucial"
-- "cabe destacar"
-- "vale la pena mencionar"
-- "sin duda"
-- "de manera efectiva"
-- "una solucion integral"
-- "experiencia unica"
-- "llevar al siguiente nivel"
-- "marcar la diferencia"
-- "un antes y un despues"
-- "en conclusion"
-- "por ultimo, pero no menos importante"
+- “en el panorama actual”
+- “en la era digital”
+- “es crucial”
+- “cabe destacar”
+- “vale la pena mencionar”
+- “sin duda”
+- “de manera efectiva”
+- “una solución integral”
+- “experiencia única”
+- “llevar al siguiente nivel”
+- “marcar la diferencia”
+- “un antes y un después”
+- “en conclusión”
+- “por último, pero no menos importante”
 
-No prohibirlas universalmente. Mantenerlas cuando sean idiomaticas para el genero, necesarias por estilo de marca o vinculadas a evidencia especifica.
+Do not ban them universally. Keep them when they are idiomatic for the genre, required by a brand style, or tied to specific evidence.
 
-## Terminos En Ingles A Vigilar
+## English Terms to Watch
 
-En textos academicos, corporativos o bilingues, revisar usos repetidos de:
+In academic, corporate, or bilingual text, review repeated uses of:
 
-- "delve"
-- "intricate"
-- "underscore"
-- "pivotal"
-- "realm"
-- "showcase"
-- "meticulous"
-- "commendable"
-- "landscape"
-- "tapestry"
+- “delve”
+- “intricate”
+- “underscore”
+- “pivotal”
+- “realm”
+- “showcase”
+- “meticulous”
+- “commendable”
+- “landscape”
+- “tapestry”
 
-No borrar una palabra solo porque aparece en listas de "palabras IA". Evaluar frecuencia, contexto, registro y si una alternativa mas concreta mejora el texto.
+Do not delete a word merely because it appears on an “AI words” list. Judge its frequency, context, register, and whether a more concrete alternative improves the text.
 
-## Movimientos De Naturalizacion
+## Naturalization Moves
 
-- Sustituir afirmaciones globales por implicaciones locales: a quien le importa, por que ahora, que cambia.
-- Nombrar restricciones: presupuesto, tiempo, audiencia, geografia, reglas, historia, dependencias.
-- Usar un ejemplo concreto antes de una leccion amplia cuando el texto suene abstracto.
-- Anadir una opinion medida cuando el original se esconda tras neutralidad.
-- Cortar una capa de encuadre del primer parrafo.
-- Combinar parrafos cortos repetitivos cuando todos hacen el mismo movimiento.
-- Romper una frase larga y pulida si contiene un giro de pensamiento.
-- Preservar irregularidad util: una frase puede ser sencilla si cae limpia.
-- Preferir logica de "porque/por eso" antes que transiciones decorativas.
+- Replace broad claims with local implications: who cares, why now, and what changes.
+- Name constraints: budget, time, audience, geography, rules, history, and dependencies.
+- Use a concrete example before a broad lesson when the text feels abstract.
+- Add a measured opinion when the original hides behind neutrality.
+- Cut one layer of framing from the first paragraph.
+- Combine repetitive short paragraphs when they all make the same move.
+- Break a long, polished sentence when it contains a turn in the reasoning.
+- Preserve useful irregularity: a sentence can be simple if it lands cleanly.
+- Prefer causal logic such as “because/therefore” or Spanish `porque/por eso` to decorative transitions.
 
-## Controles De Voz
+## Voice Controls
 
-Usar estos controles para ajustar la reescritura:
+Use these controls to tune the rewrite:
 
-| Control | Bajo | Medio | Alto |
+| Control | Low | Medium | High |
 |---|---|---|---|
-| Formalidad | Conversacional | Profesional | Institucional |
-| Presencia | Autor invisible | Punto de vista ligero | Postura autoral fuerte |
-| Textura | Llana | Especifica | Vivida |
-| Riesgo | Seguro | Asertivo | Provocador |
-| Compresion | Expandida | Equilibrada | Densa |
+| Formality | Conversational | Professional | Institutional |
+| Presence | Invisible author | Light point of view | Strong authorial stance |
+| Texture | Plain | Specific | Vivid |
+| Risk | Safe | Assertive | Provocative |
+| Compression | Expanded | Balanced | Dense |
 
-Al ofrecer variantes, cambiar uno o dos controles a la vez para que el usuario elija con intencion.
+When offering variants, change one or two controls at a time so the user can choose deliberately.
 
-## Patron Antes Y Despues
+## Before-and-After Pattern
 
-Usar ejemplos compactos de antes/despues para explicar por que cambio un pasaje:
+Use compact before-and-after examples to explain why a passage changed:
+
+```text
+Before: In the digital age, it is essential to have innovative tools that optimize productivity.
+After: If the team loses half a morning moving data between spreadsheets, the tool does not need to promise innovation; it needs to remove that repetitive work.
+```
+
+```text
+Before: This initiative not only improves communication, but also strengthens collaboration.
+After: The initiative reduces decisions hidden in private chats and leaves a shared record so everyone works from the same information.
+```
+
+For Spanish-language work, retain equally concrete localized examples:
 
 ```text
 Antes: En la era digital, es fundamental contar con herramientas innovadoras que optimicen la productividad.
-Despues: Si el equipo pierde media manana moviendo datos entre hojas, la herramienta no necesita prometer innovacion: necesita quitar ese trabajo repetido.
+Después: Si el equipo pierde media mañana moviendo datos entre hojas, la herramienta no necesita prometer innovación: necesita quitar ese trabajo repetido.
 ```
 
 ```text
-Antes: Esta iniciativa no solo mejora la comunicacion, sino que tambien fortalece la colaboracion.
-Despues: La iniciativa reduce las decisiones escondidas en chats privados y deja un registro comun para que todos trabajen con la misma informacion.
+Antes: Esta iniciativa no solo mejora la comunicación, sino que también fortalece la colaboración.
+Después: La iniciativa reduce las decisiones escondidas en chats privados y deja un registro común para que todos trabajen con la misma información.
 ```
 
-## Checklist Final
+## Final Checklist
 
-- La primera frase dice algo que no podria abrir cien textos distintos?
-- Cada parrafo responde "que cambio y para quien"?
-- Los adjetivos estan respaldados por evidencia?
-- Las transiciones hacen trabajo logico?
-- La reescritura preservo hechos e intencion?
-- Algun detalle anadido finge experiencia personal que el usuario no aporto?
+- Does the first sentence say something that could not open a hundred different texts?
+- Does each paragraph answer “what changed and for whom?”
+- Are adjectives backed by evidence?
+- Do transitions perform logical work?
+- Did the rewrite preserve facts and intent?
+- Does any added detail pretend to be personal experience that the user did not provide?
