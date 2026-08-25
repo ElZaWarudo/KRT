@@ -4,6 +4,8 @@ KRT means **Knights of the Round Table**: portable agent skills for keeping a co
 
 KRT gives agent runtimes 27 reusable skills for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, CI, deployment, security, evaluation, docs, and repo health. The bit is medieval. The contract is not.
 
+Repository documentation and skill instructions use English. Localized Jira values, multilingual routing triggers, parser fixtures, and language-specific writing examples remain in their source language when translation would change behavior.
+
 ## Choose A Skill
 
 Start with the job in front of you. The groups below cover every KRT skill without making the front page wear the full catalog as plate armor.
@@ -36,7 +38,7 @@ Start with the job in front of you. The groups below cover every KRT skill witho
 | An interface that needs an adversarial visual critique | `krt-interface-inquisitor` |
 | An interface that needs distinctive design or implementation | `krt-interface-warden` |
 | A working interface that still feels dead, abrupt, or sluggish | `krt-interaction-polisher` |
-| Text that sounds generic or AI-written | `krt-bicentennial-writer` |
+| English or Spanish text that sounds generic or AI-written | `krt-bicentennial-writer` |
 
 ### Ship And Collaborate
 
