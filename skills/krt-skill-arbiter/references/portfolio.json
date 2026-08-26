@@ -17,6 +17,7 @@
     {"id": "krt-jira-cloud-scribe", "safety_critical": true},
     {"id": "krt-jira-scribe", "safety_critical": true},
     {"id": "krt-product-polish-council", "safety_critical": false},
+    {"id": "krt-real-world-edge-testing", "safety_critical": true},
     {"id": "krt-rebase-smith", "safety_critical": true},
     {"id": "krt-release-marshal", "safety_critical": true},
     {"id": "krt-repo-medic", "safety_critical": true},

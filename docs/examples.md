@@ -96,6 +96,18 @@ Prepare deployment:
 Use $krt:deploy-summoner to review Helm values and produce a safe rollout and rollback plan.
 ```
 
+Build and safely execute an edge-case campaign:
+
+```text
+Use $krt:real-world-edge-testing to exercise this ingestion pipeline across malformed files, attribution errors, dependency timeouts, retries, and recovery using deterministic synthetic fixtures.
+```
+
+Design a campaign without touching the environment:
+
+```text
+Use $krt:real-world-edge-testing in design mode for the booking workflow. Produce executable cases and strong oracles, but do not run external operations.
+```
+
 Update durable docs:
 
 ```text

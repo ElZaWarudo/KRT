@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "campaignId": "example-edge-campaign",
+  "cases": [
+    {
+      "id": "EC-EXAMPLE-001",
+      "title": "Synthetic source remains correctly attributed",
+      "category": "output_and_attribution",
+      "priority": "medium",
+      "risk": {
+        "impact": 3,
+        "likelihood": 2,
+        "detectability": 3,
+        "score": 18,
+        "rationale": "Incorrect attribution is user-visible but this starter case uses one isolated source"
+      },
+      "executionRisk": "read_only",
+      "fixtures": ["D01"],
+      "preconditions": [
+        "The synthetic fixture is available to the production parser in an isolated test namespace"
+      ],
+      "action": {
+        "type": "project_native_request",
+        "description": "Query the isolated system for the fixture canary"
+      },
+      "oracle": {
+        "requiredMatches": [
+          {
+            "where": {
+              "source.name": "synthetic-report.txt"
+            },
+            "assert": {
+              "textAll": [
+                "VEGA-27-CANARY"
+              ]
+            }
+          }
+        ]
+      },
+      "timeoutMs": 10000,
+      "evidence": [
+        "sanitized_response",
+        "source_attribution",
+        "latency"
+      ],
+      "recovery": {
+        "required": false
+      }
+    }
+  ]
+}

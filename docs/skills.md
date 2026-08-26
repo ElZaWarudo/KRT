@@ -20,6 +20,7 @@ Formal skill IDs use lowercase hyphenated `krt-*` names. Some runtimes may expos
 | `$krt:security-sentinel` | `krt-security-sentinel` | Review security-sensitive slices and diagnose systems for cybersecurity risk. |
 | `$krt:ci-questor` | `krt-ci-questor` | Investigate failing CI runs and produce concise cause reports. |
 | `$krt:deploy-summoner` | `krt-deploy-summoner` | Prepare and diagnose Docker, Helm, and Kubernetes deployments. |
+| `$krt:real-world-edge-testing` | `krt-real-world-edge-testing` | Build safe, executable, evidence-backed failure campaigns across real system boundaries. |
 | `$krt:docs-chronicler` | `krt-docs-chronicler` | Keep durable docs, ADRs, changelogs, runbooks, and learnings current. |
 | `$krt:gitflow-knight` | `krt-gitflow-knight` | Keep branch hygiene and atomic commits in formation. |
 | `$krt:rebase-smith` | `krt-rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
@@ -48,6 +49,7 @@ Skills can bring their own references, templates, scripts, assets, or agent defi
 | `krt-jira-scribe` | `.krt/env/jira-scribe.env` loaded into env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
 | `krt-jira-cloud-scribe` | `.krt/env/jira-cloud-scribe.env` loaded into env vars | Jira Cloud issue, subtask, sprint, and transition work via REST API v3. |
 | `krt-product-polish-council` | Optional: `krt-frontend-ux-guardian`, `krt-interface-inquisitor`, and `krt-interaction-polisher` | The council owns the cross-product audit; specialists can deepen accepted functional, visual, or interaction findings without blocking the core flow. |
+| `krt-real-world-edge-testing` | Optional: `krt-security-sentinel` for security-heavy cases; `krt-deploy-summoner` for infrastructure-failure preparation | The campaign remains independently useful; specialists deepen high-risk boundaries without blocking design, build, or safe execution. |
 | `krt-frontend-ux-guardian` | Optional: `krt-interface-inquisitor` for adversarial critique; `krt-interface-warden` for visual direction | Works independently; when combined, Guardian defines the UX contract and final functional gate. |
 | `krt-interface-inquisitor` | Optional: `krt-frontend-ux-guardian` constraints and `krt-interface-warden` implementation | Works independently; optional handoffs keep visual criticism product-safe and directly actionable. |
 | `krt-interface-warden` | Optional: `krt-frontend-ux-guardian` constraints and `krt-interface-inquisitor` critique | Works independently; optional inputs help preserve task flow while implementing visual direction. |

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "status": "blocked",
+  "checks": [
+    {
+      "condition": "target_environment_verified",
+      "status": "failed",
+      "evidence": "No target environment, ownership, isolation, or recovery path is configured in the starter kit"
+    }
+  ],
+  "blockers": [
+    {
+      "condition": "target_environment_verified",
+      "reason": "Configure and independently verify an isolated target before execution"
+    }
+  ]
+}

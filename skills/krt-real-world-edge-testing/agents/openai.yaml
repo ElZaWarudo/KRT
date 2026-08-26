@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-real-world-edge-testing"
+  short_description: "Build safe, executable edge-case campaigns"
+  default_prompt: "Use krt-real-world-edge-testing to build and safely execute an evidence-backed edge-case campaign."

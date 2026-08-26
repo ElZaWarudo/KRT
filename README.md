@@ -2,7 +2,7 @@
 
 KRT means **Knights of the Round Table**: portable agent skills for keeping a codebase in formation without asking one overcaffeinated linux squire to remember every ritual by heart.
 
-KRT gives agent runtimes 27 reusable skills for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, CI, deployment, security, evaluation, docs, and repo health. The bit is medieval. The contract is not.
+KRT gives agent runtimes 28 reusable skills for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, CI, deployment, testing, security, evaluation, docs, and repo health. The bit is medieval. The contract is not.
 
 Repository documentation and skill instructions use English. Localized Jira values, multilingual routing triggers, parser fixtures, and language-specific writing examples remain in their source language when translation would change behavior.
 
@@ -58,6 +58,7 @@ Start with the job in front of you. The groups below cover every KRT skill witho
 | Security-sensitive work or a repository-wide security review | `krt-security-sentinel` |
 | A failing CI run | `krt-ci-questor` |
 | Deployment manifests, rollout, or rollback risk | `krt-deploy-summoner` |
+| A system that needs realistic, executable failure-mode testing | `krt-real-world-edge-testing` |
 | Stale, missing, or noisy docs | `krt-docs-chronicler` |
 | Suspicious repo health | `krt-repo-medic` |
 | A skill portfolio that needs deterministic corpus, metadata, or safety checks | `krt-skill-arbiter` |
@@ -74,7 +75,7 @@ Full descriptions, aliases, and dependencies: [`docs/skills.md`](docs/skills.md)
 | Execution | `krt-harness-wise` -> `krt-compound-master` -> `krt-release-marshal` |
 | Swarm execution | `krt-swarm-seneschal` -> `krt-compound-master` -> `krt-release-marshal` |
 | Product polish | `krt-product-polish-council` -> targeted `krt-frontend-ux-guardian`, `krt-interface-inquisitor`, or `krt-interaction-polisher` follow-up |
-| Operations | `krt-review-herald`, `krt-ci-questor`, `krt-deploy-summoner`, `krt-docs-chronicler`, `krt-repo-medic`, `krt-security-sentinel` |
+| Operations | `krt-review-herald`, `krt-ci-questor`, `krt-deploy-summoner`, `krt-real-world-edge-testing`, `krt-docs-chronicler`, `krt-repo-medic`, `krt-security-sentinel` |
 | Skill portfolio quality | `krt-repo-medic` -> `krt-skill-arbiter` |
 
 `krt-compound-master` treats a **work package** as the PR/Jira unit while preserving the plan's implementation units inside it. One PR may carry the package; the bookkeeping should still know which pieces marched where.

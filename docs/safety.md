@@ -18,6 +18,7 @@ Each skill owns the detailed guardrails closest to its procedure:
 | `krt-security-sentinel` | [`skills/krt-security-sentinel/references/safety.md`](../skills/krt-security-sentinel/references/safety.md) |
 | `krt-ci-questor` | [`skills/krt-ci-questor/references/safety.md`](../skills/krt-ci-questor/references/safety.md) |
 | `krt-deploy-summoner` | [`skills/krt-deploy-summoner/references/safety.md`](../skills/krt-deploy-summoner/references/safety.md) |
+| `krt-real-world-edge-testing` | [`skills/krt-real-world-edge-testing/references/safety.md`](../skills/krt-real-world-edge-testing/references/safety.md) |
 | `krt-docs-chronicler` | [`skills/krt-docs-chronicler/references/safety.md`](../skills/krt-docs-chronicler/references/safety.md) |
 | `krt-document-forge` | [`skills/krt-document-forge/references/safety.md`](../skills/krt-document-forge/references/safety.md) |
 | `krt-gitflow-knight` | [`skills/krt-gitflow-knight/references/safety.md`](../skills/krt-gitflow-knight/references/safety.md) |

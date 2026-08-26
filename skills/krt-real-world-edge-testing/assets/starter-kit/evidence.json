@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "records": [
+    {
+      "caseId": "EC-EXAMPLE-001",
+      "result": "not_run",
+      "durationMs": 0,
+      "observed": {
+        "reason": "Starter template has not been connected to a system"
+      },
+      "artifacts": [],
+      "mutations": [],
+      "recoveryStatus": "not_required",
+      "sanitized": true
+    }
+  ]
+}

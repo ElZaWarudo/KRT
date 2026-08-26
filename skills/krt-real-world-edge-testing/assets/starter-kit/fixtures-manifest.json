@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "generatedDirectory": "generated",
+  "fixtures": [
+    {
+      "id": "D01",
+      "fileName": "synthetic-report.txt",
+      "kind": "text",
+      "expectedTreatment": "parse",
+      "provenance": {
+        "kind": "versioned_static",
+        "source": "generated/synthetic-report.txt",
+        "reproduction": "Use the byte-identical file bundled with this versioned starter kit"
+      },
+      "canaries": [
+        "VEGA-27-CANARY"
+      ],
+      "canaryEncoding": "utf-8",
+      "containsPrivateData": false,
+      "sha256": "7a72dcbf9e0c5ed398982c3334ed9f343e574e6c6ad4fdfb55b18b8a7bb9f805"
+    }
+  ]
+}

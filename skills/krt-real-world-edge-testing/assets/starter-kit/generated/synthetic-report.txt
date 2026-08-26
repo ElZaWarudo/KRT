@@ -1,0 +1,3 @@
+Synthetic test report for the Vega-27 campaign.
+
+The stable marker is VEGA-27-CANARY. This file contains no private data.
