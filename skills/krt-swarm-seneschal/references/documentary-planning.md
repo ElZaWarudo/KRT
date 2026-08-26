@@ -29,6 +29,14 @@ documentation_gate:
     - docs/swarm/swarm-startup.md
     - docs/swarm/queue-state.yaml
     - docs/swarm/blockers.yaml
+  approval_artifacts:
+    - docs/plans/<initiative>/initiative-requirements.md
+    - docs/product/roadmap.md
+    - docs/jira/seed-plan.md
+    - docs/swarm/swarm-startup.md
+  approval_receipt: null
+  approved_packet_digest: null
+  approval_receipt_digest: null
   feedback_log:
     - at: "YYYY-MM-DDTHH:MM:SSZ"
       by: user
@@ -115,9 +123,13 @@ For `document-revise`:
 For `document-approve`:
 
 - Require explicit user approval such as "approve documentation", "approved, seed Jira", or equivalent.
-- Set `documentation_gate.status: approved`.
-- Set `approved_by` to the approving user label when known, otherwise `user`.
-- Set `approved_at` to the current timestamp.
+- Materialize a receipt over every `approval_artifacts` entry with
+  `scripts/materialize_approval_receipt.py`, binding it to the digest of the
+  root-observed user approval event. The event digest must come from the
+  trusted conversation handoff, never from the receipt being created.
+- Apply `approve-documentation` with `scripts/transition_swarm_state.py`; it
+  validates current artifact bytes before setting status, approver, timestamp,
+  receipt path, and packet digest.
 - Preserve `source_artifacts` and `feedback_log`.
 - After approval, Jira seed/drain, wave planning, dispatch, and release handoff may proceed only through their own gates.
 

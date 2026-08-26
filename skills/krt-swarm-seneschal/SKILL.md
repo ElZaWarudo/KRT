@@ -34,6 +34,10 @@ When subagents are unavailable, produce exact prompts and wave plans.
 - Never accept a worker's prose as its execution contract or certification.
   Materialize a hashed `worker-contract.json`, observe the real diff at root,
   and pass the contract plus evidence through the fail-closed evaluator.
+- Require every implementation worker to run the contract-bound
+  `validate_worker_terminal.py` command immediately before returning the exact
+  `worker-terminal.schema.json` object. Do not accept prose, YAML, renamed
+  fields, omitted empty arrays, or `phase` values other than `closeout`.
 - If the user explicitly asks for no human confirmation, convert the instruction into a ledger-bound autonomous run: execute allowed actions after required gates pass, record uncovered decisions as blockers, continue independent work, and leave a morning-ready status packet instead of stopping to ask.
 
 ## Reference Router
@@ -119,12 +123,20 @@ documentation_gate:
     - docs/swarm/swarm-startup.md
     - docs/swarm/queue-state.yaml
     - docs/swarm/blockers.yaml
+  approval_artifacts:
+    - docs/plans/<initiative>/initiative-requirements.md
+    - docs/product/roadmap.md
+    - docs/jira/seed-plan.md
+    - docs/swarm/swarm-startup.md
+  approval_receipt: null
+  approved_packet_digest: null
+  approval_receipt_digest: null
 ```
 
 - Mark documentation `in_review` when the packet is ready and stop with a review packet.
 - In `document-review`, present the packet and review focus; do not mutate Jira, queue execution state, workers, or code.
 - In `document-revise`, update only the documentation packet and gate status based on feedback.
-- In `document-approve`, require explicit user approval, then set `status: approved`, `approved_by`, and `approved_at`.
+- In `document-approve`, require explicit user approval, materialize a content-bound receipt with `scripts/materialize_approval_receipt.py`, then apply it with `scripts/transition_swarm_state.py`. Never set approval fields by hand.
 - If `documentation_gate.status != approved`, do not seed Jira, dispatch workers, mutate code, or hand off release work unless the user explicitly authorizes that exact action in the current request.
 
 3. **Normalize Work**
@@ -154,10 +166,8 @@ documentation_gate:
 - Load `references/automated-wave-control.md` and run
   `scripts/plan_adaptive_wave.py` from canonical history, blockers,
   dependencies, owned paths, risk surfaces, review capacity, and scale
-  authority. Its allocation replaces manual concurrency selection.
-- Allocate the whole wave against runtime `total_slots` with at least one
-  reserve slot by running `scripts/allocate_worker_slots.py`; role-pool ceilings
-  do not authorize exceeding total capacity.
+  authority. Its allocation already invokes the slot allocator and replaces
+  manual concurrency selection; do not run allocation a second time.
 - Keep the wave within open-stack reviewability limits already enforced by `krt-compound-master`.
 - Admit Planner, Reviewer, Fixer, Integrator, Documenter, and Compound Master roles only through their explicit triggers in `references/execution-lanes.md`.
 - Assign focused verification to each leaf and one aggregate verification owner/fingerprint to the wave.
@@ -171,6 +181,13 @@ documentation_gate:
   `scripts/materialize_worker_contract.py` before every implementation dispatch.
   Dispatch only after schema validation and carry its `contract_hash` through
   discovery, implementation, review, security, timing, and reconciliation.
+- Render the dispatch prompt only with `scripts/render_worker_envelope.py`; do
+  not hand-compose a second protocol beside the executable contract.
+- Add the pre-return terminal validator prefix to
+  `commands.read_only_prefixes` and its unique invocation to the worker
+  envelope. The passing invocation must be the final observed command. A
+  worker returns the exact JSON object that passed it; root-owned observation
+  fields are attached only during reconciliation.
 - Load `references/execution-lanes.md` and enforce the lane/profile mapping: `fast` uses `spark` at `xhigh`, `standard` uses `luna` at `high`, and `deep` uses read-only `luna_xhigh_discovery` followed by `luna_xhigh`, both at `xhigh`. Never lower Spark reasoning.
 - For a named Codex profile, require a successful `check_worker_profiles.py` result. Record whether resolution selected a project or personal custom agent; a bundled-only profile does not authorize dispatch. Never substitute a different profile when resolution or invocation fails.
 - If runtime exposes subagents, launch each worker only with the relevant unit contract and artifact paths.
@@ -193,22 +210,31 @@ documentation_gate:
 - Load `references/gates-and-reconciliation.md`.
 - Read each worker result, changed-file summary, verification output, blockers, and branch/base facts.
 - Inspect real diff filesystem state before trusting worker reports.
-- Build the observation from the root-inspected diff and available command
-  evidence, then run `scripts/evaluate_worker_run.py` for Spark, Luna, and Luna
+- Build the observation with `scripts/capture_worker_observation.py` so changed
+  files and `diff_digest` come from root-inspected state, attach available
+  command evidence, then run `scripts/evaluate_worker_run.py` for Spark, Luna, and Luna
   xhigh. A `contract_violation` never counts as verification or readiness;
   preserve the code for inspection. `awaiting_certification` cannot advance
   until every contract-required independent certificate is attached.
+- Treat absent pre-return validator command evidence as a contract violation;
+  do not repair or infer a malformed worker terminal on the worker's behalf.
 - Run required review and verification gates before marking any unit release-ready.
 - Load `references/automated-wave-control.md`. Compute the aggregate fingerprint
   with `scripts/verification_evidence.py`, decide reuse against the evidence
   registry, and run aggregate verification only when the decision is `run`.
-  Record every executed aggregate result. Never decide reuse by inspection.
+  Execute and record every aggregate result through the script's `run`
+  subcommand, which derives pass/fail from exit codes. Never accept a claimed
+  result or decide reuse by inspection.
 - Reconcile blockers using `references/blocker-ledger.md`: record non-fatal blockers, mark only affected units blocked/deferred, and continue independent ready units.
 - Reconcile each nested Compound result against its canonical state and artifacts. Treat swarm snapshots as stale observations, not authority.
 - Deduplicate decision requests, ask one decision at a time in manual interactive flow, persist the answer in the canonical shared or item artifact, and resume every affected child.
 - When the wave plan admitted an Integrator, use it to inspect merge order, dependency edges, stacked PR choreography, and cross-worker conflicts before release handoff.
 - Decide each unit status: `release-ready`, `needs-fix`, `blocked`, `deferred`, or `split-required`.
-- Update queue and active orchestration state in the same turn as status changes.
+- Apply supported documentation, pre-release unit, and blocker status changes
+  through `scripts/transition_swarm_state.py` with observed input digests.
+  Generic `unit-status` intentionally refuses release-ready, handed-off, and
+  merged; those require authoritative reconciliation or release evidence and
+  remain host-owned until their dedicated compiler validates it.
 - Close timing telemetry with phase durations, context bytes, review/fix rounds,
   verification fingerprint, evidence trust, scope violations, repeated
   verification, review findings, acceptance latency, and final status.

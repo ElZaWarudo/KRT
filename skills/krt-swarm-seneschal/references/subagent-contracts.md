@@ -56,7 +56,9 @@ Required skills:
 Forbidden actions:
 - ...
 Return contract:
-- ...
+- Return exactly the validated JSON object from `worker-terminal.schema.json`.
+- Run the contract-bound `validate_worker_terminal.py` command immediately
+  before returning it.
 ```
 
 Pass artifact paths and repo-relative paths. Avoid flooding workers with the entire queue.
@@ -166,7 +168,9 @@ Implement only the described unit.
 Follow AGENTS.md and local skill rules.
 Do not change public contracts, auth/data behavior, dependencies, or release configuration outside scope without stopping.
 Add or update tests when the unit changes behavior.
-Return a concise implementation report with files touched, verification, risks, and blockers.
+Return only the exact validated `worker-terminal.schema.json` object. Root adds
+the real changed files, command evidence, risks, and blockers during
+reconciliation.
 After the last required command and state update, return immediately. Do not add
 an exploratory, aggregate, or confidence-building verification pass.
 Do not commit, push, open PRs, mutate Jira, request reviewers, or merge.
@@ -244,56 +248,28 @@ Return changed docs and any verification performed.
 
 ## Return Contract
 
-Require every worker to return:
+Implementation workers return exactly one JSON object matching
+`worker-terminal.schema.json`. Do not ask them to translate it into a prose or
+YAML report. Use the schema's field names and nesting literally; every required
+array is present even when empty. In particular, `phase` is always `closeout`
+and `unowned_failures` is always present.
+
+Before return, require the contract-bound command from
+`executable-worker-contracts.md`. The worker writes its candidate terminal to
+the unique `/tmp` path in that command, runs the validator, corrects only
+validator-reported protocol errors when necessary, reruns it, and returns the
+exact JSON that passed. The passing validator invocation is the final observed
+command. The root later attaches the contract hash, worker identity,
+root-observed changed files, command evidence, and independent certificates to
+the authoritative observation; those root-owned fields do not belong in the
+terminal object.
+
+Planner, Reviewer, Fixer, Integrator, Documenter, Security, and nested Compound
+Master workers retain the role-specific returns defined above; they do not
+pretend to be implementation terminals. A brokered nested Compound return must
+include:
 
 ```text
-Status: done | done_with_baseline_gaps | needs_review | blocked
-Phase: closeout
-Remaining actions: []
-Terminal ready: true | false
-Acceptance criteria resolved: true | false
-Contract hash: <sha256:...>
-Acceptance evidence:
-- criterion_id: <stable ID from contract>
-  status: <satisfied|not_satisfied>
-  evidence: <concrete path, command result, or finding>
-Last required command: <exact command or none>
-Role: <planner|implementer|reviewer|fixer|integrator|documenter|compound-master-worker>
-Unit: <id>
-Jira issue: <key or none>
-Branch/worktree/thread: <ref if known>
-Changed files:
-- ...
-Verification:
-- attempted:
-  - command: <exact command>
-    attempts: <positive integer>
-    outcome: <passed|failed|baseline_failure|unowned_failure>
-- skipped:
-  - command: <exact command>
-    reason: <concrete non-empty reason>
-Verification commands run:
-- <exact command once per actual attempt, in execution order>
-Commands observed:
-- command: <exact command>
-  kind: <read-only|exact|verification>
-Command evidence trust: <self-reported|runtime-audited>
-Unowned failures:
-- <command/evidence or none>
-State updates:
-- <canonical path and reconciled facts>
-Scope notes:
-- <inside scope|outside scope concern>
-Scope extension: null | {additional_files: [<repo-relative path>], reason: <why required>}
-Blockers:
-- type: <product|auth|data|legal|DIAN|accounting|payroll|infrastructure|security|dependency|unknown>
-  description: <brief blocker>
-  decision_required: <decision needed>
-  impact_if_ignored: <risk>
-  affected_units: []
-  suggested_owner: <user|product|accountant|legal|security|tech lead>
-  evidence: <path/output/link>
-  next_action: <suggested next step>
 Decision requests:
 - question: <single decision>
   why_not_inferable: <missing authority or evidence>
@@ -303,10 +279,6 @@ Decision requests:
   safe_fallback: <pause/defer behavior>
   canonical_target: <shared or item artifact path>
   evidence: <paths/output/links>
-Release readiness:
-- ready | not ready | unknown
-Next role:
-- <implementer|reviewer|fixer|integrator|documenter|release-marshal|none>
 ```
 
 Status meanings are strict:
@@ -324,7 +296,8 @@ verification as a contract violation. `terminal_ready` means ready to return;
 were satisfied. It must be true for `done` and `done_with_baseline_gaps`, but
 may be false for `needs_review` and `blocked`.
 
-If a worker omits the return contract, inspect the diff before trusting its status.
+If a worker omits the return contract or pre-return validation evidence,
+inspect the diff before trusting its status.
 An omitted or mismatched contract hash, incomplete acceptance evidence, command
 outside the executable contract, or root-observed changed file outside
 `owned_files` is a contract violation. Preserve the changes but do not count the

@@ -34,6 +34,14 @@ documentation_gate:
     - docs/swarm/swarm-startup.md
     - docs/swarm/queue-state.yaml
     - docs/swarm/blockers.yaml
+  approval_artifacts:
+    - docs/plans/<initiative>/initiative-requirements.md
+    - docs/product/roadmap.md
+    - docs/jira/seed-plan.md
+    - docs/swarm/swarm-startup.md
+  approval_receipt: null
+  approved_packet_digest: null
+  approval_receipt_digest: null
   feedback_log: []
 initiative:
   contract_path: docs/plans/<initiative>/initiative-requirements.md
@@ -140,7 +148,7 @@ units:
       aggregate_owner: wave-root
       aggregate_fingerprint: null
       fingerprint_artifact: null
-      evidence_registry: docs/orchestration/verification-evidence.json
+      evidence_registry: "<root-owned-path-outside-worktree>/verification-evidence.json"
       reuse_decision: null
     isolation:
       type: worktree
@@ -174,7 +182,7 @@ wave_history:
       fingerprint_artifact: null
       commands: []
       evidence: []
-      evidence_registry: docs/orchestration/verification-evidence.json
+      evidence_registry: "<root-owned-path-outside-worktree>/verification-evidence.json"
       reuse_decision: null
       result: not-run
     gates:
@@ -258,6 +266,16 @@ Before every wave, read:
 Then mark units with open blockers, dependencies on open blockers, or a non-approved documentation gate as ineligible for execution.
 
 ## Update Moments
+
+Lifecycle fields are executable state. Apply unit status, documentation
+approval, and blocker-resolution transitions with
+`scripts/transition_swarm_state.py`, passing SHA-256 digests observed before the
+transition. The script locks the pair, rejects stale writers and illegal
+edges, validates both documents, and leaves a recovery journal until both
+atomic file replacements complete. Do not edit these fields independently.
+The generic unit transition is pre-release only and fails closed for
+`release-ready`, `handed-off`, and `merged`; those statuses require the named
+reconciliation/release gate and cannot be promoted by adjacency alone.
 
 Update queue state when:
 

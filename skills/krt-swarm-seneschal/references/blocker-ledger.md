@@ -152,6 +152,10 @@ After the user answers:
 7. Resume the original child when possible; otherwise resume a replacement from
    its canonical state path.
 
+Apply the blocker resolution and dependent queue update as one
+`resolve-blocker` operation through `scripts/transition_swarm_state.py`. Direct
+edits can leave the ledger and queue disagreeing and are not authoritative.
+
 In autonomous flow, keep requests open, defer affected work, and continue
 independent units without asking.
 

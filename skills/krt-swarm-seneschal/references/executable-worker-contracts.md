@@ -19,6 +19,15 @@ paths, unique acceptance IDs, exact command sets, budgets, certification roles,
 and evidence policy. It writes a canonical `sha256:` hash over every field
 except `contract_hash`. Any later mutation invalidates the artifact.
 
+Render the only dispatch envelope from that artifact:
+
+```bash
+rtk python3 <seneschal-skill-dir>/scripts/render_worker_envelope.py \
+  --contract <worker-contract.json> \
+  --terminal-path /tmp/<run-id>-<unit-id>-terminal.json \
+  --output <worker-envelope.json>
+```
+
 The contract distinguishes:
 
 - `commands.exact`: non-verification commands that must occur exactly once;
@@ -43,9 +52,49 @@ Root creates the observation. The worker must not choose these facts:
 - isolation and checkpoint facts;
 - independent Reviewer and Security Sentinel certificates.
 
+Capture changed files and their content digest from Git and the root filesystem:
+
+```bash
+rtk python3 <seneschal-skill-dir>/scripts/capture_worker_observation.py \
+  --repo-root <worktree> --base-revision <full-revision> \
+  --input <partial-observation-outside-worktree.json> \
+  --output <root-observation-outside-worktree.json>
+```
+
 The worker may supply terminal fields, acceptance evidence, and self-reported
 command evidence. When native command events exist, root replaces the latter
 with `trust: runtime-audited`.
+
+## Pre-return Terminal Validation
+
+Before dispatch, give every implementation worker the canonical
+`worker-terminal.schema.json` shape and this validator command, with a unique
+temporary output path:
+
+```bash
+rtk python3 <seneschal-skill-dir>/scripts/validate_worker_terminal.py \
+  --contract <worker-contract.json> \
+  --input /tmp/<run-id>-<unit-id>-terminal.json
+```
+
+The worker drafts only the terminal object in that temporary file, runs the
+validator after its required implementation and verification work, fixes only
+reported shape or consistency errors, and returns the exact validated object.
+It must not translate the object into headings, prose, YAML, or a different
+envelope. Validation is the final local command before return and does not
+authorize more implementation or verification. Include the validator command
+prefix in `commands.read_only_prefixes`; it reads the contract and temporary
+candidate without mutating the repo. The final command-evidence entry before
+return must be a passing validator invocation, so root fails closed when it is
+missing or followed by more work. A worker may correct protocol-only errors and
+rerun it; the last invocation must pass.
+
+This pre-return check covers worker-owned facts: exact fields, `phase:
+closeout`, empty `remaining_actions`, `terminal_ready: true`, acceptance
+evidence, verification accounting, and `unowned_failures`. Root still builds
+and evaluates the authoritative observation because the worker cannot certify
+the real diff, timestamps, scope, command trust, or independent review and
+security evidence.
 
 Evaluate every implementation lane:
 
@@ -84,6 +133,11 @@ Each required certificate contains exactly:
   "findings": [{"severity": "p1"}]
 }
 ```
+
+Every certificate `diff_digest` must equal the root observation's digest.
+Non-empty but mismatched digests are contract violations. The terminal
+validator evidence is parsed as exact argv with only `--contract` and `--input`;
+mentioning the validator filename in an unrelated command never satisfies it.
 
 The actor must differ from the implementer. Use `security-sentinel` for the
 security certificate. A certificate for another contract or diff is invalid.

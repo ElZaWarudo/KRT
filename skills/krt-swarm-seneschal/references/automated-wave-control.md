@@ -23,8 +23,11 @@ registry:
 
 ```bash
 rtk python3 <seneschal-skill-dir>/scripts/verification_evidence.py decide \
-  --registry docs/orchestration/verification-evidence.json \
+  --repo-root <repo-root> \
+  --registry <root-owned-registry-outside-worktree> \
   --fingerprint <fingerprint.json> \
+  --expected-fingerprint <trusted-wave-handoff-sha256> \
+  --expected-record-digest <trusted-registry-head-or-none> \
   --max-age-seconds <project-policy-seconds>
 ```
 
@@ -34,18 +37,23 @@ rtk python3 <seneschal-skill-dir>/scripts/verification_evidence.py decide \
   requires aggregate verification.
 - A modified fingerprint document is invalid; do not fall back to worker prose.
 
-After running, record the result and durable evidence references:
+Execute the fingerprinted commands and record observed results:
 
 ```bash
-rtk python3 <seneschal-skill-dir>/scripts/verification_evidence.py record \
-  --registry docs/orchestration/verification-evidence.json \
+rtk python3 <seneschal-skill-dir>/scripts/verification_evidence.py run \
+  --repo-root <repo-root> \
+  --registry <root-owned-registry-outside-worktree> \
   --fingerprint <fingerprint.json> \
-  --result <passed|failed> \
-  --evidence <path-or-reference>
+  --expected-fingerprint <trusted-wave-handoff-sha256> \
+  --timeout-seconds <per-command-limit> \
+  --evidence-dir <root-owned-path-outside-the-worktree>
 ```
 
-The registry replaces the same fingerprint record rather than appending
-duplicate executions. It stores no command output or source content.
+The runner uses parsed argv without a shell, derives pass/fail from exit codes,
+captures one log per command, and rejects any unlisted worktree change. Its
+evidence directory must sit outside the worktree so runner-owned logs cannot
+contaminate the diff. There is no caller-supplied result. The
+registry replaces the same fingerprint record rather than appending duplicates.
 
 ## Adaptive Wave Plan
 
@@ -55,14 +63,19 @@ paths, and risk surfaces. Then run:
 
 ```bash
 rtk python3 <seneschal-skill-dir>/scripts/plan_adaptive_wave.py \
-  --input <adaptive-plan.json>
+  --input <adaptive-plan.json> \
+  --expected-scale-authorization-digest <trusted-handoff-sha256>
 ```
+
+The expected authorization digest is an out-of-band trusted handoff from the
+root-observed user approval or validated autonomy ledger. Never derive it from
+the adaptive plan being checked.
 
 The planner:
 
 - defaults to two Implementers;
 - permits three after two consecutive clean green waves and four after four,
-  only when `scale_authorized` is true;
+  only when a digest-valid `scale_authorization` artifact permits it;
 - drops to one after a failed/partial wave or review lag;
 - caps implementation by actual review capacity;
 - rejects blocked/dependent requests, overlapping owned paths, and overlapping
@@ -83,7 +96,7 @@ and the latest allocation:
 rtk python3 <seneschal-skill-dir>/scripts/render_swarm_status.py \
   --queue docs/swarm/queue-state.yaml \
   --blockers docs/swarm/blockers.yaml \
-  --evidence docs/orchestration/verification-evidence.json \
+  --evidence <root-owned-registry-outside-worktree> \
   --allocation <adaptive-allocation.json>
 ```
 

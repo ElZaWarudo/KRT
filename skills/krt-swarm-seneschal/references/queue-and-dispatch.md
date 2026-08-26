@@ -49,7 +49,7 @@ verification:
   aggregate_owner: wave-root
   aggregate_fingerprint: null
   fingerprint_artifact: null
-  evidence_registry: docs/orchestration/verification-evidence.json
+  evidence_registry: "<root-owned-path-outside-worktree>/verification-evidence.json"
   reuse_decision: null
 compound:
   run_id: null
