@@ -6,13 +6,15 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 import json
+import shlex
 import sys
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Any
 
 from evaluate_luna_run import evaluate_run as evaluate_legacy_run
-from worker_contract import COMMAND_TRUST, validate_contract
+from evaluate_luna_run import terminal_reasons as legacy_terminal_reasons
+from worker_contract import COMMAND_TRUST, is_terminal_validation_argv, validate_contract
 
 
 PROFILES = {"spark", "luna", "luna_xhigh"}
@@ -53,10 +55,36 @@ def _command_allowed(command: str, contract: dict[str, Any]) -> bool:
         return True
     if any(token in command for token in ("&&", "||", ";", "|", "\n", "`", "$(", ">", "<")):
         return False
-    return any(
-        command == prefix or command.startswith(f"{prefix} ")
-        for prefix in commands["read_only_prefixes"]
-    )
+    if _is_terminal_validator_command(command):
+        return any("validate_worker_terminal.py" in prefix for prefix in commands["read_only_prefixes"])
+    try:
+        argv = shlex.split(command)
+    except ValueError:
+        return False
+    for prefix in commands["read_only_prefixes"]:
+        try:
+            prefix_argv = shlex.split(prefix)
+        except ValueError:
+            continue
+        if argv[: len(prefix_argv)] != prefix_argv:
+            continue
+        remainder = argv[len(prefix_argv) :]
+        if not remainder:
+            return command == prefix
+        if any(arg.startswith("-") for arg in remainder):
+            return False
+        if any(PurePosixPath(arg).is_absolute() or ".." in PurePosixPath(arg).parts for arg in remainder):
+            return False
+        return True
+    return False
+
+
+def _is_terminal_validator_command(command: str) -> bool:
+    try:
+        argv = shlex.split(command)
+    except ValueError:
+        return False
+    return is_terminal_validation_argv(argv)
 
 
 def _acceptance_reasons(
@@ -108,6 +136,30 @@ def _terminal_schema_reasons(final: dict[str, Any]) -> list[str]:
     return []
 
 
+def validate_worker_terminal(
+    contract: dict[str, Any], final: dict[str, Any]
+) -> dict[str, Any]:
+    """Validate the worker-owned terminal payload before it is returned."""
+    validate_contract(contract)
+    reasons = _terminal_schema_reasons(final)
+    reasons.extend(_acceptance_reasons(contract, final))
+    reasons.extend(
+        legacy_terminal_reasons(
+            {
+                # Root-only deep-lane facts are intentionally excluded here.
+                # Reconciliation validates them from the real observation.
+                "profile": "luna",
+                "verification_manifest": contract["commands"]["verification"],
+            },
+            final,
+        )
+    )
+    reasons = list(dict.fromkeys(reasons))
+    if reasons:
+        raise ValueError("invalid worker terminal: " + ", ".join(reasons))
+    return final
+
+
 def _command_reasons(
     contract: dict[str, Any], observation: dict[str, Any], final: dict[str, Any]
 ) -> tuple[list[str], dict[str, Any]]:
@@ -132,6 +184,7 @@ def _command_reasons(
         reasons.append("command-evidence-trust-too-low")
     commands: list[str] = []
     verification_commands: list[str] = []
+    outside = 0
     for entry in entries:
         if not isinstance(entry, dict) or set(entry) != {"command", "kind"}:
             reasons.append("command-evidence-invalid")
@@ -149,6 +202,7 @@ def _command_reasons(
         if kind == "verification":
             verification_commands.append(command)
         if not _command_allowed(command, contract):
+            outside += 1
             reasons.append("command-outside-contract")
     expected_exact = Counter(contract["commands"]["exact"])
     actual_exact = Counter(
@@ -164,7 +218,16 @@ def _command_reasons(
     if not isinstance(reported_verification, list) or verification_commands != reported_verification:
         reasons.append("command-audit-verification-mismatch")
     repeats = sum(count - 1 for count in Counter(verification_commands).values() if count > 1)
-    outside = sum(not _command_allowed(command, contract) for command in commands)
+    expected_validator = observation.get("terminal_validation_command")
+    validator_exit_code = observation.get("terminal_validation_exit_code")
+    if final.get("terminal_ready") is True and (
+        not isinstance(expected_validator, str)
+        or not _is_terminal_validator_command(expected_validator)
+        or not commands
+        or commands[-1] != expected_validator
+        or validator_exit_code != 0
+    ):
+        reasons.append("terminal-validation-not-final-command")
     return list(dict.fromkeys(reasons)), {
         "evidence_trust": trust,
         "out_of_manifest_commands": outside,
@@ -183,6 +246,12 @@ def _certification_state(
     reasons: list[str] = []
     findings = {"p0": 0, "p1": 0, "p2": 0}
     worker_id = observation.get("worker_id")
+    observed_diff_digest = observation.get("diff_digest")
+    if (
+        not isinstance(observed_diff_digest, str)
+        or not observed_diff_digest.startswith("sha256:")
+    ):
+        reasons.append("root-diff-digest-invalid")
     for certificate in certifications:
         if not isinstance(certificate, dict):
             reasons.append("certification-evidence-invalid")
@@ -214,6 +283,9 @@ def _certification_state(
             or not isinstance(raw_findings, list)
         ):
             reasons.append("certification-evidence-invalid")
+            continue
+        if certificate["diff_digest"] != observed_diff_digest:
+            reasons.append("certification-diff-digest-mismatch")
             continue
         if role in seen_roles:
             reasons.append("certification-evidence-duplicated")

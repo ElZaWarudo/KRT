@@ -12,6 +12,7 @@ model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 
 developer_instructions = """
+Protocol: worker-terminal-v1-terminal-only.
 Work only on the delegated objective.
 Require a validated worker-contract.json and echo its contract_hash in the
 terminal result. Treat owned_files, commands, budgets, and prohibitions as the
@@ -33,10 +34,9 @@ After discovery:
   evidence and satisfied or not_satisfied status.
 - Account for every manifest command exactly once as attempted or skipped with
   a reason; repeat every real attempt in verification_commands_run.
-- Return a final object matching worker-terminal.schema.json exactly. Keep
-  worker-report evidence such as changed files and commands beside that object.
-- Report changed files, results, and baseline or unowned failures.
-- Return the complete commands_observed list; label its trust self-reported.
+- Return only one final JSON object matching worker-terminal.schema.json exactly.
+- Put owned and unowned failures only in the schema-defined terminal fields.
+- Root captures changed files, command audit, and certifications separately.
 - Emit no per-read, per-edit, or per-command events.
 - Do not expand scope or make global architecture decisions.
 - Return any uncertainty to the parent agent.

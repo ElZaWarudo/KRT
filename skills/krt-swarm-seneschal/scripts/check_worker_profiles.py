@@ -30,6 +30,7 @@ REQUIRED_WORKER_FIELDS = {
     "expected_name",
     "expected_model",
     "expected_reasoning_effort",
+    "expected_protocol",
     "model_class",
 }
 SANDBOX_REQUIRED_WORKERS = {"luna_xhigh_discovery"}
@@ -274,6 +275,12 @@ def check_profiles(
         if profile_errors:
             result["errors"].extend(
                 f"{worker_id}:{error}" for error in profile_errors
+            )
+            continue
+        if worker["expected_protocol"] not in profile["developer_instructions"]:
+            result["errors"].append(
+                f"worker-profile-protocol-mismatch:{worker_id}:"
+                f"expected={worker['expected_protocol']}"
             )
             continue
 

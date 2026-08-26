@@ -11,6 +11,7 @@ model_reasoning_effort = "xhigh"
 sandbox_mode = "read-only"
 
 developer_instructions = """
+Protocol: discovery-checkpoint-v1-terminal-only.
 Work only on the delegated objective and honor its scope contract.
 Require a validated worker-contract.json and echo its contract_hash in the
 discovery terminal result.

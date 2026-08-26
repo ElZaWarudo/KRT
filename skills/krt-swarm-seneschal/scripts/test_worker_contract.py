@@ -7,7 +7,11 @@ import json
 import unittest
 from pathlib import Path
 
-from evaluate_worker_run import TERMINAL_FIELDS, evaluate_worker_run
+from evaluate_worker_run import (
+    TERMINAL_FIELDS,
+    evaluate_worker_run,
+    validate_worker_terminal,
+)
 from worker_contract import TOP_LEVEL_FIELDS, materialize_contract, validate_contract
 
 
@@ -32,7 +36,11 @@ class WorkerContractTest(unittest.TestCase):
             ],
             "commands": {
                 "exact": ["rtk prettier --write src/service.py"],
-                "read_only_prefixes": ["rtk read", "rtk grep"],
+                "read_only_prefixes": [
+                    "rtk read",
+                    "rtk grep",
+                    "rtk python3 skills/krt-swarm-seneschal/scripts/validate_worker_terminal.py",
+                ],
                 "verification": {
                     "focused": ["rtk pytest tests/test_service.py"],
                     "natural": [],
@@ -107,6 +115,7 @@ class WorkerContractTest(unittest.TestCase):
             "started_at_ms": 1_000,
             "changed_files": ["src/service.py"],
             "changed_files_source": "root-diff",
+            "diff_digest": "sha256:observed-diff",
             "checkpoint_count": 0,
             "interventions_sent": [],
             "first_change_at_ms": 2_000,
@@ -125,8 +134,22 @@ class WorkerContractTest(unittest.TestCase):
                         "command": "rtk pytest tests/test_service.py",
                         "kind": "verification",
                     },
+                    {
+                        "command": (
+                            "rtk python3 skills/krt-swarm-seneschal/scripts/"
+                            "validate_worker_terminal.py --contract contract.json "
+                            "--input /tmp/run-1-unit-1-terminal.json"
+                        ),
+                        "kind": "read-only",
+                    },
                 ],
             },
+            "terminal_validation_command": (
+                "rtk python3 skills/krt-swarm-seneschal/scripts/"
+                "validate_worker_terminal.py --contract contract.json "
+                "--input /tmp/run-1-unit-1-terminal.json"
+            ),
+            "terminal_validation_exit_code": 0,
             "certifications": [],
             "final": self.terminal(),
         }
@@ -185,13 +208,27 @@ class WorkerContractTest(unittest.TestCase):
     def test_independently_certified_terminal_completes(self) -> None:
         contract = materialize_contract(self.draft())
         observation = self.observation(
-            contract, certifications=[self.certificate(contract)]
+            contract,
+            certifications=[
+                self.certificate(contract, diff_digest="sha256:observed-diff")
+            ],
         )
         result = evaluate_worker_run(contract, observation, now_ms=5_000)
 
         self.assertEqual(result["action"], "complete")
         self.assertEqual(result["evidence_trust"], "self-reported")
         self.assertEqual(result["metrics"]["acceptance_latency_ms"], 4_000)
+
+    def test_certificate_must_bind_the_root_observed_diff(self) -> None:
+        contract = materialize_contract(self.draft())
+        observation = self.observation(
+            contract, certifications=[self.certificate(contract)]
+        )
+
+        result = evaluate_worker_run(contract, observation, now_ms=5_000)
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("certification-diff-digest-mismatch", result["reasons"])
 
     def test_fast_and_deep_lanes_use_the_same_terminal_evaluator(self) -> None:
         fast = materialize_contract(
@@ -306,7 +343,15 @@ class WorkerContractTest(unittest.TestCase):
                 {
                     "command": "rtk pytest tests/test_service.py",
                     "kind": "verification",
-                }
+                },
+                {
+                    "command": (
+                        "rtk python3 skills/krt-swarm-seneschal/scripts/"
+                        "validate_worker_terminal.py --contract contract.json "
+                        "--input /tmp/run-1-unit-1-terminal.json"
+                    ),
+                    "kind": "read-only",
+                },
             ],
         }
 
@@ -330,6 +375,34 @@ class WorkerContractTest(unittest.TestCase):
         self.assertEqual(result["action"], "contract_violation")
         self.assertIn("command-evidence-trust-too-low", result["reasons"])
 
+    def test_terminal_validation_must_be_the_final_observed_command(self) -> None:
+        contract = materialize_contract(self.draft(required_certifications=[]))
+        observation = self.observation(contract)
+        observation["command_evidence"]["commands"].append(
+            {"command": "rtk read src/service.py", "kind": "read-only"}
+        )
+
+        result = evaluate_worker_run(contract, observation, now_ms=5_000)
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("terminal-validation-not-final-command", result["reasons"])
+
+    def test_terminal_validation_must_match_envelope_paths_and_pass(self) -> None:
+        contract = materialize_contract(self.draft(required_certifications=[]))
+        wrong_path = self.observation(contract)
+        wrong_path["command_evidence"]["commands"][-1]["command"] = (
+            "rtk python3 skills/krt-swarm-seneschal/scripts/"
+            "validate_worker_terminal.py --contract other.json "
+            "--input /tmp/run-1-unit-1-terminal.json"
+        )
+        failed = self.observation(contract, terminal_validation_exit_code=1)
+
+        for observation in (wrong_path, failed):
+            with self.subTest(observation=observation):
+                result = evaluate_worker_run(contract, observation, now_ms=5_000)
+                self.assertEqual(result["action"], "contract_violation")
+                self.assertIn("terminal-validation-not-final-command", result["reasons"])
+
     def test_acceptance_evidence_must_map_every_criterion(self) -> None:
         contract = materialize_contract(self.draft(required_certifications=[]))
         result = evaluate_worker_run(
@@ -351,6 +424,25 @@ class WorkerContractTest(unittest.TestCase):
 
         self.assertEqual(result["action"], "contract_violation")
         self.assertIn("terminal-schema-unknown-fields", result["reasons"])
+
+    def test_worker_side_terminal_validation_accepts_exact_shape(self) -> None:
+        contract = materialize_contract(self.draft(required_certifications=[]))
+        terminal = self.terminal()
+
+        self.assertIs(validate_worker_terminal(contract, terminal), terminal)
+
+    def test_worker_side_terminal_validation_rejects_common_protocol_errors(self) -> None:
+        contract = materialize_contract(self.draft(required_certifications=[]))
+        invalid_terminals = [
+            self.terminal(phase="verification"),
+            {key: value for key, value in self.terminal().items() if key != "unowned_failures"},
+            self.terminal(verification_commands_run={"command": "rtk pytest tests/test_service.py"}),
+        ]
+
+        for terminal in invalid_terminals:
+            with self.subTest(terminal=terminal):
+                with self.assertRaisesRegex(ValueError, "invalid worker terminal"):
+                    validate_worker_terminal(contract, terminal)
 
 
 if __name__ == "__main__":

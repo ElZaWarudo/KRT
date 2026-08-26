@@ -5,12 +5,59 @@ from __future__ import annotations
 
 import hashlib
 import json
-from pathlib import PurePosixPath
+from pathlib import Path, PurePosixPath
+import shlex
 from typing import Any
 
 
 SCHEMA_VERSION = 1
-LANE_PROFILE = {"fast": "spark", "standard": "luna", "deep": "luna_xhigh"}
+TERMINAL_VALIDATOR = "skills/krt-swarm-seneschal/scripts/validate_worker_terminal.py"
+
+
+def terminal_validation_argv(contract_path: str, terminal_path: str) -> list[str]:
+    return [
+        "rtk", "python3", TERMINAL_VALIDATOR,
+        "--contract", contract_path, "--input", terminal_path,
+    ]
+
+
+def terminal_validation_command(contract_path: str, terminal_path: str) -> str:
+    return shlex.join(terminal_validation_argv(contract_path, terminal_path))
+
+
+def is_terminal_validation_argv(argv: list[str]) -> bool:
+    return (
+        len(argv) == 7
+        and argv[:3] == ["rtk", "python3", TERMINAL_VALIDATOR]
+        and argv[3] == "--contract"
+        and bool(argv[4])
+        and argv[5] == "--input"
+        and bool(argv[6])
+    )
+
+
+def _lane_profiles() -> dict[str, str]:
+    manifest_path = Path(__file__).resolve().parents[1] / "assets" / "codex-workers" / "manifest.yaml"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    stages = manifest.get("lane_stages")
+    if not isinstance(stages, dict) or set(stages) != {"fast", "standard", "deep"}:
+        raise RuntimeError("worker manifest lane_stages is invalid")
+    workers = manifest.get("workers")
+    if not isinstance(workers, dict):
+        raise RuntimeError("worker manifest workers is invalid")
+    result: dict[str, str] = {}
+    for lane, worker_ids in stages.items():
+        if (
+            not isinstance(worker_ids, list)
+            or not worker_ids
+            or not all(isinstance(worker_id, str) and worker_id in workers for worker_id in worker_ids)
+        ):
+            raise RuntimeError(f"worker manifest stage is invalid: {lane}")
+        result[lane] = worker_ids[-1]
+    return result
+
+
+LANE_PROFILE = _lane_profiles()
 CERTIFICATIONS = {"reviewer", "security-sentinel"}
 COMMAND_TRUST = {"self-reported": 0, "runtime-audited": 1}
 TOP_LEVEL_FIELDS = {
