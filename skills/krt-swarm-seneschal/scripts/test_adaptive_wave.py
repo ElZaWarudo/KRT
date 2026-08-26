@@ -4,8 +4,21 @@
 from __future__ import annotations
 
 import unittest
+import hashlib
 
 from plan_adaptive_wave import plan_adaptive_wave
+from verification_evidence import canonical_json
+
+
+def scale_authorization(authorized: bool) -> dict[str, object]:
+    value: dict[str, object] = {
+        "authorization_id": "user-approval-1",
+        "authorized": authorized,
+        "authorized_by": "user",
+        "max_implementers": 4 if authorized else 2,
+    }
+    value["authorization_digest"] = f"sha256:{hashlib.sha256(canonical_json(value)).hexdigest()}"
+    return value
 
 
 def request(
@@ -34,13 +47,22 @@ class AdaptiveWaveTest(unittest.TestCase):
             "total_slots": 8,
             "reserve_slots": 1,
             "role_caps": {},
-            "scale_authorized": True,
+            "scale_authorization": scale_authorization(True),
             "review_capacity": 4,
             "wave_history": [],
             "requests": [],
         }
         value.update(overrides)
         return value
+
+    def execute(self, plan: dict[str, object]) -> dict[str, object]:
+        authorization = plan["scale_authorization"]
+        assert isinstance(authorization, dict)
+        digest = authorization["authorization_digest"]
+        assert isinstance(digest, str)
+        return plan_adaptive_wave(
+            plan, expected_scale_authorization_digest=digest
+        )
 
     def test_four_green_waves_raise_cap_but_overlap_is_rejected(self) -> None:
         history = [
@@ -52,7 +74,7 @@ class AdaptiveWaveTest(unittest.TestCase):
             }
             for _ in range(4)
         ]
-        result = plan_adaptive_wave(
+        result = self.execute(
             self.plan(
                 wave_history=history,
                 requests=[
@@ -80,14 +102,14 @@ class AdaptiveWaveTest(unittest.TestCase):
             }
             for _ in range(4)
         ]
-        unauthorized = plan_adaptive_wave(
+        unauthorized = self.execute(
             self.plan(
-                scale_authorized=False,
+                scale_authorization=scale_authorization(False),
                 wave_history=green_history,
                 requests=[request(str(index)) for index in range(4)],
             )
         )
-        failed = plan_adaptive_wave(
+        failed = self.execute(
             self.plan(
                 wave_history=[*green_history, {"result": "failed"}],
                 requests=[request("one"), request("two")],
@@ -99,7 +121,7 @@ class AdaptiveWaveTest(unittest.TestCase):
         self.assertEqual(failed["implementer_cap"], 1)
 
     def test_high_risk_surface_and_blockers_are_serialized(self) -> None:
-        result = plan_adaptive_wave(
+        result = self.execute(
             self.plan(
                 requests=[
                     request("auth-one", risk_surfaces=["auth"]),
@@ -114,6 +136,28 @@ class AdaptiveWaveTest(unittest.TestCase):
         self.assertEqual(rejected["auth-two"], "surface-overlap")
         self.assertEqual(rejected["blocked"], "blocked-or-dependency")
         self.assertIn("review", {item["id"] for item in result["allocation"]["admitted"]})
+
+    def test_scale_authorization_cannot_be_changed_without_invalidating_digest(self) -> None:
+        authorization = scale_authorization(True)
+        authorization["max_implementers"] = 8
+
+        with self.assertRaisesRegex(ValueError, "digest"):
+            plan_adaptive_wave(
+                self.plan(scale_authorization=authorization),
+                expected_scale_authorization_digest=scale_authorization(True)["authorization_digest"],
+            )
+
+    def test_self_consistent_authorization_without_trusted_handoff_is_rejected(self) -> None:
+        forged = scale_authorization(True)
+        forged["authorization_id"] = "forged"
+        unsigned = {key: value for key, value in forged.items() if key != "authorization_digest"}
+        forged["authorization_digest"] = f"sha256:{hashlib.sha256(canonical_json(unsigned)).hexdigest()}"
+
+        with self.assertRaisesRegex(ValueError, "trusted handoff"):
+            plan_adaptive_wave(
+                self.plan(scale_authorization=forged),
+                expected_scale_authorization_digest=scale_authorization(True)["authorization_digest"],
+            )
 
 
 if __name__ == "__main__":

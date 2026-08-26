@@ -10,6 +10,7 @@ import sys
 from typing import Any
 
 from allocate_worker_slots import ROLE_PRIORITY, allocate_slots
+from deterministic_artifacts import canonical_sha256
 
 
 HIGH_RISK_SURFACES = {
@@ -51,10 +52,10 @@ def consecutive_green_waves(history: list[dict[str, Any]]) -> int:
 
 
 def implementation_cap(
-    *, history: list[dict[str, Any]], scale_authorized: bool, review_capacity: int
+    *, history: list[dict[str, Any]], green_streak: int,
+    scale_authorization: dict[str, Any], review_capacity: int,
 ) -> tuple[int, list[str]]:
     reasons: list[str] = []
-    green = consecutive_green_waves(history)
     cap = 2
     if history and history[-1].get("result") in {"failed", "partial"}:
         cap = 1
@@ -62,20 +63,40 @@ def implementation_cap(
     elif history and history[-1].get("review_lagging") is True:
         cap = 1
         reasons.append("review-capacity-lagging")
-    elif scale_authorized and green >= 4:
+    elif scale_authorization["authorized"] and green_streak >= 4:
         cap = 4
         reasons.append("four-consecutive-green-waves")
-    elif scale_authorized and green >= 2:
+    elif scale_authorization["authorized"] and green_streak >= 2:
         cap = 3
         reasons.append("two-consecutive-green-waves")
     else:
-        reasons.append("scale-not-authorized" if green >= 2 else "default-cap")
+        reasons.append("scale-not-authorized" if green_streak >= 2 else "default-cap")
     if review_capacity < cap:
         reasons.append("review-capacity-cap")
-    cap = min(cap, review_capacity)
+    cap = min(cap, review_capacity, scale_authorization["max_implementers"])
     if cap < 1:
         reasons.append("no-review-capacity")
     return cap, reasons
+
+
+def validate_scale_authorization(value: Any) -> dict[str, Any]:
+    expected = {"authorization_id", "authorized", "authorized_by", "max_implementers", "authorization_digest"}
+    if not isinstance(value, dict) or set(value) != expected:
+        raise ValueError("scale_authorization has missing or unknown fields")
+    if not isinstance(value.get("authorized"), bool):
+        raise ValueError("scale_authorization.authorized must be boolean")
+    if not isinstance(value.get("authorization_id"), str) or not value["authorization_id"].strip():
+        raise ValueError("scale_authorization.authorization_id must be non-empty")
+    if not isinstance(value.get("authorized_by"), str) or not value["authorized_by"].strip():
+        raise ValueError("scale_authorization.authorized_by must be non-empty")
+    maximum = _non_negative_int(value.get("max_implementers"), "scale_authorization.max_implementers")
+    payload = {key: value[key] for key in expected - {"authorization_digest"}}
+    expected_digest = canonical_sha256(payload)
+    if value.get("authorization_digest") != expected_digest:
+        raise ValueError("scale_authorization digest is invalid")
+    if value["authorized"] and maximum < 2:
+        raise ValueError("authorized scaling must allow at least two implementers")
+    return value
 
 
 def requests_overlap(left: dict[str, Any], right: dict[str, Any]) -> bool:
@@ -124,13 +145,15 @@ def normalize_request(raw: Any) -> dict[str, Any]:
     }
 
 
-def plan_adaptive_wave(plan: dict[str, Any]) -> dict[str, Any]:
+def plan_adaptive_wave(
+    plan: dict[str, Any], *, expected_scale_authorization_digest: str
+) -> dict[str, Any]:
     expected = {
         "schema_version",
         "total_slots",
         "reserve_slots",
         "role_caps",
-        "scale_authorized",
+        "scale_authorization",
         "review_capacity",
         "wave_history",
         "requests",
@@ -142,8 +165,9 @@ def plan_adaptive_wave(plan: dict[str, Any]) -> dict[str, Any]:
     total_slots = _non_negative_int(plan.get("total_slots"), "total_slots")
     reserve_slots = _non_negative_int(plan.get("reserve_slots"), "reserve_slots")
     review_capacity = _non_negative_int(plan.get("review_capacity"), "review_capacity")
-    if not isinstance(plan.get("scale_authorized"), bool):
-        raise ValueError("scale_authorized must be boolean")
+    scale_authorization = validate_scale_authorization(plan.get("scale_authorization"))
+    if scale_authorization["authorization_digest"] != expected_scale_authorization_digest:
+        raise ValueError("scale_authorization does not match trusted handoff digest")
     history = plan.get("wave_history")
     if not isinstance(history, list) or not all(isinstance(wave, dict) for wave in history):
         raise ValueError("wave_history must be a list of objects")
@@ -155,9 +179,11 @@ def plan_adaptive_wave(plan: dict[str, Any]) -> dict[str, Any]:
     if len(ids) != len(set(ids)):
         raise ValueError("request ids must be unique")
 
+    green_streak = consecutive_green_waves(history)
     cap, cap_reasons = implementation_cap(
         history=history,
-        scale_authorized=plan["scale_authorized"],
+        green_streak=green_streak,
+        scale_authorization=scale_authorization,
         review_capacity=review_capacity,
     )
     rejected: list[dict[str, Any]] = []
@@ -199,7 +225,7 @@ def plan_adaptive_wave(plan: dict[str, Any]) -> dict[str, Any]:
     rejected.extend(allocation["rejected"])
     return {
         "schema_version": 1,
-        "green_wave_streak": consecutive_green_waves(history),
+        "green_wave_streak": green_streak,
         "implementer_cap": cap,
         "cap_reasons": cap_reasons,
         "allocation": {**allocation, "rejected": rejected},
@@ -209,10 +235,14 @@ def plan_adaptive_wave(plan: dict[str, Any]) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True)
+    parser.add_argument("--expected-scale-authorization-digest", required=True)
     args = parser.parse_args()
     try:
         document = json.loads(args.input.read_text(encoding="utf-8"))
-        result = plan_adaptive_wave(document)
+        result = plan_adaptive_wave(
+            document,
+            expected_scale_authorization_digest=args.expected_scale_authorization_digest,
+        )
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         parser.error(str(exc))
     json.dump(result, sys.stdout, indent=2, sort_keys=True)
