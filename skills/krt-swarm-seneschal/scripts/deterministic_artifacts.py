@@ -50,3 +50,18 @@ def write_atomic(path: Path, document: dict[str, Any]) -> None:
     finally:
         if temporary is not None:
             temporary.unlink(missing_ok=True)
+
+
+def write_exclusive_atomic(path: Path, document: dict[str, Any]) -> None:
+    """Atomically create a JSON document without replacing an existing path."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=path.parent, delete=False) as stream:
+            temporary = Path(stream.name)
+            json.dump(document, stream, indent=2, sort_keys=True)
+            stream.write("\n")
+        os.link(temporary, path)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
