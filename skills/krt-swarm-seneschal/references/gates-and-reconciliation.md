@@ -43,6 +43,16 @@ For each unit:
    - Every contract-required Reviewer certificate names a different actor, the
      exact contract hash, and the reviewed diff digest. Implementer prose cannot
      satisfy this gate.
+   - When `review-coordination.md` is triggered, the compiled review plan covers
+     every changed path through exactly one primary surface, every admitted
+     reviewer terminal passes `validate_review_terminal.py`, and all queued
+     capacity-limited assignments finish before coverage is complete.
+   - Findings come from the root-owned digest-guarded registry. A required
+     targeted validation wave evaluates canonical IDs through
+     `evaluate_finding_validation.py`; validators do not mutate the registry.
+   - No at-or-above-threshold confirmed or revised finding remains unresolved.
+     Fixed findings bind focused evidence to the new root-observed diff digest;
+     deferred findings remain explicit in release handoff.
 
 4. **Security/production gate**
    - Security-sensitive units ran the security specialist or an explicit fallback.
@@ -76,6 +86,9 @@ For each worker result:
 - Identify shared files touched by multiple workers.
 - Detect public contract, auth, data, dependency, config, or generated-artifact changes.
 - Record verification commands and outcomes.
+- When coordinated review ran, record the review-plan hash, findings-registry
+  path and digest, exact-duplicate count, validator verdicts, and unresolved
+  canonical finding IDs.
 - Compare the recorded execution lane/profile to `execution-lanes.md` and reject
   silent reasoning-effort or worker substitutions.
 - Record focused unit evidence separately from aggregate wave evidence and

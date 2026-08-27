@@ -130,6 +130,14 @@ Start with one Implementer. Add a role only when its trigger is present:
 Record each admitted optional role and its trigger in the wave plan. Omitted
 roles need no synthetic placeholder or handoff.
 
+When several Reviewer triggers apply to one observed diff, load
+`review-coordination.md` and partition primary reviewers by non-overlapping code
+surface rather than sending several personas across the entire diff. Admit
+cross-cutting security or public-contract review only for its existing trigger
+and declare its overlap. Use a second validation wave only when the compiled
+review plan requires it; validators receive canonical finding IDs instead of an
+open-ended rediscovery prompt.
+
 Compile admitted `Reviewer` and `Security Sentinel` triggers into the executable
 worker contract's `required_certifications`. The implementer may finish its
 terminal, but the unit remains `awaiting_certification` until a different actor

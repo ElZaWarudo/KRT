@@ -56,6 +56,7 @@ Load only what the current task needs:
 | Resolve a named Codex worker profile | `references/worker-profiles.md` |
 | Monitor Luna checkpoint, closeout, and timing | `references/lightweight-supervision.md` |
 | Reconcile outputs, review gates, hand off release work | `references/gates-and-reconciliation.md` |
+| Partition review surfaces, register findings, target validators | `references/review-coordination.md` |
 | Run Jira backlog source and drain ready waves | `references/jira-team-flow.md` |
 | Seed Jira from roadmap or work-package backlog | `references/jira-seeding.md` |
 | Decide parallelism surface isolation | `references/parallel-dispatch-policy.md` |
@@ -219,6 +220,13 @@ documentation_gate:
 - Treat absent pre-return validator command evidence as a contract violation;
   do not repair or infer a malformed worker terminal on the worker's behalf.
 - Run required review and verification gates before marking any unit release-ready.
+- When independent review spans multiple code surfaces, a cross-cutting
+  security or contract concern, a large unsplittable diff, or disputed
+  findings, load `references/review-coordination.md`. Compile the root-owned
+  review plan with `plan_review_wave.py`, validate every reviewer terminal,
+  ingest findings through the digest-guarded registry, and run only the
+  targeted validation wave authorized by the compiled plan. Do not let workers
+  mutate the shared registry or hand-compose canonical finding IDs.
 - Load `references/automated-wave-control.md`. Compute the aggregate fingerprint
   with `scripts/verification_evidence.py`, decide reuse against the evidence
   registry, and run aggregate verification only when the decision is `run`.
@@ -266,6 +274,7 @@ End with:
 - Non-fatal blockers recorded, high-risk blockers, and whether independent work remains.
 - Branch/worktree/thread references when available.
 - Verification and review evidence.
+- Findings registry path and digest when coordinated review ran.
 - Lane/profile decisions and timing artifact path.
 - Queue/state files updated.
 - Exact next invocation.

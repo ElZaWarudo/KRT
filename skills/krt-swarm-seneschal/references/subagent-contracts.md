@@ -209,6 +209,26 @@ Report findings as P0/P1/P2 with file/line evidence.
 Do not rewrite the implementation unless explicitly asked to fix.
 ```
 
+For a coordinated multi-surface review, load `review-coordination.md` and give
+the reviewer one compiled surface assignment. Require the exact terminal
+accepted by `validate_review_terminal.py`. Every assigned risk boundary must be
+checked. P0/P1 findings are uncapped; return at most three evidence-backed P2
+findings and suppress speculative preferences.
+
+### Targeted Validator
+
+Use only after the root-owned registry assigns canonical IDs and the compiled
+review plan requires a validation wave. This is a bounded Reviewer or Security
+Sentinel assignment, not a new standing role.
+
+```text
+Validate only the supplied canonical finding IDs against the bound contract and
+root-observed diff. For each return confirmed, revised, or rejected with
+evidence. Do not repeat open-ended review. You may report a newly observed P0 or
+P1 encountered during reproduction, but do not expand the batch with a new P2.
+Do not edit implementation files or the shared findings registry.
+```
+
 ### Fixer
 
 Use only for concrete bounded review findings or verification failures.
@@ -217,7 +237,7 @@ Use only for concrete bounded review findings or verification failures.
 Fix only the listed findings.
 Do not opportunistically refactor.
 Run the narrow verification that proves the fix.
-Return the finding-to-change mapping.
+Return the canonical finding-ID-to-change mapping.
 Do not commit, push, open PRs, mutate Jira, request reviewers, or merge.
 ```
 

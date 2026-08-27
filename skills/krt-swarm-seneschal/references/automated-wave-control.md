@@ -87,6 +87,11 @@ The planner:
 The returned allocation is the dispatch authority for that wave. Do not add a
 worker manually after the adaptive plan.
 
+Adaptive allocation owns capacity, not post-implementation review
+partitioning. When one observed diff needs several reviewers, load
+`review-coordination.md` and use `plan_review_wave.py`; do not infer review
+surface ownership from available slots or append reviewers manually.
+
 ## Compact Status
 
 Render a read-only panel from queue state, blocker ledger, evidence registry,
