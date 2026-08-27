@@ -55,6 +55,26 @@ evidence directory must sit outside the worktree so runner-owned logs cannot
 contaminate the diff. There is no caller-supplied result. The
 registry replaces the same fingerprint record rather than appending duplicates.
 
+After a fix or recertification cycle, recompute the fingerprint first. Reuse an
+unchanged passing fingerprint; do not rerun aggregate verification merely
+because another review certificate arrived. A changed diff or aggregate command
+set produces a new fingerprint and must pass the normal decision path.
+
+## Throughput Objective
+
+Optimize the factory for root-observed time to accepted, release-ready work—not
+for the shortest individual worker return. Track implementation duration
+separately from end-to-end acceptance latency, fix/recertification cycles, and
+aggregate executions. Weak discovery or invalid commands caught after dispatch
+are factory defects even when the worker itself returned quickly.
+
+Use stricter discovery and command preflight before increasing concurrency or
+reducing reasoning effort. Two avoided review cycles usually matter more than a
+small reduction in worker runtime. Treat worker-reported phase durations as
+indicative. Compare or tune throughput from root/runtime timestamps and audited
+command events when available, and keep self-reported samples labeled rather
+than presenting them as rigorous benchmarks.
+
 ## Adaptive Wave Plan
 
 Build an adaptive input from runtime capacity, approval/ledger authority,

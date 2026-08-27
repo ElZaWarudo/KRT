@@ -38,7 +38,19 @@ evidence_digest: brief concrete evidence
 It sends no intermediate parent message. A valid terminal return makes the
 checkpoint exactly-once for that invocation. When `edit_path_found` is true,
 `planned_files` is non-empty and is a subset of the unit's `owned_files`. When
-false, `planned_files` is empty.
+false, `planned_files` is empty. The checkpoint schema is closed: unknown fields,
+including `contract_hash`, are invalid. Root binds the discovery invocation to
+the contract hash at the observation level.
+
+Discovery must narrow a multi-file ownership manifest rather than return it
+unchanged. For every planned file, `evidence_digest` contains a line beginning
+`edit <repo-relative-path> |` with at least one of `symbol=`, `pattern=`, or
+`callers=`, plus `why=` explaining why that file must change. Use
+`dependency <path> |` for
+read-only evidence and `contingency <path> |` for a possible later scope
+extension. Prefer an additive path around CRITICAL existing hubs; when one is
+unavoidable, name the exact impacted symbols and explain why the additive path
+is insufficient.
 
 Root validates the checkpoint and immediately dispatches a fresh
 `luna_xhigh` implementation worker. The implementation contract carries the
@@ -68,8 +80,9 @@ no live scope-approval protocol.
 ## Root Observation
 
 Materialize the executable contract first as described in
-`executable-worker-contracts.md`. The deep checkpoint and implementation must
-echo the same `contract_hash`.
+`executable-worker-contracts.md`. Root binds both deep invocations to the same
+`contract_hash` in the observation; neither the exact checkpoint nor the exact
+implementation terminal grows an extra hash field.
 
 Root timestamps worker returns and the implementation dispatch, then inspects
 the real diff. It builds a JSON observation for
@@ -80,14 +93,14 @@ the real diff. It builds a JSON observation for
   "schema_version": 1,
   "profile": "luna_xhigh",
   "started_at_ms": 1000,
-  "owned_files": ["src/service.py"],
+  "owned_files": ["src/service.py", "src/config.py"],
   "changed_files": ["src/service.py"],
   "checkpoint_count": 1,
   "checkpoint": {
     "discovery_complete_at_ms": 5000,
     "edit_path_found": true,
     "planned_files": ["src/service.py"],
-    "evidence_digest": "Read service and focused tests; safe edit path found."
+    "evidence_digest": "edit src/service.py | symbol=Service.run; why=the established additive path requires this implementation change.\ndependency src/config.py | symbol=Config.load; inspected only, no change required."
   },
   "discovery_returned_at_ms": 5000,
   "implementation_started_at_ms": 6000,
@@ -141,7 +154,8 @@ comes from inspection of the real isolation target, never from the worker
 report. Root records `dispatch_implementation` only after the second worker was
 successfully launched.
 
-The evaluator rejects an absent or duplicate checkpoint, missing evidence,
+The evaluator rejects an absent or duplicate checkpoint, unknown fields, missing
+or non-file-specific evidence, unchanged multi-file ownership manifests,
 planned files outside ownership, implementation before a valid checkpoint, a
 first change before the implementation dispatch, and changed files outside the
 accepted manifest.

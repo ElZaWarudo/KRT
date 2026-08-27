@@ -45,7 +45,10 @@ class LunaSupervisorTest(unittest.TestCase):
             "discovery_complete_at_ms": 5_000,
             "edit_path_found": True,
             "planned_files": ["src/service.py"],
-            "evidence_digest": "Read service and focused tests; safe edit path found.",
+            "evidence_digest": (
+                "edit src/service.py | symbol=Service.run; existing focused test "
+                "covers the additive path; why=this file implements the behavior."
+            ),
         }
         value.update(overrides)
         return value
@@ -390,6 +393,11 @@ class LunaSupervisorTest(unittest.TestCase):
         for checkpoint_count, planned_files, expected_reason in (
             (1, [], "checkpoint-missing-planned-files"),
             (1, ["src/unowned.py"], "checkpoint-plans-unowned-file"),
+            (
+                1,
+                ["src/service.py", "src/service.py"],
+                "checkpoint-duplicate-planned-files",
+            ),
             (2, ["src/service.py"], "invalid-checkpoint-count"),
         ):
             with self.subTest(
@@ -436,6 +444,77 @@ class LunaSupervisorTest(unittest.TestCase):
                 self.assertIn(
                     "checkpoint-missing-evidence-digest", result["reasons"]
                 )
+
+    def test_xhigh_checkpoint_rejects_unknown_fields(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(contract_hash="sha256:unexpected"),
+                discovery_returned_at_ms=5_000,
+            ),
+            now_ms=5_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("invalid-checkpoint-fields", result["reasons"])
+
+    def test_xhigh_checkpoint_must_narrow_broad_ownership(self) -> None:
+        planned_files = ["src/service.py", "tests/test_service.py"]
+        result = evaluate_run(
+            self.observation(
+                owned_files=planned_files,
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(
+                    planned_files=planned_files,
+                    evidence_digest=(
+                        "edit src/service.py | symbol=Service.run; why=implementation.\n"
+                        "edit tests/test_service.py | symbol=test_run; why=coverage."
+                    ),
+                ),
+                discovery_returned_at_ms=5_000,
+            ),
+            now_ms=5_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("checkpoint-did-not-narrow-ownership", result["reasons"])
+
+    def test_xhigh_checkpoint_requires_each_planned_file_justification(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                owned_files=["src/service.py", "tests/test_service.py", "src/config.py"],
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(
+                    planned_files=["src/service.py", "tests/test_service.py"],
+                    evidence_digest=(
+                        "edit src/service.py | symbol=Service.run; why=implementation path."
+                    ),
+                ),
+                discovery_returned_at_ms=5_000,
+            ),
+            now_ms=5_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn(
+            "checkpoint-missing-file-justification", result["reasons"]
+        )
+
+    def test_xhigh_checkpoint_rejects_vague_file_justification(self) -> None:
+        result = evaluate_run(
+            self.observation(
+                owned_files=["src/service.py", "src/config.py"],
+                checkpoint_count=1,
+                checkpoint=self.checkpoint(
+                    evidence_digest="edit src/service.py | surfaces are available."
+                ),
+                discovery_returned_at_ms=5_000,
+            ),
+            now_ms=5_000,
+        )
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("checkpoint-vague-file-justification", result["reasons"])
 
     def test_checkpoint_without_edit_path_rejects_planned_files(self) -> None:
         result = evaluate_run(

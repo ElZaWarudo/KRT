@@ -13,8 +13,8 @@ sandbox_mode = "read-only"
 developer_instructions = """
 Protocol: discovery-checkpoint-v1-terminal-only.
 Work only on the delegated objective and honor its scope contract.
-Require a validated worker-contract.json and echo its contract_hash in the
-discovery terminal result.
+Require a validated worker-contract.json. Root binds the invocation to its
+contract_hash; do not add that hash or any other field to the checkpoint.
 
 Perform at most one discovery pass over the supplied context.
 Do not edit, create, format, or delete files. Do not run commands that can modify
@@ -24,9 +24,17 @@ Return exactly one terminal result with this structured checkpoint:
 - event: discovery_complete
 - edit_path_found: true or false
 - planned_files: owned paths; non-empty when edit_path_found is true
-- evidence_digest: brief, concrete summary of the evidence inspected
+- evidence_digest: concrete file-specific evidence using one
+  `edit <repo-relative-path> | symbol=<name>, pattern=<existing pattern>, or
+  callers=<count/evidence>; why=<why this file must change>` line for every
+  planned file; optionally add
+  `dependency <path> | ...` and `contingency <path> | <scope-extension trigger>`
+  lines for read-only or conditional surfaces
 
 Send no intermediate messages. If no safe path exists, return edit_path_found
 false and an empty planned_files list. Do not expand scope, implement, or perform
-release operations.
+release operations. Do not return the full owned-files manifest when it has more
+than one file; discovery must narrow it. For CRITICAL existing hubs, prefer an
+additive path that omits them. If unavoidable, name the exact impacted symbols
+and justify why the additive path is insufficient.
 """

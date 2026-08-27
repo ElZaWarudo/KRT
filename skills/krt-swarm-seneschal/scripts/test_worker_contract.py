@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import json
+import shlex
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -12,10 +14,21 @@ from evaluate_worker_run import (
     evaluate_worker_run,
     validate_worker_terminal,
 )
-from worker_contract import TOP_LEVEL_FIELDS, materialize_contract, validate_contract
+from worker_contract import (
+    TOP_LEVEL_FIELDS,
+    TERMINAL_VALIDATOR,
+    materialize_contract,
+    preflight_contract_commands,
+    terminal_validation_command,
+    validate_contract,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
+VALIDATOR_PREFIX = shlex.join(["rtk", "python3", TERMINAL_VALIDATOR])
+VALIDATOR_COMMAND = terminal_validation_command(
+    "contract.json", "/tmp/run-1-unit-1-terminal.json"
+)
 
 
 class WorkerContractTest(unittest.TestCase):
@@ -39,7 +52,7 @@ class WorkerContractTest(unittest.TestCase):
                 "read_only_prefixes": [
                     "rtk read",
                     "rtk grep",
-                    "rtk python3 skills/krt-swarm-seneschal/scripts/validate_worker_terminal.py",
+                    VALIDATOR_PREFIX,
                 ],
                 "verification": {
                     "focused": ["rtk pytest tests/test_service.py"],
@@ -135,20 +148,12 @@ class WorkerContractTest(unittest.TestCase):
                         "kind": "verification",
                     },
                     {
-                        "command": (
-                            "rtk python3 skills/krt-swarm-seneschal/scripts/"
-                            "validate_worker_terminal.py --contract contract.json "
-                            "--input /tmp/run-1-unit-1-terminal.json"
-                        ),
+                        "command": VALIDATOR_COMMAND,
                         "kind": "read-only",
                     },
                 ],
             },
-            "terminal_validation_command": (
-                "rtk python3 skills/krt-swarm-seneschal/scripts/"
-                "validate_worker_terminal.py --contract contract.json "
-                "--input /tmp/run-1-unit-1-terminal.json"
-            ),
+            "terminal_validation_command": VALIDATOR_COMMAND,
             "terminal_validation_exit_code": 0,
             "certifications": [],
             "final": self.terminal(),
@@ -197,6 +202,55 @@ class WorkerContractTest(unittest.TestCase):
         contract["objective"] = "Tampered"
         with self.assertRaisesRegex(ValueError, "contract_hash"):
             validate_contract(contract)
+
+    def test_command_preflight_rejects_wrong_package_working_directory(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            backend = root / "backend"
+            backend.mkdir()
+            (backend / "package.json").write_text("{}", encoding="utf-8")
+            tests = root / "tests"
+            tests.mkdir()
+            (tests / "test_service.py").write_text("", encoding="utf-8")
+            base_commands = self.draft()["commands"]
+            contract = materialize_contract(
+                self.draft(commands={**base_commands, "exact": ["rtk npm test"]})
+            )
+
+            with self.assertRaisesRegex(ValueError, "no package.json"):
+                preflight_contract_commands(contract, repo_root=root)
+
+            contract = materialize_contract(
+                self.draft(
+                    commands={
+                        **base_commands,
+                        "exact": ["rtk npm --prefix backend test"],
+                    }
+                )
+            )
+            result = preflight_contract_commands(contract, repo_root=root)
+
+        self.assertGreater(result["commands_checked"], 0)
+
+    def test_command_preflight_rejects_missing_verification_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            contract = materialize_contract(self.draft(required_certifications=[]))
+
+            with self.assertRaisesRegex(ValueError, "path does not exist"):
+                preflight_contract_commands(contract, repo_root=root)
+
+    def test_command_preflight_rejects_cwd_changes_and_chains(self) -> None:
+        for command in ("rtk cd backend", "rtk pytest tests/ && rtk lint"):
+            with self.subTest(command=command):
+                base_commands = self.draft()["commands"]
+                contract = materialize_contract(
+                    self.draft(commands={**base_commands, "exact": [command]})
+                )
+                with self.assertRaisesRegex(
+                    ValueError, "must not change cwd or chain"
+                ):
+                    preflight_contract_commands(contract, repo_root=Path.cwd())
 
     def test_valid_terminal_waits_for_independent_certification(self) -> None:
         contract = materialize_contract(self.draft())
@@ -258,7 +312,10 @@ class WorkerContractTest(unittest.TestCase):
             "discovery_complete_at_ms": 1_400,
             "edit_path_found": True,
             "planned_files": ["src/service.py"],
-            "evidence_digest": "Owned edit path confirmed.",
+            "evidence_digest": (
+                "edit src/service.py | symbol=Service.run; owned additive edit "
+                "path confirmed; why=this file owns the behavior."
+            ),
         }
         deep_result = evaluate_worker_run(
             deep,
@@ -345,11 +402,7 @@ class WorkerContractTest(unittest.TestCase):
                     "kind": "verification",
                 },
                 {
-                    "command": (
-                        "rtk python3 skills/krt-swarm-seneschal/scripts/"
-                        "validate_worker_terminal.py --contract contract.json "
-                        "--input /tmp/run-1-unit-1-terminal.json"
-                    ),
+                    "command": VALIDATOR_COMMAND,
                     "kind": "read-only",
                 },
             ],
@@ -391,9 +444,9 @@ class WorkerContractTest(unittest.TestCase):
         contract = materialize_contract(self.draft(required_certifications=[]))
         wrong_path = self.observation(contract)
         wrong_path["command_evidence"]["commands"][-1]["command"] = (
-            "rtk python3 skills/krt-swarm-seneschal/scripts/"
-            "validate_worker_terminal.py --contract other.json "
-            "--input /tmp/run-1-unit-1-terminal.json"
+            terminal_validation_command(
+                "other.json", "/tmp/run-1-unit-1-terminal.json"
+            )
         )
         failed = self.observation(contract, terminal_validation_exit_code=1)
 

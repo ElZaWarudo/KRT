@@ -25,6 +25,13 @@ INTERVENTION_ACTIONS = {
     "return_now",
 }
 ATTEMPT_OUTCOMES = {"passed", "failed", "baseline_failure", "unowned_failure"}
+CHECKPOINT_FIELDS = {
+    "discovery_complete_at_ms",
+    "edit_path_found",
+    "event",
+    "evidence_digest",
+    "planned_files",
+}
 
 
 def require_non_negative_int(value: Any, field: str) -> int:
@@ -205,6 +212,8 @@ def checkpoint_reasons(
     if not isinstance(checkpoint, dict):
         reasons.append("invalid-checkpoint-shape")
         return reasons
+    if set(checkpoint) != CHECKPOINT_FIELDS:
+        reasons.append("invalid-checkpoint-fields")
     try:
         require_non_negative_int(
             checkpoint.get("discovery_complete_at_ms"),
@@ -234,8 +243,42 @@ def checkpoint_reasons(
     if checkpoint["edit_path_found"]:
         if not planned_files:
             reasons.append("checkpoint-missing-planned-files")
+        if len(planned_files) != len(set(planned_files)):
+            reasons.append("checkpoint-duplicate-planned-files")
         if any(path not in owned_files for path in planned_files):
             reasons.append("checkpoint-plans-unowned-file")
+        if len(owned_files) > 1 and set(planned_files) == owned_files:
+            reasons.append("checkpoint-did-not-narrow-ownership")
+        if isinstance(evidence_digest, str) and evidence_digest.strip():
+            evidence_lines = evidence_digest.splitlines()
+            edit_evidence = {
+                path: next(
+                    (
+                        line.split("|", 1)[1].strip()
+                        for line in evidence_lines
+                        if line.startswith(f"edit {path} |")
+                    ),
+                    None,
+                )
+                for path in planned_files
+            }
+            unjustified = [path for path, detail in edit_evidence.items() if detail is None]
+            if unjustified:
+                reasons.append("checkpoint-missing-file-justification")
+            vague = [
+                path
+                for path, detail in edit_evidence.items()
+                if detail is not None
+                and (
+                    not any(
+                        marker in detail
+                        for marker in ("symbol=", "pattern=", "callers=")
+                    )
+                    or "why=" not in detail
+                )
+            ]
+            if vague:
+                reasons.append("checkpoint-vague-file-justification")
     elif planned_files:
         reasons.append("checkpoint-has-unexpected-planned-files")
     return reasons

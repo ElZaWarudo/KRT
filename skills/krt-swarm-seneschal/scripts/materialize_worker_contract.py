@@ -8,7 +8,11 @@ import json
 import sys
 from pathlib import Path
 
-from worker_contract import materialize_contract, validate_contract
+from worker_contract import (
+    materialize_contract,
+    preflight_contract_commands,
+    validate_contract,
+)
 
 
 def load_object(path: Path) -> dict[str, object]:
@@ -21,6 +25,7 @@ def load_object(path: Path) -> dict[str, object]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", type=Path, required=True)
+    parser.add_argument("--repo-root", type=Path, required=True)
     parser.add_argument("--output", type=Path)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
@@ -32,6 +37,8 @@ def main() -> int:
             result = validate_contract(document)
         else:
             result = materialize_contract(document)
+        preflight = preflight_contract_commands(result, repo_root=args.repo_root)
+        if not args.check:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_text(
                 json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
@@ -39,7 +46,11 @@ def main() -> int:
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         parser.error(str(exc))
     json.dump(
-        {"contract_hash": result["contract_hash"], "valid": True},
+        {
+            "command_preflight": preflight,
+            "contract_hash": result["contract_hash"],
+            "valid": True,
+        },
         sys.stdout,
         indent=2,
         sort_keys=True,

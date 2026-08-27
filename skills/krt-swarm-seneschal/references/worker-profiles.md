@@ -67,9 +67,11 @@ before approval.
 Supervision differs by profile: `luna` uses terminal-only supervision.
 `luna_xhigh_discovery` runs under a runtime-enforced read-only sandbox and
 returns exactly one terminal checkpoint with `edit_path_found`, `planned_files`,
-and `evidence_digest`. Root validates it against compiled `owned_files`, then
-automatically launches a fresh `luna_xhigh` implementation worker with
-ownership narrowed to `planned_files`. Neither stage emits per-action telemetry.
+and `evidence_digest`; extra fields are invalid. Root rejects unchanged broad
+ownership or planned paths without file-specific justification, validates the
+result against compiled `owned_files`, then automatically launches a fresh
+`luna_xhigh` implementation worker with ownership narrowed to `planned_files`.
+Neither stage emits per-action telemetry.
 
 The implementation stage sends no checkpoint and does not repeat discovery. If
 another file is required, it returns `needs_review` with a structured scope

@@ -186,7 +186,13 @@ planned_files: []
 evidence_digest: brief concrete evidence
 ```
 
-Root validates the checkpoint and, when the edit path exists, immediately
+The checkpoint is closed to extra fields. Discovery narrows multi-file
+ownership and justifies every planned edit with an
+`edit <repo-relative-path> | symbol=<name>, pattern=<pattern>, or
+callers=<evidence>; why=<reason>` line in
+`evidence_digest`; it separates read-only dependencies and contingencies there.
+For CRITICAL hubs, it prefers an additive path or gives symbol-level impact
+evidence. Root validates the checkpoint and, when the edit path exists, immediately
 launches a fresh `luna_xhigh` with the checkpoint attached and editable
 ownership narrowed to `planned_files`. The implementation worker does not repeat
 discovery or send a checkpoint. If another file is required, it returns

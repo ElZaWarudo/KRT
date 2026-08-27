@@ -11,7 +11,9 @@ from typing import Any
 
 
 SCHEMA_VERSION = 1
-TERMINAL_VALIDATOR = "skills/krt-swarm-seneschal/scripts/validate_worker_terminal.py"
+TERMINAL_VALIDATOR = str(
+    Path(__file__).with_name("validate_worker_terminal.py").resolve()
+)
 
 
 def terminal_validation_argv(contract_path: str, terminal_path: str) -> list[str]:
@@ -60,6 +62,14 @@ def _lane_profiles() -> dict[str, str]:
 LANE_PROFILE = _lane_profiles()
 CERTIFICATIONS = {"reviewer", "security-sentinel"}
 COMMAND_TRUST = {"self-reported": 0, "runtime-audited": 1}
+PACKAGE_MANIFESTS = {
+    "bundle": "Gemfile",
+    "cargo": "Cargo.toml",
+    "npm": "package.json",
+    "npx": "package.json",
+    "pnpm": "package.json",
+    "yarn": "package.json",
+}
 TOP_LEVEL_FIELDS = {
     "schema_version",
     "contract_id",
@@ -134,6 +144,115 @@ def _non_negative_int(value: Any, field: str) -> int:
     if not isinstance(value, int) or isinstance(value, bool) or value < 0:
         raise ValueError(f"{field} must be a non-negative integer")
     return value
+
+
+def _command_argv(command: str) -> list[str]:
+    try:
+        argv = shlex.split(command)
+    except ValueError as exc:
+        raise ValueError(f"command is not valid shell syntax: {command}") from exc
+    if len(argv) < 2 or argv[0] != "rtk":
+        raise ValueError(f"contract commands must start with rtk: {command}")
+    if any(token in {"&&", "||", ";", "|", "cd"} for token in argv):
+        raise ValueError(
+            f"contract commands must not change cwd or chain commands: {command}"
+        )
+    return argv
+
+
+def _package_context(argv: list[str], repo_root: Path) -> tuple[Path, str] | None:
+    tool = argv[1]
+    manifest = PACKAGE_MANIFESTS.get(tool)
+    if manifest is None:
+        return None
+    context = repo_root
+    options = {
+        "npm": ("--prefix",),
+        "npx": ("--prefix",),
+        "pnpm": ("--dir", "-C"),
+        "yarn": ("--cwd",),
+    }.get(tool, ())
+    for option in options:
+        if option in argv:
+            index = argv.index(option)
+            if index + 1 >= len(argv):
+                raise ValueError(f"{option} requires a path")
+            context = repo_root / argv[index + 1]
+            break
+    if tool == "cargo" and "--manifest-path" in argv:
+        index = argv.index("--manifest-path")
+        if index + 1 >= len(argv):
+            raise ValueError("--manifest-path requires a path")
+        manifest_path = repo_root / argv[index + 1]
+        return manifest_path.parent, manifest_path.name
+    return context, manifest
+
+
+def _path_tokens(argv: list[str]) -> list[str]:
+    result: list[str] = []
+    for token in argv[2:]:
+        candidate = (
+            token.split("=", 1)[1]
+            if token.startswith("--") and "=" in token
+            else token
+        )
+        if candidate.startswith("-") or "://" in candidate:
+            continue
+        if "/" in candidate or candidate.startswith("."):
+            result.append(candidate)
+    return result
+
+
+def preflight_contract_commands(
+    contract: dict[str, Any], *, repo_root: Path
+) -> dict[str, Any]:
+    """Validate command cwd assumptions without executing contract commands."""
+    validate_contract(contract)
+    root = repo_root.resolve()
+    if not root.is_dir():
+        raise ValueError("repo_root must be an existing directory")
+    commands = contract["commands"]
+    command_groups = {
+        "exact": commands["exact"],
+        "focused": commands["verification"]["focused"],
+        "natural": commands["verification"]["natural"],
+    }
+    checked = 0
+    for group, values in command_groups.items():
+        for command in values:
+            argv = _command_argv(command)
+            package_context = _package_context(argv, root)
+            if package_context is not None:
+                context, manifest = package_context
+                if not (context / manifest).is_file():
+                    raise ValueError(
+                        f"{group} command has no {manifest} in its resolved cwd "
+                        f"{context}: {command}"
+                    )
+            if group in {"focused", "natural"}:
+                for token in _path_tokens(argv):
+                    candidate = Path(token)
+                    resolved = (
+                        candidate if candidate.is_absolute() else root / candidate
+                    )
+                    if not resolved.exists():
+                        raise ValueError(
+                            f"{group} command path does not exist from repo_root: "
+                            f"{token} ({command})"
+                        )
+            checked += 1
+    for prefix in commands["read_only_prefixes"]:
+        argv = _command_argv(prefix)
+        for token in _path_tokens(argv):
+            candidate = Path(token)
+            resolved = candidate if candidate.is_absolute() else root / candidate
+            if not resolved.exists():
+                raise ValueError(
+                    "read-only command path does not exist from repo_root: "
+                    f"{token} ({prefix})"
+                )
+        checked += 1
+    return {"commands_checked": checked, "repo_root": str(root)}
 
 
 def validate_contract(

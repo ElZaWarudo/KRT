@@ -180,8 +180,11 @@ documentation_gate:
 - Load `references/executable-worker-contracts.md`. Materialize one immutable
   `docs/orchestration/runs/<run-id>/<unit-id>-worker-contract.json` with
   `scripts/materialize_worker_contract.py` before every implementation dispatch.
-  Dispatch only after schema validation and carry its `contract_hash` through
-  discovery, implementation, review, security, timing, and reconciliation.
+  Pass the actual worktree root and dispatch only after schema plus non-mutating
+  command-context preflight validation. Bind its `contract_hash` at the
+  root observation level through discovery, implementation, review, security,
+  timing, and reconciliation. The discovery checkpoint itself has no hash or
+  other extra fields.
 - Render the dispatch prompt only with `scripts/render_worker_envelope.py`; do
   not hand-compose a second protocol beside the executable contract.
 - Add the pre-return terminal validator prefix to
@@ -203,9 +206,10 @@ documentation_gate:
 - Start or update compact timing telemetry with `scripts/record_run_timing.py`; never store prompts, source text, logs, or secrets in timing records.
 - Load `references/lightweight-supervision.md` for Luna. Require no checkpoint
   from `luna`. For deep work, launch `luna_xhigh_discovery` read-only, validate
-  its single terminal checkpoint, and automatically launch `luna_xhigh` with
-  ownership narrowed to the accepted manifest. Keep detailed action tracing
-  diagnostic-only.
+  its single exact terminal checkpoint, reject unchanged multi-file ownership
+  manifests or planned files without file-specific evidence, and automatically
+  launch `luna_xhigh` with ownership narrowed to the accepted manifest. Keep
+  detailed action tracing diagnostic-only.
 
 7. **Review Reconcile**
 - Load `references/gates-and-reconciliation.md`.
@@ -246,6 +250,9 @@ documentation_gate:
 - Close timing telemetry with phase durations, context bytes, review/fix rounds,
   verification fingerprint, evidence trust, scope violations, repeated
   verification, review findings, acceptance latency, and final status.
+  Judge factory throughput primarily by root-observed acceptance latency,
+  recertification cycles, and aggregate executions. Keep worker speed separate
+  and label self-reported timing as indicative.
 
 8. **Release Handoff**
 - Confirm `documentation_gate.status == approved` before release handoff.

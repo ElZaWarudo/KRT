@@ -11,6 +11,7 @@ Create a JSON draft matching `worker-contract.schema.json`, then materialize it:
 ```bash
 rtk python3 <seneschal-skill-dir>/scripts/materialize_worker_contract.py \
   --input <draft.json> \
+  --repo-root <worktree-root> \
   --output docs/orchestration/runs/<run-id>/<unit-id>-worker-contract.json
 ```
 
@@ -18,6 +19,13 @@ The script validates exact fields, lane/profile mapping, repo-relative unique
 paths, unique acceptance IDs, exact command sets, budgets, certification roles,
 and evidence policy. It writes a canonical `sha256:` hash over every field
 except `contract_hash`. Any later mutation invalidates the artifact.
+
+Materialization also performs a non-mutating command-context preflight from the
+declared worktree root. It rejects shell chaining or `cd`, verification paths
+that do not resolve there, and package commands whose resolved directory lacks
+the required manifest. Use native root-relative paths or an explicit supported
+package context such as `npm --prefix`, `pnpm --dir`, `yarn --cwd`, or Cargo's
+`--manifest-path`. Dispatch is blocked when this preflight fails.
 
 Render the only dispatch envelope from that artifact:
 
@@ -42,6 +50,10 @@ Set `minimum_command_trust` to `runtime-audited` only when the runtime supplies
 an independent command event source. Otherwise use `self-reported` and retain
 that trust label through timing and handoff; never describe self-reported
 command evidence as runtime-enforced.
+
+This preflight proves command context, not command success. It never executes
+the contract commands and does not promote later self-reported outcomes to
+runtime-audited evidence.
 
 ## Observation And Evaluation
 
