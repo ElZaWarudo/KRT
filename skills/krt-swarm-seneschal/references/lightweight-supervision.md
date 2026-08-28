@@ -176,7 +176,8 @@ The evaluator returns one action:
 - `dispatch_implementation`: launch `luna_xhigh` immediately with the
   narrowed contract and record the dispatch once.
 - `return_now`: terminal fields are complete but the implementation worker has
-  not returned; tell it to return without another action.
+  not returned, or its elapsed budget is exhausted; tell it to return without
+  another action.
 - `complete`: accept the terminal result for reconciliation. A discovery with
   no edit path completes as terminal `needs_review` without an implementation
   dispatch.

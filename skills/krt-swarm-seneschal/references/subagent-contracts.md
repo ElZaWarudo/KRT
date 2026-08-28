@@ -45,6 +45,7 @@ Execution budget:
 - fix_rounds: 2
 - review_rounds: 1
 - extra_verification: forbidden
+- max_elapsed_ms: <role-sized positive deadline>
 Terminal protocol:
 - return_when: acceptance criteria resolved, required checks attempted, state reconciled
 - grace_actions: 0
@@ -86,6 +87,15 @@ mapping is fixed: `fast` -> `spark`/`xhigh`, `standard` -> `luna`/`high`, and
 remains `xhigh` and receives only decision-closed contracts. Supporting roles
 use Luna `high` normally and Luna `xhigh` only when their own bounded task has a
 deep trigger.
+
+Set a short elapsed limit proportional to the literal assignment, not the
+worker profile. Ordinary review, mechanical fixing, and targeted validation
+stay at Luna `high`; reserve Luna `xhigh` for security, concurrency, auth/data,
+public-contract, or similarly demanding decisions. Root interrupts at the
+limit or earlier when the worker repeats settled discovery, runs an undeclared
+check, or has enough evidence to satisfy its return contract. If only a small
+deterministic validation remains and root can finish it faster than another
+dispatch interval, interrupt and execute it at root.
 
 ## Standard Roles
 
@@ -221,6 +231,10 @@ accepted by `validate_review_terminal.py`. Every assigned risk boundary must be
 checked. P0/P1 findings are uncapped; return at most three evidence-backed P2
 findings and suppress speculative preferences.
 
+On recertification, give the reviewer the latest diff digest, registry state,
+and changed finding surfaces. Recheck affected risk boundaries without
+rediscovering already resolved findings or rereading unchanged surfaces.
+
 ### Targeted Validator
 
 Use only after the root-owned registry assigns canonical IDs and the compiled
@@ -233,6 +247,9 @@ root-observed diff. For each return confirmed, revised, or rejected with
 evidence. Do not repeat open-ended review. You may report a newly observed P0 or
 P1 encountered during reproduction, but do not expand the batch with a new P2.
 Do not edit implementation files or the shared findings registry.
+Return immediately after every supplied ID has one evidence-backed verdict.
+Do not broaden reproduction into coverage review, and do not continue after
+the elapsed limit; root may finish a small remaining deterministic validation.
 ```
 
 ### Fixer
@@ -240,12 +257,32 @@ Do not edit implementation files or the shared findings registry.
 Use only for concrete bounded review findings or verification failures.
 
 ```text
-Fix only the listed findings.
+Fix only the listed canonical findings from one defect cluster.
+Edit only the exact owned paths and do not perform additional review.
 Do not opportunistically refactor.
-Run the narrow verification that proves the fix.
-Return the canonical finding-ID-to-change mapping.
+Run only the exact narrow verification named in the assignment.
+Return only the canonical finding-ID-to-change mapping, including every
+assigned ID, changed paths, and its focused command accounting.
+Return immediately after the mapping is complete; do not add a confidence pass.
 Do not commit, push, open PRs, mutate Jira, request reviewers, or merge.
 ```
+
+Root rejects a Fixer return that uses headings or a generic completion report,
+omits an assigned ID, combines unrelated defects, names an unowned path, or
+lacks assigned focused-command accounting. Materialize the closed assignment
+with `contract_hash`, `registry_digest`, `finding_ids`, `owned_paths`, and
+`verification_commands`, then require the Fixer to run:
+
+```bash
+rtk python3 <seneschal-skill-dir>/scripts/validate_fixer_terminal.py \
+  --assignment <fixer-assignment.json> \
+  --input <fixer-terminal.json>
+```
+
+It returns the exact JSON object that passed. Correct protocol-only shape errors
+in the same Fixer session; do not infer the mapping at root. Root reruns the
+validator and independently captures the assigned command results before
+resolving findings.
 
 ### Integrator
 

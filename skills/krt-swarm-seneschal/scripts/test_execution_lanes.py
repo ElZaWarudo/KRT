@@ -77,6 +77,7 @@ class ExecutionLaneContractTest(unittest.TestCase):
             with self.subTest(reference=text[:40]):
                 self.assertIn("discovery_passes: 1", text)
                 self.assertIn("extra_verification: forbidden", text)
+                self.assertIn("max_elapsed_ms:", text)
                 self.assertIn("grace_actions: 0", text)
                 self.assertIn("aggregate_owner: root", text)
 

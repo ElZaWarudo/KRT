@@ -315,6 +315,7 @@ def validate_contract(
             "fix_rounds",
             "review_rounds",
             "extra_verification",
+            "max_elapsed_ms",
         },
         "execution_budget",
     )
@@ -324,6 +325,8 @@ def validate_contract(
         if field == "extra_verification":
             continue
         _non_negative_int(value, f"execution_budget.{field}")
+    if budget.get("max_elapsed_ms") == 0:
+        raise ValueError("execution_budget.max_elapsed_ms must be positive")
 
     supervision = _exact_fields(
         contract.get("supervision"), {"mode", "transition_after_ms"}, "supervision"

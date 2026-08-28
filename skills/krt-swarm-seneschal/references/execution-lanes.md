@@ -46,6 +46,13 @@ Fixer, Integrator, and Documenter roles never use Spark: use Luna `high` for
 normal support work and Luna `xhigh` only when that role's own bounded task has
 a deep trigger.
 
+Ordinary correctness review, targeted validation, and mechanical fixes use
+Luna `high`. Security review and work whose assigned question itself concerns
+auth, data integrity, public contracts, concurrency, or another deep trigger
+use Luna `xhigh`. A difficult history, prior worker failure, or desire for more
+confidence does not by itself raise effort. Higher effort never expands the
+role's finding set, fix batch, command manifest, or elapsed-time budget.
+
 ### Fast Preconditions
 
 All must be true:
@@ -115,7 +122,8 @@ Start with one Implementer. Add a role only when its trigger is present:
   exceeds the narrow mechanical lane. Pure formatting, generated refreshes,
   and decision-closed docs-only edits do not admit a Reviewer by default.
 - **Fixer:** a concrete review finding or failed verification names a bounded
-  correction. Never dispatch a speculative Fixer.
+  correction. Group only findings that share one defect cause and owned
+  surface; otherwise use separate passes. Never dispatch a speculative Fixer.
 - **Integrator:** at least two units have dependency edges, shared surfaces,
   generated outputs, stack/merge choreography, or a cross-unit compatibility
   question. Independent standalone units do not need an Integrator.
@@ -160,6 +168,13 @@ Reuse passing root evidence when that fingerprint is unchanged. Rerun only when
 the fingerprint changed, prior evidence failed, or project policy declares the
 evidence stale. A Reviewer reads existing verification evidence; it does not
 rerun the same suite unless review introduces a new risk-specific check.
+
+A leaf's self-reported passing result is diagnostic evidence, not gate
+evidence. When native command events are unavailable, root executes any
+contract-required focused check not covered by the aggregate command set and
+captures its exact argv, exit code, and output. Do not mark the unit
+ready from the leaf's prose or reconstructed command summary. A conflicting
+root result wins and routes the unit to `needs-fix`.
 
 Do not compute or compare fingerprints manually. Load
 `automated-wave-control.md` and use `scripts/verification_evidence.py` to

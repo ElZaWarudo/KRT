@@ -317,6 +317,19 @@ def evaluate_worker_run(
     base = evaluate_legacy_run(transformed, now_ms=now_ms)
     reasons = list(base["reasons"])
     final = observation.get("final")
+    started_at = observation.get("started_at_ms")
+    returned_at = observation.get("returned_at_ms")
+    elapsed_limit = contract["execution_budget"]["max_elapsed_ms"]
+    elapsed_at_observation = (
+        returned_at if isinstance(final, dict) and isinstance(returned_at, int) else now_ms
+    )
+    elapsed_budget_exhausted = (
+        isinstance(started_at, int)
+        and elapsed_at_observation >= started_at
+        and elapsed_at_observation - started_at > elapsed_limit
+    )
+    if isinstance(final, dict) and elapsed_budget_exhausted:
+        reasons.append("execution-elapsed-budget-exceeded")
     scope_violations = 0
     changed_files = _string_list(observation.get("changed_files", []), "changed_files")
     if observation.get("changed_files_source") != "root-diff":
@@ -352,6 +365,8 @@ def evaluate_worker_run(
     missing_certifications = [item for item in certification_pending if not item.startswith("failed:")]
     if reasons:
         action = "contract_violation"
+    elif not isinstance(final, dict) and elapsed_budget_exhausted:
+        action = "return_now"
     elif action == "return_now":
         pass
     elif failed_certifications and successful_terminal:
@@ -359,7 +374,6 @@ def evaluate_worker_run(
     elif missing_certifications and successful_terminal and action == "complete":
         action = "awaiting_certification"
 
-    started_at = observation.get("started_at_ms")
     acceptance_latency = (
         now_ms - started_at
         if isinstance(started_at, int)
@@ -376,6 +390,7 @@ def evaluate_worker_run(
         "review_findings_p1": finding_counts["p1"],
         "review_findings_p2": finding_counts["p2"],
         "acceptance_latency_ms": acceptance_latency,
+        "elapsed_budget_exhausted": elapsed_budget_exhausted,
     }
     return {
         "action": action,

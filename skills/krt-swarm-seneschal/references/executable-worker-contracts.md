@@ -20,6 +20,11 @@ paths, unique acceptance IDs, exact command sets, budgets, certification roles,
 and evidence policy. It writes a canonical `sha256:` hash over every field
 except `contract_hash`. Any later mutation invalidates the artifact.
 
+`execution_budget.max_elapsed_ms` is a required positive, role-sized deadline.
+Root evaluates it from runtime timestamps. An active worker beyond the limit is
+told to return immediately; a late success terminal is a contract violation and
+cannot certify readiness.
+
 Materialization also performs a non-mutating command-context preflight from the
 declared worktree root. It rejects shell chaining or `cd`, verification paths
 that do not resolve there, and package commands whose resolved directory lacks
@@ -126,6 +131,11 @@ Actions are strict:
 - `needs_fix`: a required independent certificate failed;
 - `contract_violation`: preserve the code, mark timing failed, and do not count
   the terminal or its tests as readiness evidence.
+
+When the runtime does not independently audit a required focused command, its
+worker-reported result remains diagnostic. Root runs that command through the
+evidence runner when aggregate verification does not already cover it and uses
+the machine-captured exit code for the gate.
 
 The compatibility-only `evaluate_luna_run.py` remains available for existing
 deep-checkpoint callers. New dispatch and reconciliation use

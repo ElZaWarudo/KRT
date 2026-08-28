@@ -71,13 +71,14 @@
     "execution_budget": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["discovery_passes", "implementation_rounds", "fix_rounds", "review_rounds", "extra_verification"],
+      "required": ["discovery_passes", "implementation_rounds", "fix_rounds", "review_rounds", "extra_verification", "max_elapsed_ms"],
       "properties": {
         "discovery_passes": {"type": "integer", "minimum": 0},
         "implementation_rounds": {"type": "integer", "minimum": 0},
         "fix_rounds": {"type": "integer", "minimum": 0},
         "review_rounds": {"type": "integer", "minimum": 0},
-        "extra_verification": {"const": "forbidden"}
+        "extra_verification": {"const": "forbidden"},
+        "max_elapsed_ms": {"type": "integer", "minimum": 1}
       }
     },
     "supervision": {

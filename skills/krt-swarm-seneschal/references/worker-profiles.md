@@ -46,6 +46,7 @@ execution_budget:
   fix_rounds: 2
   review_rounds: 1
   extra_verification: forbidden
+  max_elapsed_ms: <role-sized positive deadline>
 terminal_protocol:
   grace_actions: 0
 commands:

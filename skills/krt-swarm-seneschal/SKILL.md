@@ -38,6 +38,14 @@ When subagents are unavailable, produce exact prompts and wave plans.
   `validate_worker_terminal.py` command immediately before returning the exact
   `worker-terminal.schema.json` object. Do not accept prose, YAML, renamed
   fields, omitted empty arrays, or `phase` values other than `closeout`.
+- Treat every worker claim that a check passed as provisional until root has
+  machine-captured the exact command, exit code, and output through a
+  runtime audit or a root-owned execution. A prose success claim never advances
+  a verification gate.
+- Give every dispatched role a finite action and elapsed-time budget. Interrupt
+  a worker that exhausts its budget, repeats settled exploration, or continues
+  after its return condition; complete a smaller remaining validation at root
+  when dispatch overhead has exceeded the work.
 - If the user explicitly asks for no human confirmation, convert the instruction into a ledger-bound autonomous run: execute allowed actions after required gates pass, record uncovered decisions as blockers, continue independent work, and leave a morning-ready status packet instead of stopping to ask.
 
 ## Reference Router
@@ -197,6 +205,9 @@ documentation_gate:
 - If runtime exposes subagents, launch each worker only with the relevant unit contract and artifact paths.
 - If subagents are unavailable, write exact prompts the user can run in separate Codex threads/worktrees.
 - Use only the role-specific workers admitted by the wave plan. Do not expand the standard role chain speculatively.
+- Give Fixers one concrete defect cluster per invocation, exact owned paths,
+  exact focused checks, and an explicit prohibition on additional review.
+  Require the canonical finding-to-change mapping and reject a prose substitute.
 - Use a nested Compound Master Worker when a deep unit needs its brainstorm, plan, work-package, review, security, or CI-prevention pipeline. Route an execution-ready deep package through the direct two-stage Luna path when those artifacts and gates are already settled.
 - Require nested Compound workers to use `interaction:brokered`: they formulate structured decision requests but never ask the user directly.
 - Each worker must operate in implementation-only/no-shipping mode unless the task is explicitly artifact-only.
@@ -231,12 +242,20 @@ documentation_gate:
   ingest findings through the digest-guarded registry, and run only the
   targeted validation wave authorized by the compiled plan. Do not let workers
   mutate the shared registry or hand-compose canonical finding IDs.
+- Validate every Reviewer, Security Sentinel, Targeted Validator, and Fixer
+  return against its role-specific closed shape before accepting it. A missing
+  principle, finding ID, mapping, evidence field, or required empty collection
+  is a protocol failure to correct in that worker session, not a root inference.
 - Load `references/automated-wave-control.md`. Compute the aggregate fingerprint
   with `scripts/verification_evidence.py`, decide reuse against the evidence
   registry, and run aggregate verification only when the decision is `run`.
   Execute and record every aggregate result through the script's `run`
   subcommand, which derives pass/fail from exit codes. Never accept a claimed
   result or decide reuse by inspection.
+- If a leaf check is not covered by aggregate verification and lacks
+  runtime-audited command evidence, execute it through the root-owned evidence
+  runner before readiness. Record the observed exit code even when it
+  contradicts the worker's report.
 - Reconcile blockers using `references/blocker-ledger.md`: record non-fatal blockers, mark only affected units blocked/deferred, and continue independent ready units.
 - Reconcile each nested Compound result against its canonical state and artifacts. Treat swarm snapshots as stale observations, not authority.
 - Deduplicate decision requests, ask one decision at a time in manual interactive flow, persist the answer in the canonical shared or item artifact, and resume every affected child.

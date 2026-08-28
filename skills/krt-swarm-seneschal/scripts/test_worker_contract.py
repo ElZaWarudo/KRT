@@ -66,6 +66,7 @@ class WorkerContractTest(unittest.TestCase):
                 "fix_rounds": 2,
                 "review_rounds": 1,
                 "extra_verification": "forbidden",
+                "max_elapsed_ms": 60_000,
             },
             "supervision": {"mode": "terminal-only", "transition_after_ms": 15_000},
             "terminal_protocol": {
@@ -202,6 +203,11 @@ class WorkerContractTest(unittest.TestCase):
         contract["objective"] = "Tampered"
         with self.assertRaisesRegex(ValueError, "contract_hash"):
             validate_contract(contract)
+
+    def test_contract_requires_positive_elapsed_budget(self) -> None:
+        budget = {**self.draft()["execution_budget"], "max_elapsed_ms": 0}
+        with self.assertRaisesRegex(ValueError, "max_elapsed_ms must be positive"):
+            materialize_contract(self.draft(execution_budget=budget))
 
     def test_command_preflight_rejects_wrong_package_working_directory(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -427,6 +433,16 @@ class WorkerContractTest(unittest.TestCase):
 
         self.assertEqual(result["action"], "contract_violation")
         self.assertIn("command-evidence-trust-too-low", result["reasons"])
+
+    def test_late_terminal_exceeds_elapsed_budget(self) -> None:
+        contract = materialize_contract(self.draft(required_certifications=[]))
+        observation = self.observation(contract, returned_at_ms=70_001)
+
+        result = evaluate_worker_run(contract, observation, now_ms=70_001)
+
+        self.assertEqual(result["action"], "contract_violation")
+        self.assertIn("execution-elapsed-budget-exceeded", result["reasons"])
+        self.assertTrue(result["metrics"]["elapsed_budget_exhausted"])
 
     def test_terminal_validation_must_be_the_final_observed_command(self) -> None:
         contract = materialize_contract(self.draft(required_certifications=[]))

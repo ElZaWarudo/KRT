@@ -82,6 +82,12 @@ against an existing canonical ID with action `corroborate` or `challenge`.
 Root applies accepted feedback through the digest-guarded registry command; the
 reviewer still cannot mutate shared state.
 
+The Reviewer or Security Sentinel runs this validation before returning and
+returns the exact accepted JSON. A missing `principle`, evidence collection, or
+other required field is corrected in that same session. Root reruns the
+validator before ingestion and never repairs the terminal on the reviewer's
+behalf.
+
 P0 and P1 findings are never capped. A reviewer may return at most three
 actionable P2 findings, each with concrete evidence, impact, and a bounded
 recommendation. P3 is not part of the direct Seneschal reviewer vocabulary.
@@ -149,6 +155,12 @@ finding; suppressing a newly observed critical defect would be unsafe. They may
 not expand the batch with a new P2. Route new P0/P1 candidates through a fresh
 root ingestion and validation decision.
 
+Give each validator a finite deadline sized to its supplied IDs and evidence.
+Once every supplied ID has one verdict, it returns immediately. Interrupt a
+validator that repeats open-ended review, explores unrelated surfaces, or
+exceeds the deadline; if the remaining batch is a small deterministic check,
+root completes it directly and records root as the validator actor.
+
 When all planned reviewers return no findings, evaluate one empty targeted
 batch to produce the deterministic completion receipt. An empty batch fails if
 the registry still contains any proposed finding.
@@ -156,7 +168,15 @@ the registry still contains any proposed finding.
 ## 5. Fix And Reconcile
 
 - Send only confirmed or revised canonical IDs to a Fixer.
-- Require the Fixer to map each ID to changed paths and focused verification.
+- Send one shared-cause defect cluster per Fixer with exact owned paths and
+  exact focused commands; state `additional_review: forbidden`.
+- Require the Fixer to map every assigned ID to changed paths and focused
+  verification in the canonical return shape. Reject a narrative status report
+  or a mapping with missing IDs before reconciliation.
+- Validate the return with `scripts/validate_fixer_terminal.py` against the
+  closed Fixer assignment before inspecting resolution evidence. Root then
+  captures command exit codes independently; the mapping does not certify its
+  own verification result.
 - Apply `resolve` with the new root-observed diff digest and evidence.
 - A rejected finding needs no fix. A deferred finding remains visible in the
   release handoff and follows the configured review threshold.

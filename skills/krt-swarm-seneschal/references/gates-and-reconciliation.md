@@ -33,6 +33,10 @@ For each unit:
      registry. Manual fingerprint comparison is not gate evidence.
    - Changed contracts have consumer-aware checks.
    - Generated artifacts or docs were inspected when relevant.
+   - Every readiness-bearing command has root-observed or runtime-audited exact
+     argv, exit code, and output. Leaf prose and self-reported `passed`
+     values are not gate evidence. Root executes focused checks that aggregate
+     verification does not cover when no native command audit exists.
 
 3. **Review gate**
    - `execution-lanes.md` was used to decide whether a Reviewer trigger exists.
@@ -86,6 +90,9 @@ For each worker result:
 - Identify shared files touched by multiple workers.
 - Detect public contract, auth, data, dependency, config, or generated-artifact changes.
 - Record verification commands and outcomes.
+- Compare each leaf claim with machine-captured evidence. Preserve
+  contradictions explicitly, trust the observed exit code, and route a claimed
+  pass with a nonzero observed exit to `needs-fix`.
 - When coordinated review ran, record the review-plan hash, findings-registry
   path and digest, exact-duplicate count, validator verdicts, and unresolved
   canonical finding IDs.
@@ -97,6 +104,9 @@ For each worker result:
   violations, repeated verification, review findings, and acceptance latency with
   `scripts/record_run_timing.py`.
 - Record blockers and whether they affect sibling units.
+- Record elapsed-budget exhaustion and root interventions. Interrupt bounded
+  workers when the return condition is already met, exploration repeats, or the
+  deadline expires; do not reward delay with a broader assignment.
 - Normalize nested `decision_request` entries, deduplicate them, and route them through the decision broker in `blocker-ledger.md`.
 - Decide: `release-ready`, `needs-fix`, `blocked`, `deferred`, or `split-required`.
 - Update `docs/swarm/queue-state.yaml` and `docs/swarm/blockers.yaml` when statuses or blockers change.
