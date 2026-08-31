@@ -152,9 +152,21 @@ units:
       reuse_decision: null
     isolation:
       type: worktree
+      workspace_plan: docs/orchestration/runs/<run-id>/workspace-plan.json
+      workspace_plan_hash: null
+      workspace_id: null
       branch: null
       path: null
       thread: null
+      mode: null
+      source_revision: null
+      baseline_source: null
+      baseline_tree: null
+      dependency_patch_hashes: []
+      candidate_patch_hashes: []
+      patch_manifest: null
+      patch_manifest_hash: null
+      cleanup_status: not-created
     handoff:
       intended_base: main
       pr_grouping: standalone
@@ -164,6 +176,22 @@ units:
 wave_history:
   - id: wave-2026-06-30-001
     selected_units: []
+    staged_topology:
+      parent_unit_id: null
+      artifact: null
+      topology_hash: null
+      foundation_unit_id: null
+      foundation_baseline:
+        base_revision: null
+        diff_digest: null
+        baseline_tree: null
+        patch_manifest_hash: null
+        isolation_ref: null
+    workspace_plan:
+      artifact: docs/orchestration/runs/<run-id>/<wave-id>-workspaces.json
+      workspace_plan_hash: null
+      consolidation_invocation: null
+      invocations: []
     concurrency:
       implementer_cap: 2
       cap_reasons: [default-cap]
@@ -242,6 +270,21 @@ Do not create real Jira keys, executable `running` units, implementation wave hi
 - `split-required`: unit was too broad or worker scope exceeded safe review size.
 - `handed-off`: release packet sent to `krt-release-marshal`.
 - `merged`: release flow completed elsewhere and was reconciled locally.
+
+## Staged Decomposition Projection
+
+When `staged-decomposition.md` splits a coupled parent, preserve the compiler
+artifact and hash with the run/wave artifacts. Mark the parent `split-required`
+and create ordinary child units. Use `depends_on` for emitted edges and
+`affects_dependents` on foundation or intermediate units. Do not add a second
+queue-state schema for stages.
+
+Record the immutable foundation baseline in wave history before marking
+children ready. Child isolation must derive from that baseline. If foundation
+changes, mark affected children ineligible, invalidate stale worker contracts,
+and re-evaluate their base before dispatch or reconciliation. Generated and
+integration paths appear under exactly one child unit's existing `surfaces` and
+scope fields.
 
 ## Jira Issue Map Rules
 

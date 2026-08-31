@@ -14,6 +14,7 @@ jira_key: null
 status: planned | ready | running | review-gated | release-ready | needs-fix | handed-off | merged | blocked | deferred | split-required
 depends_on: []
 blocked_by: []
+affects_dependents: []
 scope:
   included: []
   excluded: []
@@ -85,6 +86,23 @@ A unit is ready only when:
 - No open blocker exists in `docs/swarm/blockers.yaml` for the unit or its dependencies.
 - For a nested Compound unit, the run ID and canonical state path are unique, the observed snapshot is fresh, and the relevant inner Compound gate has passed.
 - Every nested isolation target can read the same recorded revision of the initiative contract, roadmap, and shared decisions.
+- In a staged decomposition, the unit's dependency gates passed and its
+  isolation target derives from the exact immutable foundation baseline.
+- `worktree-collaboration.md` compiled a unique role-specific worktree for the
+  invocation, and root sealed its source/dependency/candidate index tree.
+
+## Coupled Units
+
+When overlap is concentrated in a small shared API rather than spread across
+the implementation, load `staged-decomposition.md` before choosing one broad
+owner. Compile the parent into foundation, dependent, and integration stages.
+The parent becomes `split-required`; emitted children use ordinary queue units
+and `depends_on` edges.
+
+Do not send all children in one wave. Foundation runs alone. Passing focused
+contract and trigger-required gates unlocks dependency-ready children, which
+may run concurrently only when their write ownership is disjoint. Later
+children and integration remain queued until their own dependencies reconcile.
 
 ## Wave Selection
 
@@ -117,6 +135,11 @@ Treat as conflicting unless strong evidence says otherwise:
 - same central orchestration skill or shared reference
 - same build/dependency/config file
 
+After a foundation is release-ready, reading its stable contract does not count
+as overlapping ownership. Downstream units list those paths as required context,
+not writable surfaces. Any proposed downstream edit to a foundation path is a
+new dependency-defining change and returns the topology to the foundation gate.
+
 Docs-only overlap can run in parallel when each unit edits distinct docs or one worker is clearly designated owner of the shared doc.
 
 Never parallelize overlapping auth, migrations, public contracts, central models, or lockfiles. Treat DIAN, productive accounting, productive payroll, legal, and security-sensitive production surfaces as high-risk until proven otherwise.
@@ -132,7 +155,9 @@ Documentation status: <draft|in_review|approved|changes_requested>
 Concurrency: <n>
 Slot budget: <total>/<usable>, reserve <n>
 Adaptive cap: <n and recorded reasons>
-Isolation: branch | worktree | cloud | manual
+Isolation: purpose-built worktree
+Workspace plan/hash: <path> / <sha256:...>
+Consolidation workspace: <workspace ID/path>
 jira_provider: cloud | server-datacenter | none
 Blocker ledger: docs/swarm/blockers.yaml
 Units:
@@ -145,7 +170,10 @@ Units:
   Role triggers: <role: trigger, or none>
   Compound run/state: <run ID and canonical path, or none>
   Intended base: <branch>
-  Expected branch/worktree: <name/path>
+  Workspace ID/mode: <id> / <read-only|mutable|disposable-verification|mutable-consolidation>
+  Expected branch/worktree: <name or detached> / <path>
+  Source revision/baseline tree: <full revision> / <tree hash>
+  Dependency/candidate patch hashes: [] / []
   Executable contract/hash: <path> / <sha256:...>
   Verification: <commands or gap>
   Risks: <short list>
@@ -157,6 +185,10 @@ Wave aggregate verification:
 - Fingerprint inputs: <base, changed paths/content, commands>
 - Reused evidence: <path or none>
 - Reuse decision: <reuse|run and reason>
+Staged topology:
+- Parent: <unit ID or none>
+- Artifact/hash: <path> / <sha256:...>
+- Foundation baseline: <base revision + tree + patch manifest + diff digest, or pending>
 ```
 
 Ask approval before mutating or dispatching in manual flow. In autonomous flow, do not ask after documentation approval; dispatch only ledger-covered mutation classes, record uncovered needs, and continue.

@@ -104,6 +104,14 @@ The planner:
 - passes the surviving requests to the global slot allocator, preserving its
   reserve and functional role caps.
 
+For a compiled staged topology, invoke the adaptive planner once per emitted
+wave, not once for the unsplit parent. Before foundation reconciliation,
+dependent IDs remain in `unresolved_dependencies`. After root records the exact
+release-ready foundation baseline, remove only satisfied edges and submit the
+newly ready children. A consumed stable foundation contract belongs in worker
+context; do not repeat its `public-contract` mutation risk on children that
+cannot edit it.
+
 The returned allocation is the dispatch authority for that wave. Do not add a
 worker manually after the adaptive plan.
 

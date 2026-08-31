@@ -21,7 +21,11 @@ security_workers: 1
 ci_platform_workers: 1
 ```
 
-Adjust these caps to runtime capacity, repo size, and available isolation. The seneschal may run Planner, Reviewer, Fixer, Integrator, and Documenter work around the Implementer pool as long as shared-state and quality gates stay coherent.
+Adjust these caps to runtime capacity and repo size. Load
+`worktree-collaboration.md`: every admitted invocation consumes its own
+purpose-built worktree, including read-only roles. The seneschal may run
+Planner, Reviewer, Fixer, Integrator, and Documenter work around the Implementer
+pool as long as shared-state and quality gates stay coherent.
 These are ceilings, never a standing team. The active count for every optional
 role is zero until `execution-lanes.md` admits it with a recorded trigger.
 
@@ -64,7 +68,7 @@ counting a unit. A root-direct unit consumes no worker slot. Spark remains
 
 Default to 2 concurrent Implementer workers when:
 
-- Worktree, branch, cloud, or thread isolation exists for each worker.
+- A compiled, unique worktree exists for each worker invocation.
 - Units have no dependency edge between them.
 - Surfaces do not materially overlap.
 - Verification can run for each unit.
@@ -72,7 +76,15 @@ Default to 2 concurrent Implementer workers when:
   wave root after reconciliation.
 - The team can reconcile all outputs before release handoff.
 
-Use serial implementation when isolation is missing or surface ownership is unclear.
+Stop affected dispatch when worktree isolation is missing. Use serial
+implementation when surface ownership is unclear, but never reuse one worker's
+workspace for another role or invocation.
+
+For coupled work, "serial" applies to the current dependency stage, not
+necessarily the entire parent unit. Load `staged-decomposition.md`: run a small
+foundation alone, then recompute ready work and parallelize disjoint children
+from the reconciled foundation baseline. Do not keep later stages monolithic
+only because they were ineligible during the foundation wave.
 
 Planner workers may run higher concurrency because they do not mutate product code. Reviewer workers may run in parallel over distinct diffs. Fixer workers are bounded by the failed units they fix. Integrator is normally single-threaded because it reasons over the whole wave. Documenter workers may run in parallel only when they edit distinct docs or one owner is assigned for shared release notes.
 
@@ -113,6 +125,9 @@ Do not run units in parallel when they overlap on:
 - Real DIAN compliance, productive accounting, productive payroll, or security-sensitive production flows.
 
 If overlap exists, serialize, split, or create an explicit dependency edge.
+Prefer an explicit foundation dependency when the apparent overlap is a stable
+contract that downstream workers only consume. Keep serialization when two
+workers would still mutate the same contract or central implementation file.
 
 ## Usually Safe To Parallelize
 

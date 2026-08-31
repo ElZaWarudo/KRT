@@ -36,7 +36,7 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
 
 4. **Workers**
    - one Codex or nested Compound Master flow per unit
-   - isolated branch/worktree/cloud task
+   - one purpose-built worktree per role invocation
    - no shipping authority
    - no scope expansion without escalation
    - brokered user interaction through Seneschal
@@ -55,6 +55,8 @@ The swarm seneschal optimizes for reviewable, mergeable output. It does not opti
 - One unit should map to one reviewable PR unless grouping is more reviewable and explicitly recorded.
 - No worker edits the same risky surface as another active worker without a dependency edge or a coordination note.
 - No worker performs release actions.
+- No worker stages, commits, applies patches, changes branches, or manages
+  worktrees; Seneschal owns baselines and Release Marshal owns release Git.
 - No dispatcher creates a deeper stack than humans can review.
 - No backlog item enters the queue until it is written as a contract of work.
 - No Jira operation runs until `jira_provider` is resolved; use the matching provider skill without fallback to its sibling.

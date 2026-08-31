@@ -62,6 +62,11 @@ runtime-audited evidence.
 
 ## Observation And Evaluation
 
+Load `worktree-collaboration.md`. Every invocation runs in its own compiled
+worktree. The root-owned executable contract and observation bind its workspace
+ID, source revision, sealed `baseline_tree`, and ordered dependency/candidate
+patch hashes. Worker Git-index mutations are forbidden.
+
 Root creates the observation. The worker must not choose these facts:
 
 - `changed_files` and `changed_files_source: root-diff`;
@@ -74,11 +79,15 @@ Capture changed files and their content digest from Git and the root filesystem:
 ```bash
 rtk python3 <seneschal-skill-dir>/scripts/capture_worker_observation.py \
   --repo-root <worktree> --base-revision <full-revision> \
+  --baseline-tree <sealed-tree> \
   --input <partial-observation-outside-worktree.json> \
   --output <root-observation-outside-worktree.json>
 ```
 
-The worker may supply terminal fields, acceptance evidence, and self-reported
+When `--baseline-tree` is present, changed files are the working tree versus
+the sealed index plus untracked files; inherited dependency patches are not
+worker changes. A different current index tree is a contract violation. The
+worker may supply terminal fields, acceptance evidence, and self-reported
 command evidence. When native command events exist, root replaces the latter
 with `trust: runtime-audited`.
 

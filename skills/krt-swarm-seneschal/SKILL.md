@@ -28,6 +28,10 @@ When subagents are unavailable, produce exact prompts and wave plans.
 - Treat human approval as a startup policy problem, not a per-action interruption. In manual flow, ask before mutating. In autonomous flow, require an active autonomy mandate/ledger that allows the exact mutation class.
 - Even in autonomous flow, do not bypass the documentary planning gate unless the user explicitly authorizes the exact downstream mutation or an existing gate state is already approved.
 - Prefer small, independently reviewable units over broad backlog sweeps.
+- When a broad unit is coupled through a small shared API, load
+  `references/staged-decomposition.md`: serialize the smallest testable
+  foundation, then fan out dependency-ready children with disjoint ownership
+  before a final integration and aggregate-verification stage.
 - Apply the break-even gate and execution lanes in `references/execution-lanes.md`: keep trivial single units in the root thread, preserve Spark at `xhigh`, use Luna `high` normally, and reserve Luna `xhigh` for demanding work.
 - Cap active mutable implementation work at the smallest safe wave; default to 2 concurrent Implementer workers until repo evidence supports more. Planner, Reviewer, Fixer, Integrator, and Documenter workers use separate role caps.
 - Never let production outrun verification: a wave is not complete until worker output, any trigger-required review, verification evidence, and state reconciliation are captured.
@@ -58,6 +62,8 @@ Load only what the current task needs:
 | Start, observe, resume, or reconcile nested Compound Master flows | `references/compound-master-nesting.md` |
 | Produce, review, revise, approve documentation packet | `references/documentary-planning.md` |
 | Build queue, choose ready work, plan waves | `references/queue-and-dispatch.md` |
+| Split coupled work into serial foundation, parallel dependents, and integration | `references/staged-decomposition.md` |
+| Create, seed, observe, consolidate, and clean role-specific worktrees | `references/worktree-collaboration.md` |
 | Classify fast/standard/deep lanes, admit roles, assign verification ownership | `references/execution-lanes.md` |
 | Launch or prepare subagent prompts | `references/subagent-contracts.md` |
 | Materialize and validate executable worker contracts | `references/executable-worker-contracts.md` |
@@ -107,7 +113,9 @@ Supported modes:
 - For autonomous or no-confirmation flow, load `references/autonomous-team-flow.md` and resolve an autonomy ledger before external or irreversible mutations.
 - When a unit selects a named Codex profile, load `references/worker-profiles.md` and run its static profile preflight before dispatch. If only the bundled package profile exists, block dispatch and preview the explicit project or personal installation step; do not install into the user's Codex home without authorization.
 - Before wave selection or dispatch, load `references/execution-lanes.md`, apply its break-even gate, classify every implementation unit, and record the selected profile and trigger.
-- Resolve isolation: worktrees, cloud environments, or manual branches. If isolation is unavailable, plan serial execution.
+- Load `references/worktree-collaboration.md`. Resolve a run-specific worktree
+  parent and require one purpose-built worktree per worker invocation; serial
+  execution does not permit workspace reuse.
 - In `wave-status`, load canonical local state and render the derived panel; do
   not require documentation approval or continue into mutation workflows.
 
@@ -154,6 +162,11 @@ documentation_gate:
 - Prefer existing `krt-compound-master` review units. If only high-level backlog items exist, route discovery/planning through existing requirements, roadmap, and compound-master skills rather than inventing hidden scope.
 - When several roadmap items need full artifact and quality pipelines, create one nested Compound run per independent item. Give each run the initiative contract, target item, artifact namespace, stable state path, and brokered interaction mode.
 - Reject units that are too broad, lack acceptance criteria, share a risky surface with another active unit, or need unresolved product/auth/data decisions.
+- Before leaving a broad coupled unit monolithic, load
+  `references/staged-decomposition.md` and test whether a small explicit
+  foundation unlocks at least two disjoint downstream units. If the compiler
+  accepts the topology, mark the parent `split-required` and normalize the
+  emitted children; if it rejects, record the failed guardrail and serialize.
 - For Jira queues, maintain the resolved `jira_provider` with the persistent mapping from Jira issue key to work package, review unit, queue unit, current status, dependencies, and handoff facts.
 
 4. **Seed Jira When Requested**
@@ -171,6 +184,10 @@ documentation_gate:
 - For Jira team flow, read active Jira issues through the selected Jira provider skill, convert them into queue units, and reconcile them with the local Jira issue map.
 - Read `docs/swarm/blockers.yaml` before selection. Do not select units with open blockers or units depending on open blockers.
 - Select only dependency-ready, non-overlapping units.
+- For staged topology, select foundation alone first. After its focused and
+  triggered gates pass, derive downstream isolation from the exact immutable
+  foundation baseline and let the adaptive allocator fan out only ready,
+  disjoint children. Reconverge all children before integration.
 - Apply concurrency algorithm in `references/parallel-dispatch-policy.md`: default to 2 mutable Implementer workers, role-specific caps for non-implementation workers, increase implementation concurrency only after green wave history, and never parallelize overlapping auth, migrations, public contracts, central models, or lockfiles.
 - Load `references/automated-wave-control.md` and run
   `scripts/plan_adaptive_wave.py` from canonical history, blockers,
@@ -180,11 +197,18 @@ documentation_gate:
 - Keep the wave within open-stack reviewability limits already enforced by `krt-compound-master`.
 - Admit Planner, Reviewer, Fixer, Integrator, Documenter, and Compound Master roles only through their explicit triggers in `references/execution-lanes.md`.
 - Assign focused verification to each leaf and one aggregate verification owner/fingerprint to the wave.
+- Compile every admitted role invocation with
+  `scripts/plan_worker_workspaces.py`. Require unique workspace paths, exactly
+  one consolidation workspace, and explicit dependency/candidate inputs.
 - Produce a short wave plan with unit IDs, lanes, profiles, role triggers, worker prompts, isolation target, verification ownership, risks, and stop conditions.
 
 6. **Dispatch Workers**
 - Confirm `documentation_gate.status == approved` before dispatch.
 - Load `references/subagent-contracts.md`.
+- Load `references/worktree-collaboration.md`. Root creates each emitted
+  worktree, applies dependency/candidate patches with `git apply --index`, and
+  records `git write-tree` as the sealed baseline before dispatch. Workers
+  never stage, commit, apply patches, switch branches, or manage worktrees.
 - Load `references/executable-worker-contracts.md`. Materialize one immutable
   `docs/orchestration/runs/<run-id>/<unit-id>-worker-contract.json` with
   `scripts/materialize_worker_contract.py` before every implementation dispatch.
@@ -201,9 +225,14 @@ documentation_gate:
   worker returns the exact JSON object that passed it; root-owned observation
   fields are attached only during reconciliation.
 - Load `references/execution-lanes.md` and enforce the lane/profile mapping: `fast` uses `spark` at `xhigh`, `standard` uses `luna` at `high`, and `deep` uses read-only `luna_xhigh_discovery` followed by `luna_xhigh`, both at `xhigh`. Never lower Spark reasoning.
+- Classify staged children independently. A dependent that consumes a settled
+  foundation contract as read-only context does not inherit the foundation's
+  deep lane; any worker that needs to edit foundation paths must stop and force
+  a new foundation baseline instead of expanding its ownership.
 - For a named Codex profile, require a successful `check_worker_profiles.py` result. Record whether resolution selected a project or personal custom agent; a bundled-only profile does not authorize dispatch. Never substitute a different profile when resolution or invocation fails.
 - If runtime exposes subagents, launch each worker only with the relevant unit contract and artifact paths.
-- If subagents are unavailable, write exact prompts the user can run in separate Codex threads/worktrees.
+- If subagents are unavailable, write exact prompts the user can run in the
+  already prepared, invocation-specific worktrees.
 - Use only the role-specific workers admitted by the wave plan. Do not expand the standard role chain speculatively.
 - Give Fixers one concrete defect cluster per invocation, exact owned paths,
   exact focused checks, and an explicit prohibition on additional review.
@@ -212,7 +241,9 @@ documentation_gate:
 - Require nested Compound workers to use `interaction:brokered`: they formulate structured decision requests but never ask the user directly.
 - Each worker must operate in implementation-only/no-shipping mode unless the task is explicitly artifact-only.
 - Assign exactly one Jira subtask or standalone Jira issue per worker when Jira is the backlog source.
-- Forbid workers from committing, pushing, opening PRs, mutating Jira, requesting reviewers, merging, or transitioning issues.
+- Forbid workers from staging, committing, applying patches, changing branches,
+  managing worktrees, pushing, opening PRs, mutating Jira, requesting
+  reviewers, merging, or transitioning issues.
 - Require structured blocker reporting in the worker return contract.
 - Start or update compact timing telemetry with `scripts/record_run_timing.py`; never store prompts, source text, logs, or secrets in timing records.
 - Load `references/lightweight-supervision.md` for Luna. Require no checkpoint
@@ -226,8 +257,11 @@ documentation_gate:
 - Load `references/gates-and-reconciliation.md`.
 - Read each worker result, changed-file summary, verification output, blockers, and branch/base facts.
 - Inspect real diff filesystem state before trusting worker reports.
-- Build the observation with `scripts/capture_worker_observation.py` so changed
-  files and `diff_digest` come from root-inspected state, attach available
+- Build the observation with `scripts/capture_worker_observation.py` against
+  the sealed `baseline_tree`, so inherited dependency changes are excluded and
+  any worker index mutation fails closed. Export accepted mutable deltas with
+  `scripts/export_worker_patch.py`; its manifest binds ownership, baseline,
+  dependencies, content digests, contract, and patch hash. Attach available
   command evidence, then run `scripts/evaluate_worker_run.py` for Spark, Luna, and Luna
   xhigh. A `contract_violation` never counts as verification or readiness;
   preserve the code for inspection. `awaiting_certification` cannot advance
@@ -260,6 +294,14 @@ documentation_gate:
 - Reconcile each nested Compound result against its canonical state and artifacts. Treat swarm snapshots as stale observations, not authority.
 - Deduplicate decision requests, ask one decision at a time in manual interactive flow, persist the answer in the canonical shared or item artifact, and resume every affected child.
 - When the wave plan admitted an Integrator, use it to inspect merge order, dependency edges, stacked PR choreography, and cross-worker conflicts before release handoff.
+- For staged topology, reconcile each stage before unlocking its dependents.
+  Invalidate undispatched or active dependents when the foundation baseline
+  changes, and run final aggregate verification only on the checkout that
+  contains the recertified foundation plus every reconciled child.
+- Apply accepted patch manifests in dependency order only in the authoritative
+  Integrator worktree. Build Reviewer, Security, Fixer, Documenter, and
+  Validator snapshots as fresh role-specific worktrees; aggregate verification
+  runs on a disposable snapshot of the fully consolidated tree.
 - Decide each unit status: `release-ready`, `needs-fix`, `blocked`, `deferred`, or `split-required`.
 - Apply supported documentation, pre-release unit, and blocker status changes
   through `scripts/transition_swarm_state.py` with observed input digests.

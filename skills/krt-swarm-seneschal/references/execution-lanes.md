@@ -24,6 +24,12 @@ the route when the break-even gate keeps work out of the swarm.
 Classify every dispatched implementation unit exactly once before wave
 selection. A higher-risk trigger always wins over file-count heuristics.
 
+When `staged-decomposition.md` splits a coupled parent, do not classify the
+parent and copy that lane to its children. Classify foundation and every
+dependent from their own writable surface after ownership is partitioned. A
+settled contract in `required_context` is not a public-contract mutation trigger;
+editing that contract remains a deep trigger and belongs back in foundation.
+
 | Lane | Admission rule | Worker profile | Reasoning | Compound Master |
 |---|---|---|---|---|
 | `fast` | Fully decision-closed change, known edit path, normally 1-3 owned files, no demanding trigger | `spark` | `xhigh` | forbidden |

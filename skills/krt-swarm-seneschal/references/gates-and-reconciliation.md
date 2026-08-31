@@ -19,7 +19,10 @@ For each unit:
    - Any necessary scope expansion is recorded. Manual flow requires approval; autonomous flow marks broad expansion `split-required` unless the ledger allows it.
    - `changed_files` comes from the root-observed diff and passes
      `evaluate_worker_run.py` against the hashed contract. A scope violation
-     preserves the code but invalidates the terminal evidence.
+   preserves the code but invalidates the terminal evidence.
+   - Root confirms the current index tree still equals the sealed baseline,
+     then exports a baseline-bound patch manifest. An index mutation, unowned
+     path, stale dependency hash, or patch hash mismatch fails this gate.
 
 2. **Verification gate**
    - Each leaf ran only its assigned focused checks, or a material verification gap is recorded.
@@ -78,11 +81,35 @@ For each unit:
    - The swarm seneschal does not commit, push, open PRs, mutate Jira, request reviewers, or merge unless routed through the release skill and a manual approval or autonomy ledger permits it.
    - Jira handoff context must name `jira_provider` as `cloud`, `server-datacenter`, or `none`. There is no default provider.
 
+## Staged Topology Gates
+
+For a topology compiled through `staged-decomposition.md`:
+
+- Foundation must reach `release-ready` with focused contract evidence and all
+  trigger-required review/security certificates before any dependent dispatch.
+- Record the exact immutable foundation baseline: source base revision,
+  root-observed diff digest, patch manifest hash, baseline tree, and workspace
+  reference. Every dependent base and contract must bind to it and begin
+  observation from a newly sealed worktree baseline.
+- Reconcile each dependent independently. Unlock later children from their exact
+  `depends_on` edges without waiting for unrelated siblings.
+- A foundation baseline change invalidates stale dependent contracts and bases;
+  do not reconcile their output against the new topology.
+- Integration begins only after every dependent is release-ready. Aggregate
+  verification binds the final combined diff and retains every review/security
+  gate that the original monolithic unit would have required.
+
 ## Reconciliation Checklist
+
+Load `worktree-collaboration.md`. Reconciliation happens through the one
+authoritative consolidation worktree; leaf worktrees are evidence sources, not
+merge destinations.
 
 For each worker result:
 
 - Fetch or inspect the actual changed files.
+- Verify the workspace plan hash, source revision, baseline tree, ordered
+  dependency/candidate patch hashes, and role-specific worktree mode.
 - Evaluate the root observation with `scripts/evaluate_worker_run.py`; accept
   only `complete` as leaf certification evidence. Route
   `awaiting_certification`, `needs_fix`, and `contract_violation` literally.
@@ -117,8 +144,10 @@ If two workers changed the same surface:
 
 1. Stop new dispatch for dependent units.
 2. Identify which unit owns the surface.
-3. Choose one of:
-   - rebase child onto parent after parent merge
+3. Stop patch application in the consolidation worktree; never retry with
+   fuzzy or three-way application.
+4. Choose one of:
+   - rebuild the dependent workspace from the newly accepted parent manifest
    - collapse into one reviewable PR if that improves reviewability
    - split one worker's change into a follow-up unit
 4. Record the decision in queue state.

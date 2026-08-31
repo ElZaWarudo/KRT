@@ -21,6 +21,12 @@ Jira issue: <subtask or standalone issue key, when applicable>
 Source artifact: <path or issue URL>
 Intended base: <branch/ref>
 Isolation target: <branch/worktree/cloud task>
+Workspace ID: <unique invocation workspace>
+Workspace mode: <read-only|mutable|disposable-verification|mutable-consolidation>
+Source revision: <full revision>
+Baseline tree: <sealed git write-tree hash>
+Dependency patch hashes: []
+Candidate patch hashes: []
 Scope included:
 - ...
 Scope excluded:
@@ -55,14 +61,17 @@ Supervision:
 Required skills:
 - ...
 Forbidden actions:
-- ...
+- stage, commit, apply patches, change branches, create/remove worktrees, push,
+  or mutate shared orchestration state
 Return contract:
 - Return exactly the validated JSON object from `worker-terminal.schema.json`.
 - Run the contract-bound `validate_worker_terminal.py` command immediately
   before returning it.
 ```
 
-Pass artifact paths and repo-relative paths. Avoid flooding workers with the entire queue.
+Compile and materialize the isolation target through
+`worktree-collaboration.md`. Pass artifact paths and repo-relative paths. Avoid
+flooding workers with the entire queue.
 The prompt is not the authority. First materialize and validate the executable
 artifact through `executable-worker-contracts.md`; render this envelope from
 that immutable artifact and require the worker to echo its hash.
@@ -162,7 +171,8 @@ Do not rerun the general initiative brainstorm.
 Run focused item discovery only when no reviewed item planning input exists.
 Do not ask the user directly. Return structured decision requests and pause
 only affected work.
-Do not commit, push, open PRs, mutate Jira, request reviewers, or merge.
+Do not stage, commit, apply patches, change branches, manage worktrees, push,
+open PRs, mutate Jira, request reviewers, or merge.
 Return: run ID, canonical state, artifact paths, observed revision, changed
 files, commands run, inner gates, decision requests, affected sibling units,
 branch/base facts, release readiness, and recommended resume invocation.
