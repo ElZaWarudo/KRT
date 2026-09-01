@@ -28,7 +28,8 @@ Formal skill IDs use lowercase hyphenated `krt-*` names. Some runtimes may expos
 | `$krt:jira-cloud-scribe` | `krt-jira-cloud-scribe` | Manage Jira Cloud issues, subtasks, sprints, and transitions in Spanish. |
 | `$krt:repo-medic` | `krt-repo-medic` | Diagnose repository health, stale docs, broken workflows, and maintenance risks. |
 | `$krt:skill-arbiter` | `krt-skill-arbiter` | Validate a KRT skill portfolio and score supervisor-captured routing, safety, restart, fallback, and outcome evaluations. |
-| `$krt:product-polish-council` | `krt-product-polish-council` | Audit an application across twelve product-polish dimensions and produce an evidence-based, prioritized backlog. |
+| `$krt:product-polish-council` | `krt-product-polish-council` | Audit twelve product-polish dimensions, apply six cognitive-load factors to every finding, and produce an evidence-based backlog. |
+| `$krt:cognitive-load-court` | `krt-cognitive-load-court` | Diagnose avoidable cognitive workload in a defined task and distinguish heuristic risk from measured evidence. |
 | `$krt:frontend-ux-guardian` | `krt-frontend-ux-guardian` | Guard frontend agents toward functional, accessible, responsive UX/UI and browser-verified workflows. |
 | `$krt:interface-inquisitor` | `krt-interface-inquisitor` | Produce evidence-based adversarial visual critiques and implementation-ready change briefs. |
 | `$krt:interface-warden` | `krt-interface-warden` | Design and implement distinctive working-surface interfaces within product constraints. |
@@ -48,7 +49,8 @@ Skills can bring their own references, templates, scripts, assets, or agent defi
 | `krt-release-marshal` | `krt-gitflow-knight`, `krt-rebase-smith`, `krt-jira-scribe` | Clean commits, clean branch history, Jira, and PR handoff. |
 | `krt-jira-scribe` | `.krt/env/jira-scribe.env` loaded into env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
 | `krt-jira-cloud-scribe` | `.krt/env/jira-cloud-scribe.env` loaded into env vars | Jira Cloud issue, subtask, sprint, and transition work via REST API v3. |
-| `krt-product-polish-council` | Optional: `krt-frontend-ux-guardian`, `krt-interface-inquisitor`, and `krt-interaction-polisher` | The council owns the cross-product audit; specialists can deepen accepted functional, visual, or interaction findings without blocking the core flow. |
+| `krt-product-polish-council` | Optional: `krt-cognitive-load-court`, `krt-frontend-ux-guardian`, `krt-interface-inquisitor`, and `krt-interaction-polisher` | Every evaluator applies the built-in cognitive-load overlay. A deterministic checker validates all twelve outputs and gates the full Court; other specialists deepen accepted functional, visual, or interaction findings. |
+| `krt-cognitive-load-court` | Optional: `krt-product-polish-council` for a fresh application atlas, twelve independent overlay sources, and a unified backlog | The Court works independently on bounded tasks; when combined, it receives neutral referral tuples and factual evidence while retaining authority over workload claims and measurement. |
 | `krt-real-world-edge-testing` | Optional: `krt-security-sentinel` for security-heavy cases; `krt-deploy-summoner` for infrastructure-failure preparation | The campaign remains independently useful; specialists deepen high-risk boundaries without blocking design, build, or safe execution. |
 | `krt-frontend-ux-guardian` | Optional: `krt-interface-inquisitor` for adversarial critique; `krt-interface-warden` for visual direction | Works independently; when combined, Guardian defines the UX contract and final functional gate. |
 | `krt-interface-inquisitor` | Optional: `krt-frontend-ux-guardian` constraints and `krt-interface-warden` implementation | Works independently; optional handoffs keep visual criticism product-safe and directly actionable. |

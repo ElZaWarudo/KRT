@@ -1,6 +1,6 @@
 ---
 name: krt-product-polish-council
-description: Orchestrates a comprehensive, evidence-based polish audit of web, mobile, and desktop applications through a versioned atlas, a cartographer, and twelve evaluators specializing in scope, consistency, feedback, non-ideal states, protection, hierarchy, content, perceived performance, platform conventions, accessibility, continuity, and completeness. Use when asked to polish an application, assess its product maturity, walk end-to-end flows, find rough seams or amateur behavior, produce a prioritized improvement backlog, or verify that a round of changes raised perceived quality.
+description: Orchestrates a comprehensive, evidence-based polish audit of web, mobile, and desktop applications through a versioned atlas, a cartographer, and twelve evaluators, with a required cognitive-load overlay on every finding. Use when asked to polish an application, assess its product maturity, walk end-to-end flows, find rough seams or amateur behavior, produce a prioritized improvement backlog, or verify that a round of changes raised perceived quality.
 ---
 
 # krt-product-polish-council
@@ -13,6 +13,7 @@ Evaluate the application as a system of behavior, not a collection of screens. T
 - Separate declared intent, observed behavior, and inference. Do not turn an inference into a requirement or defect.
 - Audit real end-to-end flows. Use screenshots as partial evidence, never as an automatic substitute for behavior.
 - Have all twelve evaluators work read-only from the same evidence packet.
+- Require every evaluator to apply the Memory, Search, Integration, Decision, Uncertainty, and Recovery overlay to every finding.
 - Reserve synthesis, deduplication, prioritization, and coverage decisions for the lead agent.
 - Treat a review request as authorization to audit, not to change code. Implement only when the user asks.
 
@@ -82,29 +83,40 @@ Each evaluator must:
 3. Cite exact evidence and label it `observed`, `code`, `declared`, `inferred`, or `unverified`.
 4. Return a rating, confidence, findings, behaviors to preserve, and gaps.
 5. Propose a bounded correction and an observable check for each finding.
+6. Attach the complete cognitive-load overlay from the shared protocol to every finding, including an explicit empty factor list when no material factor applies.
 
-### 6. Synthesize Without Diluting Weaknesses
+### 6. Apply the Cognitive-Load Overlay and Referral Gate
 
-Apply the shared protocol. Assign each problem one primary dimension and cross-reference the others. Merge duplicates by cause and flow, not by matching words.
+Normalize all twelve evaluator results into the bundle defined by `references/evidence-and-report-protocol.md`, then run this skill's `scripts/check_cognitive_overlay.py`. Do not proceed to final synthesis unless it returns `status: valid` and `evaluator_count: 12`.
 
-Do not average the twelve ratings to declare success. Identify the weakest link, systemic failures, and the highest-frequency or highest-consequence flows. Prioritize operability, loss of work, trust, and recovery before ornament.
+If validation fails, request one contract-only repair from each implicated evaluator and rerun the checker once. If it still fails, reject the invalid findings and record their flows as coverage gaps. Preserve valid empty factor lists; they show that the lens was applied without inventing a cognitive effect.
 
-Deliver one coherent report, not twelve juxtaposed mini-reports.
+Use the checker's `court_required` result and trigger tuples as the deterministic referral gate. It convenes `krt-cognitive-load-court` before final synthesis when the user explicitly requests it, a cognitive P0/P1 exists, two independent evaluators flag the same `FLOW x profile x factor`, expertise reversal is plausible, or a measured comparison is required.
 
-### 7. Remediate and Reverify When Authorized
+Give the Court only the triggering tuples and factual evidence packet, not Council conclusions or proposed corrections. If the Court is unavailable, keep the Council overlay as heuristic evidence and record the triggered tuples as a verification gap; do not block the broader audit.
+
+### 7. Synthesize Without Diluting Weaknesses
+
+Apply the shared protocol. Assign each problem one primary Council dimension and, when applicable, one primary Court factor. Cross-reference the others. Merge duplicates by cause and flow, not by matching words.
+
+Do not average the twelve ratings or sum cognitive factors to declare success. Identify the weakest link, systemic failures, and the highest-frequency or highest-consequence flows. Prioritize operability, loss of work, trust, and recovery before ornament. When the Court ran, preserve its claim basis and merge accepted `CL-*` and `POL-*` causes into one backlog.
+
+Deliver one coherent report with the cognitive-load overlay and referral status, not twelve juxtaposed mini-reports or a separate unmerged Court appendix.
+
+### 8. Remediate and Reverify When Authorized
 
 Turn the accepted backlog into small units with files, acceptance criteria, and tests. Reuse the application's conventions and components. For optional deeper work, use `krt-frontend-ux-guardian` for functional UX, `krt-interface-inquisitor` for visual composition, or `krt-interaction-polisher` for temporal response when available; their absence must not block the flow.
 
-After changing routes, roles, navigation, states, or flows, update the atlas and its fingerprint. Rerun affected evaluators and make a short pass across all twelve dimensions to catch cross-cutting regressions.
+After changing routes, roles, navigation, states, or flows, update the atlas and its fingerprint. Rerun affected evaluators and make a short pass across all twelve dimensions to catch cross-cutting regressions. When the backlog contains `CL-*` cross-references, also reproduce their verification criteria through the Court.
 
 ## Agent Topology
 
 - **Lead**: sets scope, protects constraints, accepts the coverage gate, and synthesizes.
 - **Cartographer**: interviews for intent when needed and maintains the factual atlas.
-- **Evaluators 01-12**: independently apply the contracts in `references/evaluator-catalog.md`.
+- **Evaluators 01-12**: independently apply their primary contracts and the six-factor cognitive-load overlay in `references/evaluator-catalog.md`.
 - **Verifier**: in remediation mode, reproduces acceptance criteria without reopening product decisions.
 
-The Lead must not delegate final synthesis or allow an evaluator to implement during a diagnostic pass.
+The Lead must not delegate final synthesis or allow an evaluator to implement during a diagnostic pass. The Lead owns overlay validation and the referral gate; individual evaluators may nominate but cannot convene the Court.
 
 ## Non-Negotiables
 
@@ -114,4 +126,6 @@ The Lead must not delegate final synthesis or allow an evaluator to implement du
 - Do not hide the weakest link behind an average, an aesthetic score, or a long list of minor improvements.
 - Do not recommend new features when a clarity, consistency, feedback, or recovery fix solves the problem.
 - Do not accept a finding without evidence, user effect, a concrete correction, and observable verification.
+- Do not accept a finding without a complete cognitive-load overlay, even when the correct factor list is empty.
+- Do not turn Council factor tags into a cognitive score, overload verdict, or measured claim.
 - Do not declare the application polished when the atlas is absent, stale, or materially incomplete.

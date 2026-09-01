@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-product-polish-council"
-  short_description: "Audit 12 dimensions of product polish"
-  default_prompt: "Use krt-product-polish-council to validate the atlas, audit this application's key flows, and prioritize verifiable improvements."
+  short_description: "Audit polish with cognitive-load overlay"
+  default_prompt: "Use krt-product-polish-council to validate the atlas, audit key flows across twelve dimensions, apply the cognitive-load overlay to every finding, and prioritize verifiable improvements."

@@ -130,6 +130,24 @@ Use $krt:skill-arbiter to validate the corpus and score eval-results.json, prese
 
 ## Frontend Craft
 
+Run a comprehensive polish audit with cognitive-load coverage:
+
+```text
+Use $krt:product-polish-council to audit the application's critical flows. Require every evaluator to apply the six-factor cognitive-load overlay and convene the full Court whenever the referral gate fires.
+```
+
+Audit avoidable cognitive workload in a critical task:
+
+```text
+Use $krt:cognitive-load-court to audit the project-creation flow for first-time administrators and separate predicted burden from measured evidence.
+```
+
+Compare a redesigned flow against its baseline:
+
+```text
+Use $krt:cognitive-load-court in measured comparison mode for the current and proposed approval flows. Define equivalent tasks, target profiles, workload evidence, and acceptance criteria before comparing them.
+```
+
 Audit an implemented workflow's interaction feel:
 
 ```text

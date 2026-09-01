@@ -329,7 +329,7 @@ class PortfolioContractTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
-        self.assertEqual(payload["skill_count"], 28)
+        self.assertEqual(payload["skill_count"], 29)
         self.assertEqual(payload["safety_critical_count"], 21)
         self.assertIn("krt-document-forge", payload["safety_critical_skills"])
         self.assertIn("krt-real-world-edge-testing", payload["safety_critical_skills"])

@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-cognitive-load-court"
+  short_description: "Audit avoidable cognitive workload"
+  default_prompt: "Use krt-cognitive-load-court to audit a critical task flow, distinguish predicted burden from measured workload, and prioritize verifiable reductions."

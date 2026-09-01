@@ -3,6 +3,7 @@
   "skills": [
     {"id": "krt-bicentennial-writer", "safety_critical": false},
     {"id": "krt-ci-questor", "safety_critical": true},
+    {"id": "krt-cognitive-load-court", "safety_critical": false},
     {"id": "krt-compound-master", "safety_critical": true},
     {"id": "krt-delivery-navigator", "safety_critical": true},
     {"id": "krt-deploy-summoner", "safety_critical": true},

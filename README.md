@@ -2,7 +2,7 @@
 
 KRT means **Knights of the Round Table**: portable agent skills for keeping a codebase in formation without asking one overcaffeinated linux squire to remember every ritual by heart.
 
-KRT gives agent runtimes 28 reusable skills for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, CI, deployment, testing, security, evaluation, docs, and repo health. The bit is medieval. The contract is not.
+KRT gives agent runtimes 29 reusable skills for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, CI, deployment, testing, security, evaluation, docs, and repo health. The bit is medieval. The contract is not.
 
 Repository documentation and skill instructions use English. Localized Jira values, multilingual routing triggers, parser fixtures, and language-specific writing examples remain in their source language when translation would change behavior.
 
@@ -33,7 +33,8 @@ Start with the job in front of you. The groups below cover every KRT skill witho
 
 | When you have... | Start with... |
 |---|---|
-| An application that needs an end-to-end product polish audit | `krt-product-polish-council` |
+| An application that needs an end-to-end product polish audit with cognitive-load signals on every finding | `krt-product-polish-council` |
+| A task flow that feels mentally taxing or needs workload evidence | `krt-cognitive-load-court` |
 | Frontend work that must stay functional, accessible, and responsive | `krt-frontend-ux-guardian` |
 | An interface that needs an adversarial visual critique | `krt-interface-inquisitor` |
 | An interface that needs distinctive design or implementation | `krt-interface-warden` |
@@ -74,7 +75,8 @@ Full descriptions, aliases, and dependencies: [`docs/skills.md`](docs/skills.md)
 | Discovery | `krt-requirements-weaver` -> `krt-roadmap-cartographer` -> `krt-delivery-navigator` |
 | Execution | `krt-harness-wise` -> `krt-compound-master` -> `krt-release-marshal` |
 | Swarm execution | `krt-swarm-seneschal` -> `krt-compound-master` -> `krt-release-marshal` |
-| Product polish | `krt-product-polish-council` -> targeted `krt-frontend-ux-guardian`, `krt-interface-inquisitor`, or `krt-interaction-polisher` follow-up |
+| Product polish | `krt-product-polish-council` with a six-factor overlay on every finding -> `krt-cognitive-load-court` when the referral gate fires -> targeted implementation specialists |
+| Cognitive workload | `krt-cognitive-load-court` standalone or referred from `krt-product-polish-council` |
 | Operations | `krt-review-herald`, `krt-ci-questor`, `krt-deploy-summoner`, `krt-real-world-edge-testing`, `krt-docs-chronicler`, `krt-repo-medic`, `krt-security-sentinel` |
 | Skill portfolio quality | `krt-repo-medic` -> `krt-skill-arbiter` |
 
@@ -156,6 +158,7 @@ Install the product polish suite:
 ```bash
 npx -y skills add ElZaWarudo/krt \
   --skill krt-product-polish-council \
+  --skill krt-cognitive-load-court \
   --skill krt-frontend-ux-guardian \
   --skill krt-interface-inquisitor \
   --skill krt-interface-warden \
