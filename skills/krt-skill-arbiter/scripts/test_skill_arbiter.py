@@ -47,16 +47,16 @@ class CorpusContractTests(unittest.TestCase):
 
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
-        self.assertEqual(payload["case_count"], 12)
+        self.assertEqual(payload["case_count"], 18)
         self.assertEqual(
             payload["categories"],
             {
-                "fallback": 2,
-                "negative-trigger": 2,
-                "outcome": 2,
-                "permissions": 2,
-                "restart": 2,
-                "routing": 2,
+                "fallback": 3,
+                "negative-trigger": 3,
+                "outcome": 3,
+                "permissions": 3,
+                "restart": 3,
+                "routing": 3,
             },
         )
 
@@ -173,7 +173,7 @@ class ScoreRunTests(unittest.TestCase):
         payload = json.loads(result.stdout)
         self.assertEqual(payload["counts"], {"fail": 1, "inconclusive": 1, "pass": 1})
         self.assertEqual(payload["submitted"], 3)
-        self.assertEqual(payload["corpus_coverage"], 0.25)
+        self.assertEqual(payload["corpus_coverage"], 0.166667)
         self.assertEqual(payload["conclusive_pass_rate"], 0.5)
 
     def test_score_rejects_unknown_case(self) -> None:
@@ -330,10 +330,11 @@ class PortfolioContractTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         payload = json.loads(result.stdout)
         self.assertEqual(payload["skill_count"], 29)
-        self.assertEqual(payload["safety_critical_count"], 21)
+        self.assertEqual(payload["safety_critical_count"], 22)
         self.assertIn("krt-document-forge", payload["safety_critical_skills"])
         self.assertIn("krt-real-world-edge-testing", payload["safety_critical_skills"])
         self.assertIn("krt-skill-arbiter", payload["safety_critical_skills"])
+        self.assertIn("krt-swarm-seneschal", payload["safety_critical_skills"])
         self.assertIn("krt-word-illuminator", payload["safety_critical_skills"])
 
     def test_default_prompt_must_start_with_exact_canonical_id(self) -> None:

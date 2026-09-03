@@ -27,6 +27,7 @@ Each skill owns the detailed guardrails closest to its procedure:
 | `krt-jira-scribe` | [`skills/krt-jira-scribe/references/safety.md`](../skills/krt-jira-scribe/references/safety.md) |
 | `krt-repo-medic` | [`skills/krt-repo-medic/references/safety.md`](../skills/krt-repo-medic/references/safety.md) |
 | `krt-skill-arbiter` | [`skills/krt-skill-arbiter/references/safety.md`](../skills/krt-skill-arbiter/references/safety.md) |
+| `krt-swarm-seneschal` | [`skills/krt-swarm-seneschal/references/safety.md`](../skills/krt-swarm-seneschal/references/safety.md) |
 
 ## Shared Rules
 

@@ -29,7 +29,7 @@ Use this contract to keep routing tests blind, capability tests explicit, and sc
 {
   "schema_version": 1,
   "run_id": "runtime-model-date",
-  "corpus_version": "2026-07-27.1",
+  "corpus_version": "2026-09-03.2",
   "corpus_digest": "<digest reported by check_corpus.py>",
   "results": [
     {

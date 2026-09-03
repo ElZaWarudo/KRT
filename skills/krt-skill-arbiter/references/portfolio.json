@@ -28,7 +28,7 @@
     {"id": "krt-security-sentinel", "safety_critical": true},
     {"id": "krt-skill-arbiter", "safety_critical": true},
     {"id": "krt-state-archivist", "safety_critical": true},
-    {"id": "krt-swarm-seneschal", "safety_critical": false},
+    {"id": "krt-swarm-seneschal", "safety_critical": true},
     {"id": "krt-word-illuminator", "safety_critical": true}
   ]
 }

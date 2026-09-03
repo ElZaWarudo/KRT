@@ -21,6 +21,7 @@ CATEGORIES = {
     "outcome",
 }
 ROUTING_CATEGORIES = {"routing", "negative-trigger"}
+MIN_CASES_PER_CATEGORY = 2
 
 
 def load_object(path: Path) -> dict:
@@ -123,8 +124,14 @@ def validate(
 
     if len(case_ids) != len(set(case_ids)):
         errors.append("case IDs must be unique")
-    if len(cases) != 12 or any(counts[name] != 2 for name in CATEGORIES):
-        errors.append("corpus must contain exactly 12 cases: two per category")
+    underrepresented = sorted(
+        name for name in CATEGORIES if counts[name] < MIN_CASES_PER_CATEGORY
+    )
+    if underrepresented:
+        errors.append(
+            "corpus must contain at least two cases per category; missing coverage: "
+            + ", ".join(underrepresented)
+        )
 
     expectation_ids: list[str] = []
     by_case = {case.get("id"): case for case in cases if isinstance(case, dict)}
