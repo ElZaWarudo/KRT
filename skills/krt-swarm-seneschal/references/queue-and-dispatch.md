@@ -1,212 +1,141 @@
 # Queue And Dispatch
 
-Use this reference when selecting ready work and planning execution waves.
+Use this reference to normalize source work, decide readiness, and plan the
+smallest safe wave. Load `queue-state-schema.md` only when persistent state is
+actually needed.
 
-## Queue Unit Contract
+## Unit Minimum
 
-Every queued unit needs:
+Every candidate unit needs:
 
-```yaml
-id: semantic-id
-title: short human title
-source: docs/work-packages/... | jira issue | github issue | linear issue | backlog file
-jira_key: null
-status: planned | ready | running | review-gated | release-ready | needs-fix | handed-off | merged | blocked | deferred | split-required
-depends_on: []
-blocked_by: []
-affects_dependents: []
-scope:
-  included: []
-  excluded: []
-acceptance_criteria: []
-surfaces:
-  code: []
-  contracts: []
-  data: []
-  auth: []
-  docs: []
-  tests: []
-  config: []
-  generated: []
-dependencies: []
-execution:
-  route: root-direct | swarm
-  lane: fast | standard | deep | null
-  discovery_profile: luna_xhigh_discovery | null
-  worker_profile: spark | luna | luna_xhigh | null
-  reasoning_effort: high | xhigh | null
-  lane_trigger: null
-  role_triggers: {}
-  worker_contract_path: null
-  worker_contract_hash: null
-risk:
-  production: unknown | prototype | preprod | live
-  security: low | elevated | high
-  compliance: low | elevated | high
-  overlap: low | elevated | high
-verification:
-  focused_commands: []
-  focused_evidence: []
-  aggregate_owner: wave-root
-  aggregate_fingerprint: null
-  fingerprint_artifact: null
-  evidence_registry: "<root-owned-path-outside-worktree>/verification-evidence.json"
-  reuse_decision: null
-compound:
-  run_id: null
-  state_path: null
-  interaction: brokered
-  observed_status: null
-  observed_at: null
-  artifact_revision: null
-handoff:
-  intended_base: main
-  branch: null
-  pr: null
-  pr_grouping: standalone
-  suggested_jira_transition: null
-  notes: []
-```
+- stable ID, title, and source;
+- included and excluded scope;
+- checkable acceptance criteria;
+- dependencies and blockers;
+- writable and read-only surfaces;
+- intended base and isolation need;
+- exact focused verification or a justified gap;
+- execution lane and its trigger;
+- assurance tier and its trigger;
+- contract protocol: `lightweight`, `executable`, or `root-direct`;
+- optional Jira key and resolved provider; and
+- release-handoff notes when already known.
 
-If a work package already defines review units, use those IDs and paths instead of inventing new ones. For the full persistent schema, load `queue-state-schema.md`.
+Reuse existing work-package or review-unit IDs. Do not invent a second planning
+taxonomy. The canonical persisted shape is in `queue-state-schema.md`.
 
 ## Ready Criteria
 
 A unit is ready only when:
 
-- Documentation gate is approved for any Jira seed/drain, worker dispatch, code mutation, or release handoff.
-- Dependencies are merged or explicitly available on the intended base.
-- Scope and non-goals are written.
-- Acceptance criteria are checkable.
-- Verification commands or a justified verification gap exist.
-- No unresolved product, auth, data, deployment, or public-contract decision blocks implementation.
-- Branch/base strategy is known.
-- Overlap with active units is low or explicitly coordinated.
-- Jira source state, when applicable, has been read through the selected Jira provider skill and has an unambiguous issue/subtask key.
-- No open blocker exists in `docs/swarm/blockers.yaml` for the unit or its dependencies.
-- For a nested Compound unit, the run ID and canonical state path are unique, the observed snapshot is fresh, and the relevant inner Compound gate has passed.
-- Every nested isolation target can read the same recorded revision of the initiative contract, roadmap, and shared decisions.
-- In a staged decomposition, the unit's dependency gates passed and its
-  isolation target derives from the exact immutable foundation baseline.
-- `worktree-collaboration.md` compiled a unique role-specific worktree for the
-  invocation, and root sealed its source/dependency/candidate index tree.
+- its scope, non-goals, acceptance, and verification are settled;
+- dependencies are merged or explicitly supplied on the intended base;
+- no unresolved product, auth, data, deployment, or public-contract decision
+  blocks the proposed implementation;
+- ownership does not overlap another active mutable unit;
+- no open blocker affects the unit or its dependencies;
+- execution lane, assurance, protocol, and triggered roles are recorded;
+- the required isolation can be created; and
+- live Jira facts have been read through the selected Jira provider skill when
+  Jira is the source.
 
-## Coupled Units
+An applicable documentation gate must be approved for a rough initiative,
+roadmap, program, unrefined backlog, or Jira seed/drain. Do not manufacture a
+new gate for an explicitly requested execution-ready unit. If that unit needs
+persistent queue state, record the validated unit-scoped exemption from
+`queue-state-schema.md`; never use it for work derived from gate-required source.
 
-When overlap is concentrated in a small shared API rather than spread across
-the implementation, load `staged-decomposition.md` before choosing one broad
-owner. Compile the parent into foundation, dependent, and integration stages.
-The parent becomes `split-required`; emitted children use ordinary queue units
-and `depends_on` edges.
+For a nested Compound unit, also require a unique run ID and state path, a fresh
+observed projection, and the relevant inner gate. The child state remains
+authoritative.
 
-Do not send all children in one wave. Foundation runs alone. Passing focused
-contract and trigger-required gates unlocks dependency-ready children, which
-may run concurrently only when their write ownership is disjoint. Later
-children and integration remain queued until their own dependencies reconcile.
+## Break-Even And Classification
+
+Load `execution-lanes.md` and apply its break-even gate before forming a wave.
+Keep one small low-assurance unit root-direct. For dispatched work, record:
+
+```text
+lane / profile / reasoning / lane trigger
+assurance / review mode / assurance trigger
+contract protocol / admitted roles and their triggers
+```
+
+Use `lightweight-dispatch.md` only for eligible interactive fast/standard
+low/medium work. Deep, high, critical, autonomous, or policy-mandated work uses
+`executable-worker-contracts.md`.
+
+## Dependencies And Coupling
+
+Select only dependency-ready units. When a broad parent is coupled through a
+small shared interface, load `staged-decomposition.md`:
+
+1. Run the smallest testable foundation alone.
+2. Freeze its accepted baseline.
+3. Fan out only dependency-ready children with disjoint ownership.
+4. Reconcile every child before integration and aggregate verification.
+
+If the topology compiler rejects the split, record the guardrail and serialize
+the parent. A changed foundation invalidates undispatched or active dependent
+bases.
 
 ## Wave Selection
 
-Load `execution-lanes.md` first. Apply its break-even gate before creating a
-wave, then classify every dispatched unit. Use the exact profile mapping:
-`fast` -> `spark`/`xhigh`, `standard` -> `luna`/`high`, and `deep` -> read-only
-`luna_xhigh_discovery` followed by `luna_xhigh`, both at `xhigh`. Record the
-lane trigger and every optional role trigger.
+Start with the smallest useful wave:
 
-Default wave size is 1 for uncertain queues. In established Jira team flow, default to 2 workers when:
+- Default to one mutable implementer for an uncertain queue.
+- Default to at most two when units are independent, isolated, verifiable, and
+  the review queue can absorb them.
+- Raise above two only from green observed history plus explicit scale authority
+  in manual flow or an exact autonomy-ledger grant.
+- Count Planner, Reviewer, Fixer, Integrator, Documenter, Security, and nested
+  Compound roles against their separate capacity and the global slot budget.
 
-- Documentation gate is approved.
-- Units are dependency-ready.
-- Changed surfaces do not materially overlap.
-- Isolation exists.
-- Verification can run for both.
-- Open stacked PR cap remains respected.
-- Blocker ledger has no open blockers affecting either unit.
+Load `parallel-dispatch-policy.md` and `automated-wave-control.md` only when
+adaptive allocation or concurrency above the basic cap is needed.
 
-Raise above 2 only after successful prior waves and explicit user approval in manual flow, or when the autonomy ledger permits scaling in autonomous flow. Load `parallel-dispatch-policy.md` for the complete algorithm.
+Treat these surfaces as conflicting unless concrete evidence proves otherwise:
 
-## Overlap Rules
+- auth or permission paths;
+- schemas, migrations, transactions, or central data models;
+- public APIs, events, generated contracts, or compatibility layers;
+- dependency manifests, build configuration, or lockfiles; and
+- the same central orchestration or generated file.
 
-Treat as conflicting unless strong evidence says otherwise:
+Docs may run concurrently only with distinct ownership. A stable foundation may
+be read by downstream units, but any proposed edit returns that path to the
+foundation stage.
 
-- same migration/data model
-- same auth/permission path
-- same public API contract
-- same generated artifact
-- same central orchestration skill or shared reference
-- same build/dependency/config file
+## Compact Wave Plan
 
-After a foundation is release-ready, reading its stable contract does not count
-as overlapping ownership. Downstream units list those paths as required context,
-not writable surfaces. Any proposed downstream edit to a foundation path is a
-new dependency-defining change and returns the topology to the foundation gate.
-
-Docs-only overlap can run in parallel when each unit edits distinct docs or one worker is clearly designated owner of the shared doc.
-
-Never parallelize overlapping auth, migrations, public contracts, central models, or lockfiles. Treat DIAN, productive accounting, productive payroll, legal, and security-sensitive production surfaces as high-risk until proven otherwise.
-
-## Wave Plan Shape
-
-Before dispatch, produce:
+Before dispatch, return only decision-bearing fields:
 
 ```text
-Wave: <name>
-Mode: design-only | dispatch | reconcile | resume
-Documentation status: <draft|in_review|approved|changes_requested>
-Concurrency: <n>
-Slot budget: <total>/<usable>, reserve <n>
-Adaptive cap: <n and recorded reasons>
-Isolation: purpose-built worktree
-Workspace plan/hash: <path> / <sha256:...>
-Consolidation workspace: <workspace ID/path>
-jira_provider: cloud | server-datacenter | none
-Blocker ledger: docs/swarm/blockers.yaml
+Wave and operation
+Applicable documentation/autonomy state
+Concurrency and isolation plan
 Units:
-- <id>: <title>
-  Jira: <key or none>
-  Source: <path/link>
-  Worker role: <compound-master|implementer|reviewer|documenter|fixer>
-  Execution lane/profile: <fast/ spark | standard / luna | deep / luna_xhigh_discovery -> luna_xhigh>
-  Reasoning effort: <high|xhigh>
-  Role triggers: <role: trigger, or none>
-  Compound run/state: <run ID and canonical path, or none>
-  Intended base: <branch>
-  Workspace ID/mode: <id> / <read-only|mutable|disposable-verification|mutable-consolidation>
-  Expected branch/worktree: <name or detached> / <path>
-  Source revision/baseline tree: <full revision> / <tree hash>
-  Dependency/candidate patch hashes: [] / []
-  Executable contract/hash: <path> / <sha256:...>
-  Verification: <commands or gap>
-  Risks: <short list>
-Stop conditions:
-- <condition>
-Wave aggregate verification:
-- Owner: Seneschal/root
-- Commands: <ordered commands>
-- Fingerprint inputs: <base, changed paths/content, commands>
-- Reused evidence: <path or none>
-- Reuse decision: <reuse|run and reason>
-Staged topology:
-- Parent: <unit ID or none>
-- Artifact/hash: <path> / <sha256:...>
-- Foundation baseline: <base revision + tree + patch manifest + diff digest, or pending>
+- ID, source, dependencies
+- owned paths and intended base
+- lane/profile and assurance/protocol
+- admitted roles and triggers
+- acceptance and exact focused checks
+- risks, blockers, and stop conditions
+Aggregate verification owner and commands
+Release/Jira handoff context when relevant
 ```
 
-Ask approval before mutating or dispatching in manual flow. In autonomous flow, do not ask after documentation approval; dispatch only ledger-covered mutation classes, record uncovered needs, and continue.
+Do not include empty registry, timing, schema, Compound, Jira, or release fields
+when the selected route does not use them.
 
-## State Updates
+## Authority And State
 
-Update queue state immediately when:
+An explicit user request authorizes its scoped local implementation. Ask before
+an external, irreversible, notification-causing, production, Jira, or shipping
+mutation that is not already authorized. Autonomous work executes only exact
+ledger-covered mutation classes.
 
-- Documentation gate changes status or receives feedback.
-- A unit is dispatched.
-- A worker reports blockers.
-- Verification fails or passes.
-- A lane/profile decision changes or an optional role is admitted.
-- Aggregate verification receives a new fingerprint or reuses passing evidence.
-- Review creates at-or-above-threshold findings.
-- A unit becomes release-ready.
-- Release handoff creates PR/Jira links.
-- A dependency merges or changes base.
-- blocker-review or blocker-resolve changes eligibility.
-
-Never let markdown state pretend to be live authority. Re-fetch GitHub/Jira state before release decisions and use only the selected Jira provider skill.
+Create queue or blocker state only when persistence, resume, Jira mapping, or
+cross-wave coordination needs it. Update it when a material gate, status,
+blocker, evidence fingerprint, or handoff fact changes. Apply guarded lifecycle
+transitions through `scripts/transition_swarm_state.py`; never treat cached state
+as live Git, Jira, or worker authority.

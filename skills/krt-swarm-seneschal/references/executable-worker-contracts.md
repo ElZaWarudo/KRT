@@ -1,8 +1,11 @@
 # Executable Worker Contracts
 
-Load this reference before dispatch and reconciliation. The executable artifact
-is the authority for one worker invocation; prose envelopes are only a human
-rendering of it.
+Load this reference for `high` or `critical` assurance, `deep` execution,
+autonomous mutation, or a repository policy that explicitly requires a
+machine-enforced contract. Eligible low/medium fast or standard work uses
+`lightweight-dispatch.md` instead. Under this advanced protocol, the executable
+artifact is the authority for one worker invocation; prose envelopes are only
+a human rendering of it.
 
 ## Materialization
 
@@ -93,7 +96,8 @@ with `trust: runtime-audited`.
 
 ## Pre-return Terminal Validation
 
-Before dispatch, give every implementation worker the canonical
+Before dispatch, give every implementation worker covered by this advanced
+protocol the canonical
 `worker-terminal.schema.json` shape and this validator command, with a unique
 temporary output path:
 
@@ -122,7 +126,7 @@ and evaluates the authoritative observation because the worker cannot certify
 the real diff, timestamps, scope, command trust, or independent review and
 security evidence.
 
-Evaluate every implementation lane:
+Evaluate every advanced-protocol implementation lane:
 
 ```bash
 rtk python3 <seneschal-skill-dir>/scripts/evaluate_worker_run.py \

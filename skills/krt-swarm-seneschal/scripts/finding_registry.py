@@ -6,11 +6,16 @@ from __future__ import annotations
 import argparse
 from copy import deepcopy
 from contextlib import contextmanager
-import fcntl
 import json
+import os
 from pathlib import Path
 import sys
 from typing import Any
+
+if os.name == "nt":
+    import msvcrt
+else:
+    import fcntl
 
 from deterministic_artifacts import canonical_sha256, write_atomic, write_exclusive_atomic
 from deterministic_validation import exact_object, load_object, non_empty_string, string_list
@@ -33,9 +38,24 @@ VERDICTS = {"confirmed", "revised", "rejected"}
 def _registry_lock(path: Path):
     path.parent.mkdir(parents=True, exist_ok=True)
     lock_path = path.with_name(f".{path.name}.lock")
-    with lock_path.open("a+", encoding="utf-8") as stream:
-        fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
-        yield
+    with lock_path.open("a+b") as stream:
+        if os.name == "nt":
+            stream.seek(0, os.SEEK_END)
+            if stream.tell() == 0:
+                stream.write(b"\0")
+                stream.flush()
+            stream.seek(0)
+            msvcrt.locking(stream.fileno(), msvcrt.LK_LOCK, 1)
+        else:
+            fcntl.flock(stream.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            if os.name == "nt":
+                stream.seek(0)
+                msvcrt.locking(stream.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(stream.fileno(), fcntl.LOCK_UN)
 
 
 def _registry_payload(registry: dict[str, Any]) -> dict[str, Any]:

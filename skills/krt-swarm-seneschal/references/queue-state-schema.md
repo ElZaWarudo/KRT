@@ -102,6 +102,7 @@ units:
     jira_key: MAP-123
     source: docs/work-packages/example.md
     status: planned
+    documentation_gate_exemption: null
     depends_on: []
     blocked_by: []
     affects_dependents: []
@@ -129,6 +130,7 @@ units:
     execution:
       route: swarm
       lane: standard
+      contract_protocol: lightweight
       worker_profile: luna
       reasoning_effort: high
       lane_trigger: bounded-local-decisions
@@ -137,7 +139,7 @@ units:
         triggers: [bounded-cli-behavior]
         review_mode: focused-reviewer
         review_demand: 1
-      worker_contract_path: docs/orchestration/runs/<run-id>/wp-01-ru-02-worker-contract.json
+      worker_contract_path: null
       worker_contract_hash: null
       evidence_trust: unknown
       role_triggers:
@@ -284,7 +286,27 @@ Record the tier, concrete triggers, review mode, and review demand together.
 - `changes_requested`: user requested revisions; only documentation and blocker records may change.
 - `approved`: explicit approval exists; downstream Jira seed/drain, wave planning, dispatch, and release handoff may proceed through their own gates.
 
-Do not create real Jira keys, executable `running` units, implementation wave history, or release handoff packets unless `documentation_gate.status` is `approved` or the user explicitly authorized the exact bypass in the current request.
+When the documentary gate applies to the active broad initiative, do not create
+real Jira keys, executable `running` units, implementation wave history, or
+release handoff packets unless `documentation_gate.status` is `approved`.
+Action-specific authorization does not waive that initiative gate.
+
+For a bounded unit that was already execution-ready, was explicitly authorized
+by the user, and was not derived from gate-required source work, persistence
+may instead record this exact unit-scoped exemption:
+
+```yaml
+documentation_gate_exemption:
+  basis: explicit-execution-ready-unit
+  authorization_event_digest: sha256:<lowercase digest of the trusted user event>
+```
+
+Capture the trusted event digest when admitting the unit. Do not infer or add
+the exemption merely because the global gate is unapproved. For each `ready` or
+`running` transition, supply the same digest as
+`expected_authorization_event_digest`. The transition validator accepts the
+exemption only when the stored and trusted handoff digests match; malformed or
+mismatched exemptions fail closed.
 
 ## Unit Statuses
 
@@ -330,14 +352,15 @@ scope fields.
 Before every wave, read:
 
 - `docs/swarm/queue-state.yaml`
-- `documentation_gate.status` from queue state
+- `documentation_gate.status` from queue state when a documentary gate applies
 - `docs/swarm/blockers.yaml`
 - the initiative contract and each candidate child's canonical Compound state
 - the canonical `docs/orchestration/autonomy-ledgers/<run>.json` when autonomous flow is active; validate it directly because `resume_snapshot` is not authority
 - live Jira issue state through the resolved provider skill, when Jira is source
 - current git branch/worktree state
 
-Then mark units with open blockers, dependencies on open blockers, or a non-approved documentation gate as ineligible for execution.
+Then mark units with open blockers, dependencies on open blockers, or an
+applicable non-approved documentation gate as ineligible for execution.
 
 ## Update Moments
 

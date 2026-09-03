@@ -237,7 +237,12 @@ class VerificationEvidenceTest(unittest.TestCase):
             root = Path(root_dir)
             outside = Path(outside_dir)
             (outside / "secret.txt").write_text("secret", encoding="utf-8")
-            (root / "link").symlink_to(outside, target_is_directory=True)
+            try:
+                (root / "link").symlink_to(outside, target_is_directory=True)
+            except OSError as exc:
+                if getattr(exc, "winerror", None) == 1314:
+                    self.skipTest("Windows user lacks permission to create symlinks")
+                raise
 
             with self.assertRaisesRegex(ValueError, "escapes repo_root"):
                 compute_fingerprint(

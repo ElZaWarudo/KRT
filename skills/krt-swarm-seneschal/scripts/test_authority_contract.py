@@ -3,14 +3,45 @@
 
 from __future__ import annotations
 
+import re
 import unittest
 from pathlib import Path
+
+import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 class SwarmAuthorityContractTest(unittest.TestCase):
+    def test_public_skill_surface_stays_bounded_and_four_operation(self) -> None:
+        skill = (ROOT / "SKILL.md").read_text(encoding="utf-8")
+        operation_section = skill.split("## Four Operations", 1)[1].split(
+            "## Operating Model", 1
+        )[0]
+        operations = set(
+            re.findall(r"^\| `([a-z]+)` \|", operation_section, re.MULTILINE)
+        )
+
+        self.assertLessEqual(len(skill.splitlines()), 160)
+        self.assertLessEqual(len(skill), 10_000)
+        self.assertEqual(operations, {"plan", "dispatch", "reconcile", "status"})
+        self.assertIn("references/lightweight-dispatch.md", skill)
+        self.assertIn("references/executable-worker-contracts.md", skill)
+        self.assertIn("references/safety.md", skill)
+
+    def test_skill_is_explicit_only(self) -> None:
+        metadata = yaml.safe_load(
+            (ROOT / "agents" / "openai.yaml").read_text(encoding="utf-8")
+        )
+
+        self.assertIs(metadata["policy"]["allow_implicit_invocation"], False)
+        self.assertTrue(
+            metadata["interface"]["default_prompt"].startswith(
+                "Use krt-swarm-seneschal"
+            )
+        )
+
     def test_autonomous_flow_uses_compound_json_v1_as_only_authority(self) -> None:
         flow = (ROOT / "references" / "autonomous-team-flow.md").read_text(encoding="utf-8")
         self.assertIn("../../krt-compound-master/references/autonomy-ledger-schema.md", flow)

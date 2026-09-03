@@ -7,10 +7,14 @@ Use this reference for `overnight-team-flow`, `autonomous-team-flow`, or any use
 Convert an ambitious delivery request into an unattended run:
 
 ```text
-autonomy mandate -> documentation packet -> approved gate -> Jira/queue seed -> safe waves -> reconciliation -> release handoff -> morning packet
+autonomy mandate -> applicable planning gate -> safe waves -> reconciliation -> release handoff -> morning packet
 ```
 
-The core rule is no runtime interruption after the required gates pass: decisions can be encoded, deferred, or skipped. The documentary planning gate is still mandatory unless already approved or explicitly bypassed by the user's current instruction.
+The core rule is no runtime interruption after required gates pass: decisions
+can be encoded, deferred, or skipped. The documentary planning gate is
+mandatory for a rough initiative, roadmap, program, Jira seed, or unrefined
+backlog. Do not manufacture a new packet for explicitly authorized,
+execution-ready units with settled acceptance and verification.
 
 ## Autonomy Mandate
 
@@ -28,15 +32,15 @@ contract or redefine allowed mutations, deny rules, scope, expiry, lifecycle,
 or audit semantics.
 
 The canonical JSON ledger replaces per-action human confirmation only after
-required gates pass. It does not remove quality gates and does not authorize
-bypassing documentation approval. If no active JSON v1 ledger exists, continue
-local reversible work only and record external mutations as manual-required.
+required gates pass. It does not remove quality gates or bypass an applicable
+documentation approval. If no active JSON v1 ledger exists, continue local
+reversible work only and record external mutations as manual-required.
 On resume, re-read and validate that JSON, compare its contract hash and audit
 head, then replace the queue state's non-authoritative resume snapshot.
 
 ## Task Definition
 
-First unattended work is documentary planning:
+For a broad or unrefined unattended request, first perform documentary planning:
 
 - Load `references/documentary-planning.md`.
 - Create or revise the documentation packet.
@@ -60,7 +64,7 @@ If task definition is weak, do not improvise a broad platform. Create the docume
 
 ## No-Interruption Rules
 
-During autonomous execution after the documentation gate is approved:
+During autonomous execution after any applicable documentation gate is approved:
 
 - Do not ask user confirmation.
 - Do not stop because one unit is blocked.
@@ -74,7 +78,8 @@ During autonomous execution after the documentation gate is approved:
   interaction.
 - Split broad or scope-creeping work instead of forcing one large PR.
 
-Before documentation approval, no-interruption means "produce the review packet and stop", not "continue into Jira or implementation".
+When documentation approval is required, no-interruption before approval means
+"produce the review packet and stop", not "continue into Jira or implementation".
 
 Stop only when no independent ready work remains and every remaining path would violate ledger deny rules or the documentary planning gate.
 
@@ -89,7 +94,10 @@ In autonomous flow, pass the canonical JSON ledger path, expected contract hash,
 
 Merge PRs only when the ledger explicitly allows merge and platform-visible merge eligibility is satisfied.
 
-A user's "no confirmations" preference authorizes unattended work after required gates; it does not authorize bypassing documentation approval, branch protection, failing checks, missing credentials, or unsafe production compliance.
+A user's "no confirmations" preference authorizes unattended work after
+required gates; it does not authorize bypassing applicable documentation
+approval, branch protection, failing checks, missing credentials, or unsafe
+production compliance.
 
 ## Morning Packet
 

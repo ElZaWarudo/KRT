@@ -9,6 +9,7 @@ import tempfile
 
 from deterministic_artifacts import write_exclusive_atomic
 from finding_registry import (
+    _registry_lock,
     ingest_findings,
     new_registry,
     record_finding_feedback,
@@ -282,6 +283,13 @@ class FindingRegistryTest(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 write_exclusive_atomic(path, {"value": "second"})
             self.assertIn("first", path.read_text(encoding="utf-8"))
+
+    def test_registry_lock_is_available_on_the_current_platform(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "registry.json"
+
+            with _registry_lock(path):
+                self.assertTrue(path.with_name(".registry.json.lock").is_file())
 
 
 if __name__ == "__main__":

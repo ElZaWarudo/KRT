@@ -17,12 +17,14 @@ For each unit:
    - Worker stayed inside included scope.
    - Excluded work remains untouched.
    - Any necessary scope expansion is recorded. Manual flow requires approval; autonomous flow marks broad expansion `split-required` unless the ledger allows it.
-   - `changed_files` comes from the root-observed diff and passes
-     `evaluate_worker_run.py` against the hashed contract. A scope violation
-   preserves the code but invalidates the terminal evidence.
-   - Root confirms the current index tree still equals the sealed baseline,
-     then exports a baseline-bound patch manifest. An index mutation, unowned
-     path, stale dependency hash, or patch hash mismatch fails this gate.
+   - `changed_files` always comes from the root-observed diff. Under the
+     executable protocol it also passes `evaluate_worker_run.py` against the
+     hashed contract; under the lightweight protocol root compares it directly
+     with the bounded owned paths.
+   - For executable or concurrent-isolation work, root confirms the current
+     index tree still equals the sealed baseline and exports a baseline-bound
+     patch manifest. An index mutation, unowned path, stale dependency hash, or
+     patch hash mismatch fails this gate.
 
 2. **Verification gate**
    - Each leaf ran only its assigned focused checks, or a material verification gap is recorded.
@@ -47,15 +49,17 @@ For each unit:
    - `low` completed focused tests plus one final-diff self-review recorded in
      the existing acceptance evidence. It creates no independent certificate,
      review plan, findings registry, or validator stage.
-   - `medium` received exactly one surface-focused independent Reviewer
-     certificate. It does not enter coordinated review unless a disputed
-     finding or newly exposed high-risk boundary raises the tier.
+   - `medium` received exactly one surface-focused independent review. The
+     lightweight protocol records its actor, diff digest, result, evidence, and
+     findings; the executable protocol uses a certificate. Neither enters
+     coordinated review unless a disputed finding or newly exposed high-risk
+     boundary raises the tier.
    - `high` received the relevant specialist review plus independent validation
      of named risks, invariants, claims, or findings.
    - `critical` completed the coordinated review council, evidence
      reconciliation, and its explicit approval gate.
    - Findings at or above threshold were fixed or explicitly deferred.
-   - Every contract-required Reviewer certificate names a different actor, the
+   - Every executable-contract-required Reviewer certificate names a different actor, the
      exact contract hash, and the reviewed diff digest. Implementer prose cannot
      satisfy this gate.
    - When `review-coordination.md` is triggered, the compiled review plan covers
@@ -113,18 +117,22 @@ For a topology compiled through `staged-decomposition.md`:
 
 ## Reconciliation Checklist
 
-Load `worktree-collaboration.md`. Reconciliation happens through the one
-authoritative consolidation worktree; leaf worktrees are evidence sources, not
-merge destinations.
+For concurrent mutable or advanced-protocol work, load
+`worktree-collaboration.md`. Reconciliation happens through the one authoritative
+consolidation worktree; leaf worktrees are evidence sources, not merge
+destinations. Lightweight serial work may reconcile directly in its scoped
+workspace.
 
 For each worker result:
 
 - Fetch or inspect the actual changed files.
 - Verify the workspace plan hash, source revision, baseline tree, ordered
   dependency/candidate patch hashes, and role-specific worktree mode.
-- Evaluate the root observation with `scripts/evaluate_worker_run.py`; accept
-  only `complete` as leaf certification evidence. Route
-  `awaiting_certification`, `needs_fix`, and `contract_violation` literally.
+- Under the executable protocol, evaluate the root observation with
+  `scripts/evaluate_worker_run.py`; accept only `complete` as leaf certification
+  evidence. Route `awaiting_certification`, `needs_fix`, and
+  `contract_violation` literally. Under the lightweight protocol, perform the
+  explicit root checks in `lightweight-dispatch.md`.
 - Compare changes to the unit contract.
 - Identify shared files touched by multiple workers.
 - Detect public contract, auth, data, dependency, config, or generated-artifact changes.
@@ -142,9 +150,10 @@ For each worker result:
   silent reasoning-effort or worker substitutions.
 - Record focused unit evidence separately from aggregate wave evidence and
   reuse only when the automated evidence decision returns `reuse`.
-- Record timing phases, context bytes, review/fix rounds, evidence trust, scope
-  violations, repeated verification, review findings, and acceptance latency with
-  `scripts/record_run_timing.py`.
+- For advanced-protocol, autonomous, adaptive-concurrency, or declared
+  evaluation samples, record timing phases, context bytes, review/fix rounds,
+  evidence trust, scope violations, repeated verification, review findings,
+  and acceptance latency with `scripts/record_run_timing.py`.
 - Record blockers and whether they affect sibling units.
 - Record elapsed-budget exhaustion and root interventions. Interrupt bounded
   workers when the return condition is already met, exploration repeats, or the

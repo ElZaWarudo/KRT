@@ -13,7 +13,7 @@ Formal skill IDs use lowercase hyphenated `krt-*` names. Some runtimes may expos
 | `$krt:roadmap-cartographer` | `krt-roadmap-cartographer` | Generate exactly one roadmap or readiness report from existing project context. |
 | `$krt:delivery-navigator` | `krt-delivery-navigator` | Turn validated requirements into a practical project delivery plan. |
 | `$krt:compound-master` | `krt-compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, reviews, work packages, execution, and release handoff. |
-| `$krt:swarm-seneschal` | `krt-swarm-seneschal` | Coordinate safe waves of isolated Codex subagents above Compound Master. |
+| `$krt:swarm-seneschal` | `krt-swarm-seneschal` | Explicitly coordinate multiple bounded worker units through plan, dispatch, reconcile, and status operations. |
 | `$krt:state-archivist` | `krt-state-archivist` | Keep Compound Master state compact by archiving long historical detail into linked files. |
 | `$krt:release-marshal` | `krt-release-marshal` | Direct commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
 | `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, plan fixes, draft reviewer replies, and apply approved thread replies or resolutions. |
@@ -45,7 +45,7 @@ Skills can bring their own references, templates, scripts, assets, or agent defi
 | `krt-document-forge` | `krt-harness-wise` for downstream harness creation | Converts source documents into auditable Markdown evidence without taking ownership of the final harness. |
 | `krt-delivery-navigator` | `krt-requirements-weaver` output when available | Turns validated requirements into delivery shape without re-litigating discovery. |
 | `krt-compound-master` | Required: `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal`. Optional: `krt-state-archivist`, `krt-security-sentinel`, `krt-ci-questor` | Full artifact, execution, and release pipeline. Optional specialists are used when present and skipped with a recorded fallback when missing. |
-| `krt-swarm-seneschal` | `krt-compound-master`, `krt-release-marshal`, `krt-jira-cloud-scribe`, and optional subagent/worktree/cloud runtime support | Meta-orchestrates ready work packages, backlog items, or Jira Cloud issue queues into bounded execution waves without changing Compound Master or owning release mutations. |
+| `krt-swarm-seneschal` | `krt-compound-master`, `krt-release-marshal`, the selected `krt-jira-cloud-scribe` or `krt-jira-scribe`, and optional subagent/worktree runtime support | Coordinates multiple ready units or nested Compound flows. Jira routing is provider-neutral, and shipping remains owned by Release Marshal. |
 | `krt-release-marshal` | `krt-gitflow-knight`, `krt-rebase-smith`, `krt-jira-scribe` | Clean commits, clean branch history, Jira, and PR handoff. |
 | `krt-jira-scribe` | `.krt/env/jira-scribe.env` loaded into env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
 | `krt-jira-cloud-scribe` | `.krt/env/jira-cloud-scribe.env` loaded into env vars | Jira Cloud issue, subtask, sprint, and transition work via REST API v3. |

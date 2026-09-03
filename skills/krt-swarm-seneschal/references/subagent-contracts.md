@@ -1,10 +1,12 @@
 # Subagent Contracts
 
-Use this reference when launching subagents or preparing prompts for separate Codex threads.
+Use this reference for advanced-protocol workers, complex supporting roles, or
+named Codex profiles. Eligible low/medium fast or standard implementation uses
+`lightweight-dispatch.md`; do not load this full role catalog for that path.
 
 ## Worker Envelope
 
-Every worker prompt must contain:
+Every advanced-protocol worker prompt must contain:
 
 ```text
 Role: <role>
@@ -87,7 +89,7 @@ after root accepts the terminal checkpoint.
 
 When `Worker profile` names a registered Codex profile, load
 `worker-profiles.md` and pass its static preflight before launching the worker.
-The worker envelope remains mandatory: a profile supplies stable runtime
+For the advanced protocol, the worker envelope remains mandatory: a profile supplies stable runtime
 behavior, not the unit-specific contract.
 
 Load `execution-lanes.md` before composing the envelope. Its implementation
@@ -336,7 +338,7 @@ Return changed docs and any verification performed.
 
 ## Return Contract
 
-Implementation workers return exactly one JSON object matching
+Implementation workers using the advanced protocol return exactly one JSON object matching
 `worker-terminal.schema.json`. Do not ask them to translate it into a prose or
 YAML report. Use the schema's field names and nesting literally; every required
 array is present even when empty. In particular, `phase` is always `closeout`

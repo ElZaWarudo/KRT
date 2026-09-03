@@ -10,12 +10,24 @@ from pathlib import Path
 import yaml
 
 from materialize_approval_receipt import materialize_receipt
-from transition_swarm_state import state_digest, transition_state
+from transition_swarm_state import _load_yaml, _validate, state_digest, transition_state
 from verification_evidence import write_atomic
 
 APPROVAL_EVENT_DIGEST = "sha256:" + "a" * 64
+EXECUTION_READY_EVENT_DIGEST = "sha256:" + "b" * 64
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
 class SwarmStateTransitionTest(unittest.TestCase):
+    def test_checked_in_empty_state_pair_satisfies_transition_validator(self) -> None:
+        queue = _load_yaml(REPO_ROOT / "docs" / "swarm" / "queue-state.yaml")
+        blockers = _load_yaml(REPO_ROOT / "docs" / "swarm" / "blockers.yaml")
+
+        _validate(queue, blockers)
+
+        self.assertEqual(queue["documentation_gate"]["status"], "draft")
+        self.assertIsNone(queue["jira"]["provider"])
+        self.assertEqual(queue["units"], {})
+
     def fixtures(self, root: Path) -> tuple[Path, Path]:
         queue = root / "queue.yaml"
         blockers = root / "blockers.yaml"
@@ -137,6 +149,107 @@ class SwarmStateTransitionTest(unittest.TestCase):
                     queue_path=queue, blockers_path=blockers, repo_root=root,
                     transition={"schema_version": 1, "operation": "unit-status", "unit_id": "unit-1", "from": "planned", "to": "ready"},
                     expected_queue_digest=state_digest(queue), expected_blockers_digest=state_digest(blockers),
+                )
+
+    def test_execution_ready_exemption_allows_ready_without_packet_approval(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            queue, blockers = self.fixtures(root)
+            queue_state = yaml.safe_load(queue.read_text(encoding="utf-8"))
+            queue_state["documentation_gate"] = {"status": "draft"}
+            queue_state["units"]["unit-1"].update({
+                "status": "planned",
+                "blocked_by": [],
+                "documentation_gate_exemption": {
+                    "basis": "explicit-execution-ready-unit",
+                    "authorization_event_digest": EXECUTION_READY_EVENT_DIGEST,
+                },
+            })
+            queue.write_text(yaml.safe_dump(queue_state), encoding="utf-8")
+            blockers.write_text(yaml.safe_dump({
+                "schema_version": 1,
+                "blockers": [],
+            }), encoding="utf-8")
+
+            transition_state(
+                queue_path=queue,
+                blockers_path=blockers,
+                transition={
+                    "schema_version": 1,
+                    "operation": "unit-status",
+                    "unit_id": "unit-1",
+                    "from": "planned",
+                    "to": "ready",
+                    "expected_authorization_event_digest": EXECUTION_READY_EVENT_DIGEST,
+                },
+                expected_queue_digest=state_digest(queue),
+                expected_blockers_digest=state_digest(blockers),
+            )
+
+            result = yaml.safe_load(queue.read_text(encoding="utf-8"))
+
+        self.assertEqual(result["units"]["unit-1"]["status"], "ready")
+
+    def test_execution_ready_exemption_must_match_trusted_event_handoff(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            queue, blockers = self.fixtures(root)
+            queue_state = yaml.safe_load(queue.read_text(encoding="utf-8"))
+            queue_state["documentation_gate"] = {"status": "draft"}
+            queue_state["units"]["unit-1"].update({
+                "status": "planned",
+                "blocked_by": [],
+                "documentation_gate_exemption": {
+                    "basis": "explicit-execution-ready-unit",
+                    "authorization_event_digest": EXECUTION_READY_EVENT_DIGEST,
+                },
+            })
+            queue.write_text(yaml.safe_dump(queue_state), encoding="utf-8")
+            blockers.write_text(yaml.safe_dump({
+                "schema_version": 1,
+                "blockers": [],
+            }), encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "trusted user-event handoff"):
+                transition_state(
+                    queue_path=queue,
+                    blockers_path=blockers,
+                    transition={
+                        "schema_version": 1,
+                        "operation": "unit-status",
+                        "unit_id": "unit-1",
+                        "from": "planned",
+                        "to": "ready",
+                        "expected_authorization_event_digest": "sha256:" + "c" * 64,
+                    },
+                    expected_queue_digest=state_digest(queue),
+                    expected_blockers_digest=state_digest(blockers),
+                )
+
+    def test_execution_ready_exemption_requires_trusted_event_digest(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            queue, blockers = self.fixtures(root)
+            queue_state = yaml.safe_load(queue.read_text(encoding="utf-8"))
+            queue_state["units"]["unit-1"]["documentation_gate_exemption"] = {
+                "basis": "explicit-execution-ready-unit",
+                "authorization_event_digest": "sha256:guess",
+            }
+            queue.write_text(yaml.safe_dump(queue_state), encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "exemption schema"):
+                transition_state(
+                    queue_path=queue,
+                    blockers_path=blockers,
+                    transition={
+                        "schema_version": 1,
+                        "operation": "unit-status",
+                        "unit_id": "unit-1",
+                        "from": "blocked",
+                        "to": "planned",
+                    },
+                    expected_queue_digest=state_digest(queue),
+                    expected_blockers_digest=state_digest(blockers),
                 )
 
     def test_generic_transition_refuses_every_release_lifecycle_edge(self) -> None:

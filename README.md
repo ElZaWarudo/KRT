@@ -26,7 +26,7 @@ Start with the job in front of you. The groups below cover every KRT skill witho
 | When you have... | Start with... |
 |---|---|
 | A larger initiative that needs artifact-first orchestration | `krt-compound-master` |
-| Ready work packages or a backlog that needs bounded agent waves | `krt-swarm-seneschal` |
+| Multiple ready work packages or dependent backlog units that benefit from bounded agent waves | `krt-swarm-seneschal` |
 | Compound Master state that has become too noisy | `krt-state-archivist` |
 
 ### Improve The Product Experience
@@ -97,7 +97,9 @@ the change; dispatched implementation uses one of three stable lanes:
 Spark reasoning stays at `xhigh`; the lane changes the worker, not Spark's
 thinking budget. Optional Planner, Reviewer, Fixer, Integrator, and Documenter
 roles join only when their admission trigger is present. Leaf workers run
-focused checks; Seneschal runs aggregate verification once per wave.
+focused checks; Seneschal runs aggregate verification once per wave. Low and
+medium fast/standard work uses a lightweight contract when safe; deep,
+high-risk, critical, or autonomous work retains the executable contract.
 
 Canonical policy: [`execution-lanes.md`](skills/krt-swarm-seneschal/references/execution-lanes.md).
 

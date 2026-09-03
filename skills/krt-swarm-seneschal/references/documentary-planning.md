@@ -4,13 +4,17 @@ Use this reference for `document-plan`, `document-review`, `document-revise`, an
 
 ## Purpose
 
-Create a human-reviewable planning packet before Jira mutation, worker dispatch, code mutation, or release handoff.
+Create a human-reviewable planning packet before Jira seeding or worker dispatch
+from a rough initiative, roadmap, program, swarm startup, or unrefined backlog.
 
 ```text
 rough brief -> initiative contract -> roadmap/Compound artifacts -> composition review -> approval -> execution
 ```
 
-Documentation approval is a formal dependency, not a courtesy summary. If the gate is not approved, the swarm may create or revise documentation only.
+When this gate applies, documentation approval is a formal dependency rather
+than a courtesy summary. Do not manufacture a packet for an execution-ready
+unit that the user explicitly authorized and whose scope, acceptance criteria,
+dependencies, and verification are already settled.
 
 ## Gate State
 
@@ -54,7 +58,8 @@ Statuses:
 
 ## Required Artifacts
 
-Produce these artifacts for a new initiative, rough brief, roadmap, Jira program, swarm startup, or autonomous run:
+Produce these artifacts for a new initiative, rough brief, roadmap, Jira
+program, swarm startup, or autonomous program-level run:
 
 - `docs/plans/<initiative>/initiative-requirements.md`: reviewed requirements-only general brainstorm containing shared intent, actors, global scope/non-goals, terminology, success criteria, invariants, settled decisions, escalation boundaries, and open decisions. Accept another configured-docs-root path when the artifact declares `artifact_contract: ce-unified-plan/v1` and `artifact_readiness: requirements-only`.
 - `docs/product/roadmap.md`: product framing, MVP boundary, phase 2 epics, dependencies, risks, and implementation start criteria.
@@ -135,7 +140,17 @@ For `document-approve`:
 
 ## Forbidden Before Approval
 
-Unless the current user request explicitly authorizes the exact action despite the gate, do not:
+The restrictions below apply when this documentary gate is required by the
+source-work criteria above or already exists for the active initiative.
+
+An action-specific request does not waive a gate that applies to rough source
+work. A unit is outside this gate only when it was already execution-ready,
+the user explicitly authorized that bounded unit, and it was not derived from
+the gate-required initiative. If that unit enters persistent queue state,
+record the validated unit-scoped exemption described in
+`queue-state-schema.md`.
+
+While the gate applies, do not:
 
 - Seed, create, update, comment on, link, or transition Jira issues.
 - Create executable queue state such as `running` units or active wave history.

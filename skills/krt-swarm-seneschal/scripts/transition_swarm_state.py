@@ -8,6 +8,7 @@ import hashlib
 import json
 import os
 from pathlib import Path, PurePosixPath
+import re
 import sys
 import tempfile
 from typing import Any
@@ -33,6 +34,8 @@ UNIT_TRANSITIONS = {
     "merged": set(),
 }
 BLOCKER_STATUSES = {"open", "answered", "superseded", "resolved"}
+DOCUMENTATION_EXEMPTION_KEYS = {"basis", "authorization_event_digest"}
+DOCUMENTATION_EXEMPTION_BASIS = "explicit-execution-ready-unit"
 
 
 def state_digest(path: Path) -> str:
@@ -57,6 +60,19 @@ def _validate(queue: dict[str, Any], blockers: dict[str, Any]) -> None:
             raise ValueError("queue unit schema is invalid")
         if not isinstance(unit.get("blocked_by", []), list):
             raise ValueError("queue unit blocked_by must be a list")
+        exemption = unit.get("documentation_gate_exemption")
+        if exemption is not None:
+            if (
+                not isinstance(exemption, dict)
+                or set(exemption) != DOCUMENTATION_EXEMPTION_KEYS
+                or exemption.get("basis") != DOCUMENTATION_EXEMPTION_BASIS
+                or not isinstance(exemption.get("authorization_event_digest"), str)
+                or re.fullmatch(
+                    r"sha256:[0-9a-f]{64}", exemption["authorization_event_digest"]
+                )
+                is None
+            ):
+                raise ValueError("documentation gate exemption schema is invalid")
     if blockers.get("schema_version") != 1 or not isinstance(blockers.get("blockers"), list):
         raise ValueError("blocker ledger schema is invalid")
     ids: list[str] = []
@@ -187,17 +203,30 @@ def transition_state(
             gate["status"] = transition["to"]
         elif operation == "unit-status":
             expected = {"schema_version", "operation", "unit_id", "from", "to"}
-            if set(transition) != expected:
+            if not expected.issubset(transition):
                 raise ValueError("unit-status transition has missing or unknown fields")
             unit = queue["units"].get(transition["unit_id"])
             if not isinstance(unit, dict) or unit.get("status") != transition["from"]:
                 raise ValueError("unit current status does not match transition precondition")
+            exemption = unit.get("documentation_gate_exemption")
+            if exemption is not None and transition["to"] in {"ready", "running"}:
+                expected.add("expected_authorization_event_digest")
+            if set(transition) != expected:
+                raise ValueError("unit-status transition has missing or unknown fields")
             if transition["to"] not in UNIT_TRANSITIONS[transition["from"]]:
                 raise ValueError("illegal unit status transition")
             if transition["to"] in {"release-ready", "handed-off", "merged"}:
                 raise ValueError("release lifecycle requires authoritative reconciliation, not unit-status")
             if transition["to"] in {"ready", "running"}:
-                _require_current_approval(queue, repo_root)
+                if exemption is None:
+                    _require_current_approval(queue, repo_root)
+                elif (
+                    transition["expected_authorization_event_digest"]
+                    != exemption["authorization_event_digest"]
+                ):
+                    raise ValueError(
+                        "documentation gate exemption does not match trusted user-event handoff"
+                    )
                 if unit.get("blocked_by"):
                     raise ValueError("unit has open blockers")
             unit["status"] = transition["to"]

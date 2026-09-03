@@ -1,11 +1,22 @@
 schema_version: 1
 updated_at: "2026-06-30"
 mode: jira-team-flow
+documentation_gate:
+  status: draft
+  approved_by: null
+  approved_at: null
+  initiative_contract: null
+  source_artifacts: []
+  approval_artifacts: []
+  approval_receipt: null
+  approved_packet_digest: null
+  approval_receipt_digest: null
+  feedback_log: []
 autonomy:
   mode: manual
   ledger_path: null
 jira:
-  mode: cloud
+  provider: null
   project_key: null
   base_url: null
   last_read_at: null

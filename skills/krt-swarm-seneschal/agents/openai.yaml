@@ -1,4 +1,7 @@
 interface:
   display_name: "krt-swarm-seneschal"
-  short_description: "Orchestrate nested Compound Master delivery waves"
-  default_prompt: "Use krt-swarm-seneschal to establish the initiative contract and composition gate, orchestrate isolated krt-compound-master flows, broker decisions, reconcile outputs, and hand release-ready units to Release Marshal."
+  short_description: "Plan and reconcile bounded worker waves"
+  default_prompt: "Use krt-swarm-seneschal ($krt-swarm-seneschal) to plan a bounded worker wave, dispatch approved units, reconcile evidence, or report status."
+
+policy:
+  allow_implicit_invocation: false
