@@ -11,6 +11,7 @@ from typing import Any
 
 from allocate_worker_slots import ROLE_PRIORITY, allocate_slots
 from deterministic_artifacts import canonical_sha256
+from review_policy import normalize_assurance_tier, review_demand
 
 
 HIGH_RISK_SURFACES = {
@@ -53,16 +54,13 @@ def consecutive_green_waves(history: list[dict[str, Any]]) -> int:
 
 def implementation_cap(
     *, history: list[dict[str, Any]], green_streak: int,
-    scale_authorization: dict[str, Any], review_capacity: int,
+    scale_authorization: dict[str, Any],
 ) -> tuple[int, list[str]]:
     reasons: list[str] = []
     cap = 2
     if history and history[-1].get("result") in {"failed", "partial"}:
         cap = 1
         reasons.append("last-wave-not-green")
-    elif history and history[-1].get("review_lagging") is True:
-        cap = 1
-        reasons.append("review-capacity-lagging")
     elif scale_authorization["authorized"] and green_streak >= 4:
         cap = 4
         reasons.append("four-consecutive-green-waves")
@@ -71,11 +69,7 @@ def implementation_cap(
         reasons.append("two-consecutive-green-waves")
     else:
         reasons.append("scale-not-authorized" if green_streak >= 2 else "default-cap")
-    if review_capacity < cap:
-        reasons.append("review-capacity-cap")
-    cap = min(cap, review_capacity, scale_authorization["max_implementers"])
-    if cap < 1:
-        reasons.append("no-review-capacity")
+    cap = min(cap, scale_authorization["max_implementers"])
     return cap, reasons
 
 
@@ -119,6 +113,7 @@ def normalize_request(raw: Any) -> dict[str, Any]:
         "priority",
         "owned_paths",
         "risk_surfaces",
+        "assurance_tier",
         "unresolved_dependencies",
         "blocked",
     }
@@ -132,12 +127,17 @@ def normalize_request(raw: Any) -> dict[str, Any]:
         raise ValueError("request role is unsupported")
     if not isinstance(raw.get("blocked"), bool):
         raise ValueError("request blocked must be boolean")
+    assurance_tier = normalize_assurance_tier(
+        raw.get("assurance_tier"), "request.assurance_tier"
+    )
     return {
         "id": request_id,
         "role": role,
         "priority": _non_negative_int(raw.get("priority"), "priority"),
         "owned_paths": _string_list(raw.get("owned_paths"), "owned_paths"),
         "risk_surfaces": _string_list(raw.get("risk_surfaces"), "risk_surfaces"),
+        "assurance_tier": assurance_tier,
+        "review_demand": review_demand(assurance_tier) if role == "implementer" else 0,
         "unresolved_dependencies": _string_list(
             raw.get("unresolved_dependencies"), "unresolved_dependencies"
         ),
@@ -160,8 +160,8 @@ def plan_adaptive_wave(
     }
     if not isinstance(plan, dict) or set(plan) != expected:
         raise ValueError("adaptive plan has missing or unknown fields")
-    if plan.get("schema_version") != 1:
-        raise ValueError("schema_version must be 1")
+    if plan.get("schema_version") != 2:
+        raise ValueError("schema_version must be 2")
     total_slots = _non_negative_int(plan.get("total_slots"), "total_slots")
     reserve_slots = _non_negative_int(plan.get("reserve_slots"), "reserve_slots")
     review_capacity = _non_negative_int(plan.get("review_capacity"), "review_capacity")
@@ -184,11 +184,11 @@ def plan_adaptive_wave(
         history=history,
         green_streak=green_streak,
         scale_authorization=scale_authorization,
-        review_capacity=review_capacity,
     )
     rejected: list[dict[str, Any]] = []
     selected_implementers: list[dict[str, Any]] = []
     supporting: list[dict[str, Any]] = []
+    review_capacity_used = 0
     for request in sorted(
         requests,
         key=lambda item: (item["priority"], ROLE_PRIORITY[item["role"]], item["id"]),
@@ -199,10 +199,13 @@ def plan_adaptive_wave(
             supporting.append(request)
         elif len(selected_implementers) >= cap:
             rejected.append({"id": request["id"], "role": request["role"], "reason": "adaptive-cap"})
+        elif review_capacity_used + request["review_demand"] > review_capacity:
+            rejected.append({"id": request["id"], "role": request["role"], "reason": "review-capacity"})
         elif any(requests_overlap(request, selected) for selected in selected_implementers):
             rejected.append({"id": request["id"], "role": request["role"], "reason": "surface-overlap"})
         else:
             selected_implementers.append(request)
+            review_capacity_used += request["review_demand"]
 
     role_caps = plan.get("role_caps")
     if not isinstance(role_caps, dict):
@@ -223,10 +226,18 @@ def plan_adaptive_wave(
         }
     )
     rejected.extend(allocation["rejected"])
+    admitted_ids = {item["id"] for item in allocation["admitted"]}
+    review_capacity_used = sum(
+        request["review_demand"]
+        for request in selected_implementers
+        if request["id"] in admitted_ids
+    )
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "green_wave_streak": green_streak,
         "implementer_cap": cap,
+        "review_capacity": review_capacity,
+        "review_capacity_used": review_capacity_used,
         "cap_reasons": cap_reasons,
         "allocation": {**allocation, "rejected": rejected},
     }

@@ -12,6 +12,7 @@ from typing import Any
 
 from deterministic_artifacts import canonical_sha256
 from deterministic_validation import exact_object, load_object, non_empty_string, string_list
+from review_policy import COORDINATED_REVIEW_TIERS, normalize_assurance_tier
 
 
 SEVERITIES = {"p0", "p1", "p2"}
@@ -40,6 +41,7 @@ FINDING_FIELDS = {
 }
 PLAN_FIELDS = {
     "schema_version",
+    "assurance_tier",
     "contract_hash",
     "diff_digest",
     "changed_paths",
@@ -47,6 +49,7 @@ PLAN_FIELDS = {
     "queued",
     "coverage_complete",
     "validation_wave_required",
+    "approval_required",
     "review_plan_hash",
 }
 FEEDBACK_ACTIONS = {"corroborate", "challenge"}
@@ -70,8 +73,18 @@ def validate_finding(value: Any, *, index: int) -> dict[str, Any]:
 
 def _assignment_from_plan(plan: dict[str, Any], surface_id: str) -> dict[str, Any]:
     exact_object(plan, PLAN_FIELDS, "review plan")
-    if plan["schema_version"] != 1:
-        raise ValueError("review plan schema_version must be 1")
+    if plan["schema_version"] != 2:
+        raise ValueError("review plan schema_version must be 2")
+    assurance_tier = normalize_assurance_tier(
+        plan["assurance_tier"], "review plan assurance_tier"
+    )
+    if assurance_tier not in COORDINATED_REVIEW_TIERS:
+        raise ValueError("review plan assurance tier is not coordinated")
+    if plan["validation_wave_required"] is not True:
+        raise ValueError("coordinated review requires independent validation")
+    expected_approval = assurance_tier == "critical"
+    if plan["approval_required"] is not expected_approval:
+        raise ValueError("review plan approval requirement does not match assurance tier")
     payload = {key: plan[key] for key in PLAN_FIELDS - {"review_plan_hash"}}
     if plan["review_plan_hash"] != canonical_sha256(payload):
         raise ValueError("review plan hash is invalid")

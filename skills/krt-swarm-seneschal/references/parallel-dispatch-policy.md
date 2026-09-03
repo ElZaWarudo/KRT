@@ -107,10 +107,14 @@ Suggested Implementer cap progression:
 
 Apply this progression through `scripts/plan_adaptive_wave.py`, not by manually
 editing the cap. Supply real history, review capacity, owned paths, risk
-surfaces, blockers, dependencies, and whether manual approval or the autonomy
-ledger authorizes scaling. Dispatch only its returned allocation.
+surfaces, assurance tiers, blockers, dependencies, and whether manual approval
+or the autonomy ledger authorizes scaling. Dispatch only its returned
+allocation.
 
-Do not exceed the repo's review capacity or stacked PR cap. If Reviewers or Integrator cannot keep up, reduce Implementer concurrency.
+Charge review capacity by assurance demand rather than per Implementer. Low
+assurance consumes no independent-review capacity and may continue while
+specialists are occupied. Do not exceed the repo's weighted review capacity or
+stacked PR cap; reduce only the reviewed work that cannot be supported.
 
 ## Never Parallelize When Overlapping
 
@@ -174,6 +178,8 @@ wave_history:
       reserve_slots: 1
       implementer_cap: 2
       cap_reasons: [default-cap]
+      review_capacity: 4
+      review_capacity_used: 2
       allocation_artifact: docs/orchestration/runs/<run-id>/<wave-id>-allocation.json
       implementers: 2
       planners: 1

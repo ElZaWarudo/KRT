@@ -11,6 +11,7 @@ from typing import Any
 
 from deterministic_artifacts import canonical_sha256
 from deterministic_validation import exact_object, non_empty_string, string_list
+from review_policy import COORDINATED_REVIEW_TIERS, normalize_assurance_tier
 
 
 REVIEWER_ROLES = {"reviewer", "security-sentinel"}
@@ -69,6 +70,7 @@ def plan_review_wave(plan: dict[str, Any]) -> dict[str, Any]:
         plan,
         {
             "schema_version",
+            "assurance_tier",
             "contract_hash",
             "diff_digest",
             "changed_paths",
@@ -77,8 +79,13 @@ def plan_review_wave(plan: dict[str, Any]) -> dict[str, Any]:
         },
         "review plan",
     )
-    if plan["schema_version"] != 1:
-        raise ValueError("schema_version must be 1")
+    if plan["schema_version"] != 2:
+        raise ValueError("schema_version must be 2")
+    assurance_tier = normalize_assurance_tier(plan["assurance_tier"])
+    if assurance_tier not in COORDINATED_REVIEW_TIERS:
+        raise ValueError(
+            "coordinated review is reserved for high or critical assurance"
+        )
     contract_hash = non_empty_string(plan["contract_hash"], "contract_hash")
     diff_digest = non_empty_string(plan["diff_digest"], "diff_digest")
     if not contract_hash.startswith("sha256:") or not diff_digest.startswith("sha256:"):
@@ -93,6 +100,8 @@ def plan_review_wave(plan: dict[str, Any]) -> dict[str, Any]:
     identifiers = [surface["id"] for surface in surfaces]
     if len(identifiers) != len(set(identifiers)):
         raise ValueError("surface ids must be unique")
+    if assurance_tier == "critical" and len(surfaces) < 2:
+        raise ValueError("critical assurance requires at least two review assignments")
 
     primary = [surface for surface in surfaces if not surface["cross_cutting"]]
     if not primary:
@@ -119,16 +128,16 @@ def plan_review_wave(plan: dict[str, Any]) -> dict[str, Any]:
         for surface in ordered[capacity:]
     ]
     payload = {
-        "schema_version": 1,
+        "schema_version": 2,
+        "assurance_tier": assurance_tier,
         "contract_hash": contract_hash,
         "diff_digest": diff_digest,
         "changed_paths": changed_paths,
         "assignments": admitted,
         "queued": queued,
         "coverage_complete": not queued,
-        "validation_wave_required": len(ordered) > 1 or any(
-            surface["cross_cutting"] for surface in ordered
-        ),
+        "validation_wave_required": True,
+        "approval_required": assurance_tier == "critical",
     }
     return {**payload, "review_plan_hash": canonical_sha256(payload)}
 

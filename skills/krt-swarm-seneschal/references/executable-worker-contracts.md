@@ -150,6 +150,10 @@ The compatibility-only `evaluate_luna_run.py` remains available for existing
 deep-checkpoint callers. New dispatch and reconciliation use
 `evaluate_worker_run.py`.
 
+When a worker reports a baseline or environment-related verification gap,
+root applies the evidence and classification rules in
+`role-recoverability.md`. Worker labels alone do not establish attribution.
+
 ## Independent Certificates
 
 Each required certificate contains exactly:

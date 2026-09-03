@@ -188,6 +188,10 @@ Implement only the described unit.
 Follow AGENTS.md and local skill rules.
 Do not change public contracts, auth/data behavior, dependencies, or release configuration outside scope without stopping.
 Add or update tests when the unit changes behavior.
+For low assurance, after the tests pass, reread the exact final diff once
+against the acceptance criteria and record that self-review in the existing
+acceptance evidence. Do not create a separate review artifact or add another
+confidence pass.
 Return only the exact validated `worker-terminal.schema.json` object. Root adds
 the real changed files, command evidence, risks, and blockers during
 reconciliation.
@@ -223,10 +227,11 @@ per-edit, or per-command events.
 
 ### Reviewer
 
-Use only when behavior/control flow changed, risk is elevated, a sensitive or
-public contract surface changed, acceptance requires independent review, or the
-diff exceeds the narrow mechanical lane. Do not add a Reviewer to pure
-formatting, generated refreshes, or decision-closed docs-only edits by default.
+Use only when the assurance tier is `medium` or higher, or acceptance explicitly
+requires independent review. Behavior or control-flow change alone is not a
+trigger. A medium unit gets exactly one reviewer chosen for the affected
+surface; require the direct independent certificate from
+`executable-worker-contracts.md` without creating a review plan or registry.
 
 ```text
 Review the diff against the unit contract.
@@ -235,11 +240,16 @@ Report findings as P0/P1/P2 with file/line evidence.
 Do not rewrite the implementation unless explicitly asked to fix.
 ```
 
-For a coordinated multi-surface review, load `review-coordination.md` and give
-the reviewer one compiled surface assignment. Require the exact terminal
-accepted by `validate_review_terminal.py`. Every assigned risk boundary must be
-checked. P0/P1 findings are uncapped; return at most three evidence-backed P2
-findings and suppress speculative preferences.
+For `high` or `critical`, load `review-coordination.md` and give the reviewer one
+compiled risk-surface assignment. Require the exact terminal accepted by
+`validate_review_terminal.py`. Every assigned risk boundary must be checked.
+P0/P1 findings are uncapped; return at most three evidence-backed P2 findings
+and suppress speculative preferences.
+
+Load `role-recoverability.md` and render the assignment with
+`render_role_envelope.py`, including concrete absolute invocation locators and
+the final validator command. Enable its recovery path only for the documented
+coordinated-review triggers; ordinary reviewers remain terminal-only.
 
 On recertification, give the reviewer the latest diff digest, registry state,
 and changed finding surfaces. Recheck affected risk boundaries without
@@ -247,15 +257,17 @@ rediscovering already resolved findings or rereading unchanged surfaces.
 
 ### Targeted Validator
 
-Use only after the root-owned registry assigns canonical IDs and the compiled
-review plan requires a validation wave. This is a bounded Reviewer or Security
-Sentinel assignment, not a new standing role.
+Use only for a `high` or `critical` unit after the compiled review plan requires
+a validation wave. Validate its named high-risk invariants or claims and any
+canonical finding IDs assigned by the root-owned registry. This is a bounded
+Reviewer or Security Sentinel assignment, not a new standing role.
 
 ```text
-Validate only the supplied canonical finding IDs against the bound contract and
-root-observed diff. For each return confirmed, revised, or rejected with
-evidence. Do not repeat open-ended review. You may report a newly observed P0 or
-P1 encountered during reproduction, but do not expand the batch with a new P2.
+Validate only the supplied high-risk invariants, claims, and canonical finding
+IDs against the bound contract and root-observed diff. For each finding return
+confirmed, revised, or rejected with evidence. Do not repeat open-ended review.
+You may report a newly observed P0 or P1 encountered during reproduction, but
+do not expand the batch with a new P2.
 Do not edit implementation files or the shared findings registry.
 Return immediately after every supplied ID has one evidence-backed verdict.
 Do not broaden reproduction into coverage review, and do not continue after
@@ -293,6 +305,9 @@ It returns the exact JSON object that passed. Correct protocol-only shape errors
 in the same Fixer session; do not infer the mapping at root. Root reruns the
 validator and independently captures the assigned command results before
 resolving findings.
+
+Render this assignment with `render_role_envelope.py --role fixer`; do not
+leave placeholder paths for the worker to discover.
 
 ### Integrator
 

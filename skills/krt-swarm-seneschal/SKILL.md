@@ -33,6 +33,11 @@ When subagents are unavailable, produce exact prompts and wave plans.
   foundation, then fan out dependency-ready children with disjoint ownership
   before a final integration and aggregate-verification stage.
 - Apply the break-even gate and execution lanes in `references/execution-lanes.md`: keep trivial single units in the root thread, preserve Spark at `xhigh`, use Luna `high` normally, and reserve Luna `xhigh` for demanding work.
+- Classify assurance independently from execution difficulty. Low assurance uses
+  tests plus one implementer self-review; medium uses one focused reviewer;
+  high uses a relevant specialist plus independent validation; critical uses
+  coordinated review, reconciliation, and explicit approval. File count,
+  surface count, or behavior change alone never earns a larger review chain.
 - Cap active mutable implementation work at the smallest safe wave; default to 2 concurrent Implementer workers until repo evidence supports more. Planner, Reviewer, Fixer, Integrator, and Documenter workers use separate role caps.
 - Never let production outrun verification: a wave is not complete until worker output, any trigger-required review, verification evidence, and state reconciliation are captured.
 - Never accept a worker's prose as its execution contract or certification.
@@ -64,11 +69,12 @@ Load only what the current task needs:
 | Build queue, choose ready work, plan waves | `references/queue-and-dispatch.md` |
 | Split coupled work into serial foundation, parallel dependents, and integration | `references/staged-decomposition.md` |
 | Create, seed, observe, consolidate, and clean role-specific worktrees | `references/worktree-collaboration.md` |
-| Classify fast/standard/deep lanes, admit roles, assign verification ownership | `references/execution-lanes.md` |
+| Classify execution lanes and assurance tiers, admit roles, assign verification ownership | `references/execution-lanes.md` |
 | Launch or prepare subagent prompts | `references/subagent-contracts.md` |
 | Materialize and validate executable worker contracts | `references/executable-worker-contracts.md` |
 | Resolve a named Codex worker profile | `references/worker-profiles.md` |
 | Monitor Luna checkpoint, closeout, and timing | `references/lightweight-supervision.md` |
+| Recover Reviewer/Fixer returns or classify failed checks | `references/role-recoverability.md` |
 | Reconcile outputs, review gates, hand off release work | `references/gates-and-reconciliation.md` |
 | Partition review surfaces, register findings, target validators | `references/review-coordination.md` |
 | Run Jira backlog source and drain ready waves | `references/jira-team-flow.md` |
@@ -112,7 +118,10 @@ Supported modes:
 - For Jira team flow, load `references/jira-team-flow.md`, `references/queue-state-schema.md`, `references/blocker-ledger.md`, and `references/parallel-dispatch-policy.md`.
 - For autonomous or no-confirmation flow, load `references/autonomous-team-flow.md` and resolve an autonomy ledger before external or irreversible mutations.
 - When a unit selects a named Codex profile, load `references/worker-profiles.md` and run its static profile preflight before dispatch. If only the bundled package profile exists, block dispatch and preview the explicit project or personal installation step; do not install into the user's Codex home without authorization.
-- Before wave selection or dispatch, load `references/execution-lanes.md`, apply its break-even gate, classify every implementation unit, and record the selected profile and trigger.
+- Before wave selection or dispatch, load `references/execution-lanes.md`, apply
+  its break-even gate, classify every implementation unit's lane and assurance
+  tier, and record both triggers. Missing classification blocks dispatch; it
+  does not default to a review council.
 - Load `references/worktree-collaboration.md`. Resolve a run-specific worktree
   parent and require one purpose-built worktree per worker invocation; serial
   execution does not permit workspace reuse.
@@ -157,7 +166,9 @@ documentation_gate:
 - If `documentation_gate.status != approved`, do not seed Jira, dispatch workers, mutate code, or hand off release work unless the user explicitly authorizes that exact action in the current request.
 
 3. **Normalize Work**
-- Convert candidate work into executable units with scope, acceptance criteria, dependencies, touched surfaces, verification commands, and intended base.
+- Convert candidate work into executable units with scope, acceptance criteria,
+  dependencies, touched surfaces, verification commands, intended base,
+  assurance tier, and concrete assurance triggers.
 - Use Planner workers only when broad or ambiguous work still needs decomposition, acceptance criteria, dependency mapping, or decision closure. Never insert a Planner before an execution-ready work package.
 - Prefer existing `krt-compound-master` review units. If only high-level backlog items exist, route discovery/planning through existing requirements, roadmap, and compound-master skills rather than inventing hidden scope.
 - When several roadmap items need full artifact and quality pipelines, create one nested Compound run per independent item. Give each run the initiative contract, target item, artifact namespace, stable state path, and brokered interaction mode.
@@ -180,7 +191,10 @@ documentation_gate:
 5. **Plan A Wave**
 - Confirm `documentation_gate.status == approved` before selecting executable work.
 - Load `references/queue-and-dispatch.md`.
-- Load `references/execution-lanes.md`. Keep a single small unit in the root thread when it fails the swarm break-even gate; otherwise assign `fast`, `standard`, or `deep` before selecting its worker.
+- Load `references/execution-lanes.md`. Keep a single low-assurance unit in the
+  root thread unless isolation, concurrency, or duration gives a named benefit;
+  otherwise assign both `fast`, `standard`, or `deep` and `low`, `medium`,
+  `high`, or `critical` before selecting its worker.
 - For Jira team flow, read active Jira issues through the selected Jira provider skill, convert them into queue units, and reconcile them with the local Jira issue map.
 - Read `docs/swarm/blockers.yaml` before selection. Do not select units with open blockers or units depending on open blockers.
 - Select only dependency-ready, non-overlapping units.
@@ -191,7 +205,7 @@ documentation_gate:
 - Apply concurrency algorithm in `references/parallel-dispatch-policy.md`: default to 2 mutable Implementer workers, role-specific caps for non-implementation workers, increase implementation concurrency only after green wave history, and never parallelize overlapping auth, migrations, public contracts, central models, or lockfiles.
 - Load `references/automated-wave-control.md` and run
   `scripts/plan_adaptive_wave.py` from canonical history, blockers,
-  dependencies, owned paths, risk surfaces, review capacity, and scale
+  dependencies, owned paths, risk surfaces, assurance tiers, review capacity, and scale
   authority. Its allocation already invokes the slot allocator and replaces
   manual concurrency selection; do not run allocation a second time.
 - Keep the wave within open-stack reviewability limits already enforced by `krt-compound-master`.
@@ -200,7 +214,9 @@ documentation_gate:
 - Compile every admitted role invocation with
   `scripts/plan_worker_workspaces.py`. Require unique workspace paths, exactly
   one consolidation workspace, and explicit dependency/candidate inputs.
-- Produce a short wave plan with unit IDs, lanes, profiles, role triggers, worker prompts, isolation target, verification ownership, risks, and stop conditions.
+- Produce a short wave plan with unit IDs, lanes, profiles, assurance tiers,
+  review modes and demand, role triggers, worker prompts, isolation target,
+  verification ownership, risks, and stop conditions.
 
 6. **Dispatch Workers**
 - Confirm `documentation_gate.status == approved` before dispatch.
@@ -237,6 +253,10 @@ documentation_gate:
 - Give Fixers one concrete defect cluster per invocation, exact owned paths,
   exact focused checks, and an explicit prohibition on additional review.
   Require the canonical finding-to-change mapping and reject a prose substitute.
+- For every Reviewer or Fixer, load `references/role-recoverability.md` and
+  render its concrete invocation with `scripts/render_role_envelope.py`. Do not
+  add an acknowledgement exchange. Enable a recovery path only for a
+  trigger-qualified coordinated high/critical review.
 - Use a nested Compound Master Worker when a deep unit needs its brainstorm, plan, work-package, review, security, or CI-prevention pipeline. Route an execution-ready deep package through the direct two-stage Luna path when those artifacts and gates are already settled.
 - Require nested Compound workers to use `interaction:brokered`: they formulate structured decision requests but never ask the user directly.
 - Each worker must operate in implementation-only/no-shipping mode unless the task is explicitly artifact-only.
@@ -269,9 +289,10 @@ documentation_gate:
 - Treat absent pre-return validator command evidence as a contract violation;
   do not repair or infer a malformed worker terminal on the worker's behalf.
 - Run required review and verification gates before marking any unit release-ready.
-- When independent review spans multiple code surfaces, a cross-cutting
-  security or contract concern, a large unsplittable diff, or disputed
-  findings, load `references/review-coordination.md`. Compile the root-owned
+- Only for `high` or `critical` assurance, load
+  `references/review-coordination.md`. Distinct high-risk boundaries—not file
+  count, surface count, or available personas—admit coordinated reviewers.
+  Compile the root-owned
   review plan with `plan_review_wave.py`, validate every reviewer terminal,
   ingest findings through the digest-guarded registry, and run only the
   targeted validation wave authorized by the compiled plan. Do not let workers
@@ -280,6 +301,11 @@ documentation_gate:
   return against its role-specific closed shape before accepting it. A missing
   principle, finding ID, mapping, evidence field, or required empty collection
   is a protocol failure to correct in that worker session, not a root inference.
+- Persist each accepted Reviewer or Fixer terminal immediately with
+  `scripts/persist_role_terminal.py` before registry ingestion or another
+  dispatch. On interruption, treat a validated recovery artifact as
+  non-certifying redispatch context and prefer a fresh worker unless runtime
+  continuity is proven.
 - Load `references/automated-wave-control.md`. Compute the aggregate fingerprint
   with `scripts/verification_evidence.py`, decide reuse against the evidence
   registry, and run aggregate verification only when the decision is `run`.
@@ -290,6 +316,10 @@ documentation_gate:
   runtime-audited command evidence, execute it through the root-owned evidence
   runner before readiness. Record the observed exit code even when it
   contradicts the worker's report.
+- When a failed check is described as baseline, environmental, or unowned,
+  load `references/role-recoverability.md` and classify root-captured evidence
+  with `scripts/classify_verification_result.py`. Missing worktree dependencies
+  are environmental evidence, never a baseline failure.
 - Reconcile blockers using `references/blocker-ledger.md`: record non-fatal blockers, mark only affected units blocked/deferred, and continue independent ready units.
 - Reconcile each nested Compound result against its canonical state and artifacts. Treat swarm snapshots as stale observations, not authority.
 - Deduplicate decision requests, ask one decision at a time in manual interactive flow, persist the answer in the canonical shared or item artifact, and resume every affected child.
@@ -318,6 +348,9 @@ documentation_gate:
 8. **Release Handoff**
 - Confirm `documentation_gate.status == approved` before release handoff.
 - Hand release-ready units to `krt-release-marshal`; do not duplicate its commit, PR, Jira, reviewer, or merge procedure.
+- Do not hand off a `critical` unit until its review plan reports
+  `approval_required` and the explicit approval is recorded through the manual
+  flow or an autonomy ledger entry that names the unit and critical risk.
 - Carry Jira key, work package review unit, suggested PR grouping, verification evidence, release notes, downstream-fix notes, and suggested Jira transition.
 - Suggested Jira transitions are handoff context only. Seneschal does not execute them directly.
 - State the resolved `jira_provider` and provider skill in the handoff. Do not substitute the sibling provider.
@@ -343,7 +376,7 @@ End with:
 - Branch/worktree/thread references when available.
 - Verification and review evidence.
 - Findings registry path and digest when coordinated review ran.
-- Lane/profile decisions and timing artifact path.
+- Lane/profile and assurance/review decisions, plus the timing artifact path.
 - Queue/state files updated.
 - Exact next invocation.
 

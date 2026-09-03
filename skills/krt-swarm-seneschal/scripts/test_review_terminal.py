@@ -24,7 +24,8 @@ def finding(severity: str = "p1", *, suffix: str = "one") -> dict[str, object]:
 class ReviewTerminalTest(unittest.TestCase):
     def plan(self) -> dict[str, object]:
         return plan_review_wave({
-            "schema_version": 1,
+            "schema_version": 2,
+            "assurance_tier": "high",
             "contract_hash": "sha256:contract",
             "diff_digest": "sha256:diff",
             "changed_paths": ["src/example.py"],
@@ -109,7 +110,8 @@ class ReviewTerminalTest(unittest.TestCase):
 
     def test_accepts_canonical_feedback_and_queued_assignments(self) -> None:
         plan = plan_review_wave({
-            "schema_version": 1,
+            "schema_version": 2,
+            "assurance_tier": "high",
             "contract_hash": "sha256:contract",
             "diff_digest": "sha256:diff",
             "changed_paths": ["src/example.py", "src/queued.py"],

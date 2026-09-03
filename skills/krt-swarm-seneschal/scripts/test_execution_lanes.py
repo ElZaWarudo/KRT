@@ -21,6 +21,7 @@ class ExecutionLaneContractTest(unittest.TestCase):
             for line in lanes.splitlines()
             if line.startswith("| `")
             for cells in ([cell.strip() for cell in line.strip("|").split("|")],)
+            if cells[0].strip("`") in {"fast", "standard", "deep"}
         }
         expected = {
             "fast": ("spark", "xhigh"),

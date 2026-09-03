@@ -15,6 +15,11 @@ per-action event stream.
 Spark has no live supervision. Detailed read/action tracing is diagnostic-only
 and must not run in ordinary waves.
 
+A trigger-qualified high/critical Reviewer may write the bounded durable
+recovery artifact defined in `role-recoverability.md`. That file is not a live
+checkpoint, parent message, acknowledgement, or certification and does not
+change the supervision modes in this table.
+
 ## Two-Stage Deep Lane
 
 Deep execution is two fresh worker invocations:

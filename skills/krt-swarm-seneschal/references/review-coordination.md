@@ -1,14 +1,19 @@
 # Deterministic Review Coordination
 
 Load this reference after root captures a worker diff and `execution-lanes.md`
-admits independent review. Use it to partition broad review, maintain canonical
-findings, and target validation without asking several reviewers to rediscover
-the same defects.
+classifies the unit as `high` or `critical`. Use it to partition broad review,
+maintain canonical findings, and target validation without asking several
+reviewers to rediscover the same defects.
 
-Do not use this machinery for a single narrow reviewer assignment when one
-reviewer can cover the admitted boundaries directly. Two-wave review is earned
-by multiple code surfaces, a cross-cutting security or contract surface, a
-large unsplittable diff, or disputed findings.
+Do not use this machinery for `low` assurance or for a `medium` unit's single
+focused reviewer. If a medium finding is disputed or exposes a high-risk
+boundary, reclassify the unit before entering coordinated review. Multiple code
+surfaces, directories, or available reviewer personas do not earn a council.
+
+Coordinated review is earned by named high-risk boundaries. Before admitting an
+assignment, record the unique question, evidence source, and readiness outcome
+it can change. Omit assignments that duplicate another reviewer's confidence
+contribution.
 
 ## Authority Boundaries
 
@@ -26,9 +31,9 @@ large unsplittable diff, or disputed findings.
 ## 1. Compile The Review Plan
 
 Build a JSON input from the root-observed contract hash, diff digest, changed
-paths, reviewer capacity, and admitted surfaces. Every changed path must belong
-to exactly one non-cross-cutting primary surface. Each assignment names its
-bounded risk checklist.
+paths, reviewer capacity, assurance tier, and admitted risk surfaces. Every
+changed path must belong to exactly one non-cross-cutting primary surface. Each
+assignment names its bounded risk checklist.
 
 ```bash
 rtk python3 <seneschal-skill-dir>/scripts/plan_review_wave.py \
@@ -36,16 +41,23 @@ rtk python3 <seneschal-skill-dir>/scripts/plan_review_wave.py \
   > <review-plan.json>
 ```
 
+Review-plan schema version 2 includes `assurance_tier: high | critical`. Low
+and medium units must bypass this compiler. The output binds the tier into
+`review_plan_hash`, always sets `validation_wave_required: true`, and sets
+`approval_required: true` only for critical assurance. Critical plans require
+at least two distinct review assignments so a single reviewer cannot satisfy
+the council gate.
+
 The compiler fails on uncovered paths, overlapping primary ownership, unknown
 roles, unsafe paths, or malformed inputs. `coverage_complete: false` means the
 capacity-limited assignments remain queued as complete executable assignment
 objects; run them serially before treating review coverage as complete. Never
 drop them to fit the current slot count.
 
-The compiler sets `validation_wave_required` when more than one reviewer is
-planned or a cross-cutting assignment exists, even when capacity requires
-serial dispatch. This flag selects targeted validation after findings are
-ingested; it does not authorize another open-ended review wave.
+The compiler accepts only `high` or `critical`. Both require independent
+validation; `critical` also sets `approval_required`. Reviewer count does not
+control either gate. These fields select bounded validation and approval after
+findings are ingested; they do not authorize another open-ended review wave.
 
 ## 2. Validate Reviewer Terminals
 
@@ -88,6 +100,11 @@ other required field is corrected in that same session. Root reruns the
 validator before ingestion and never repairs the terminal on the reviewer's
 behalf.
 
+Load `role-recoverability.md` and use `render_role_envelope.py` so the reviewer
+receives absolute invocation locators and an executable final validator rather
+than the placeholders above. Recovery remains conditional and non-certifying;
+it does not create a heartbeat protocol or weaken `coverage-complete`.
+
 P0 and P1 findings are never capped. A reviewer may return at most three
 actionable P2 findings, each with concrete evidence, impact, and a bounded
 recommendation. P3 is not part of the direct Seneschal reviewer vocabulary.
@@ -121,6 +138,9 @@ rtk python3 <seneschal-skill-dir>/scripts/finding_registry.py ingest \
   --input <finding-submission.json> \
   --expected-registry-digest <trusted-current-digest>
 ```
+
+Before ingestion, persist the exact validated terminal once with
+`persist_role_terminal.py` and record its path and digest in the invocation.
 
 The registry assigns `F-<HASH>` IDs from the contract hash, diff digest, and
 complete normalized finding. Repeated exact findings add reporters, review
@@ -161,9 +181,10 @@ validator that repeats open-ended review, explores unrelated surfaces, or
 exceeds the deadline; if the remaining batch is a small deterministic check,
 root completes it directly and records root as the validator actor.
 
-When all planned reviewers return no findings, evaluate one empty targeted
-batch to produce the deterministic completion receipt. An empty batch fails if
-the registry still contains any proposed finding.
+When all planned reviewers return no findings, independent validation still
+checks the plan's named high-risk invariants or claims. An empty batch may close
+the findings registry, but it is only a deterministic receipt and does not
+count as confidence gained or satisfy the substantive validation assignment.
 
 ## 5. Fix And Reconcile
 
@@ -187,8 +208,10 @@ the registry still contains any proposed finding.
 
 ## Efficiency Evidence
 
-Record candidate count, unique finding count, exact-duplicate rate, validation
-verdict counts, new validator P0/P1 count, review duration by surface, and time
-from observed diff to accepted review. Do not claim a coordination improvement
-from lower review time alone; escaped defects, validation reversals, and fix
-rounds must not worsen.
+Record assurance tier, reviewer count, unique review question count, candidate
+count, unique finding count, exact-duplicate rate, validation verdict counts,
+new validator P0/P1 count, readiness decisions changed, review duration by
+surface, and time from observed diff to accepted review. Treat duplicated
+questions, empty validation, and speculative findings as zero confidence gain.
+Do not reward finding volume or claim improvement from lower review time alone;
+escaped defects, validation reversals, and fix rounds must not worsen.

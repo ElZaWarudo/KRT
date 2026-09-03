@@ -25,6 +25,7 @@ def request(
     identifier: str,
     *,
     role: str = "implementer",
+    assurance_tier: str = "low",
     owned_paths: list[str] | None = None,
     risk_surfaces: list[str] | None = None,
     blocked: bool = False,
@@ -35,6 +36,7 @@ def request(
         "priority": 1,
         "owned_paths": owned_paths or [],
         "risk_surfaces": risk_surfaces or [],
+        "assurance_tier": assurance_tier,
         "unresolved_dependencies": [],
         "blocked": blocked,
     }
@@ -43,7 +45,7 @@ def request(
 class AdaptiveWaveTest(unittest.TestCase):
     def plan(self, **overrides: object) -> dict[str, object]:
         value: dict[str, object] = {
-            "schema_version": 1,
+            "schema_version": 2,
             "total_slots": 8,
             "reserve_slots": 1,
             "role_caps": {},
@@ -136,6 +138,64 @@ class AdaptiveWaveTest(unittest.TestCase):
         self.assertEqual(rejected["auth-two"], "surface-overlap")
         self.assertEqual(rejected["blocked"], "blocked-or-dependency")
         self.assertIn("review", {item["id"] for item in result["allocation"]["admitted"]})
+
+    def test_low_assurance_work_does_not_consume_review_capacity(self) -> None:
+        result = self.execute(
+            self.plan(
+                review_capacity=0,
+                requests=[request("one"), request("two")],
+            )
+        )
+
+        self.assertEqual(result["review_capacity_used"], 0)
+        self.assertEqual(
+            {item["id"] for item in result["allocation"]["admitted"]},
+            {"one", "two"},
+        )
+
+    def test_review_capacity_is_consumed_by_assurance_demand(self) -> None:
+        result = self.execute(
+            self.plan(
+                review_capacity=2,
+                requests=[
+                    request("a-medium", assurance_tier="medium"),
+                    request("b-high", assurance_tier="high"),
+                    request("c-low", assurance_tier="low"),
+                ],
+            )
+        )
+
+        admitted = {item["id"] for item in result["allocation"]["admitted"]}
+        rejected = {
+            item["id"]: item["reason"]
+            for item in result["allocation"]["rejected"]
+        }
+        self.assertEqual(admitted, {"a-medium", "c-low"})
+        self.assertEqual(rejected["b-high"], "review-capacity")
+        self.assertEqual(result["review_capacity_used"], 1)
+
+    def test_invalid_assurance_tier_fails_closed(self) -> None:
+        with self.assertRaisesRegex(ValueError, "assurance_tier"):
+            self.execute(
+                self.plan(requests=[request("one", assurance_tier="unknown")])
+            )
+
+    def test_critical_assurance_reserves_council_capacity(self) -> None:
+        result = self.execute(
+            self.plan(
+                review_capacity=2,
+                requests=[request("critical", assurance_tier="critical")],
+            )
+        )
+
+        self.assertEqual(result["review_capacity_used"], 0)
+        self.assertEqual(
+            result["allocation"]["rejected"][0]["reason"], "review-capacity"
+        )
+
+    def test_schema_one_requires_migration(self) -> None:
+        with self.assertRaisesRegex(ValueError, "schema_version must be 2"):
+            self.execute(self.plan(schema_version=1))
 
     def test_scale_authorization_cannot_be_changed_without_invalidating_digest(self) -> None:
         authorization = scale_authorization(True)

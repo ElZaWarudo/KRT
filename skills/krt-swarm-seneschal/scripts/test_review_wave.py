@@ -29,7 +29,8 @@ def surface(
 class ReviewWaveTest(unittest.TestCase):
     def plan(self, **overrides: object) -> dict[str, object]:
         value: dict[str, object] = {
-            "schema_version": 1,
+            "schema_version": 2,
+            "assurance_tier": "high",
             "contract_hash": "sha256:contract",
             "diff_digest": "sha256:diff",
             "changed_paths": ["src/api.py", "src/ui.ts"],
@@ -47,6 +48,7 @@ class ReviewWaveTest(unittest.TestCase):
 
         self.assertTrue(result["coverage_complete"])
         self.assertTrue(result["validation_wave_required"])
+        self.assertFalse(result["approval_required"])
         self.assertEqual(
             [assignment["id"] for assignment in result["assignments"]],
             ["backend", "frontend"],
@@ -118,6 +120,32 @@ class ReviewWaveTest(unittest.TestCase):
         )
 
         self.assertEqual(left["review_plan_hash"], right["review_plan_hash"])
+
+    def test_low_and_medium_assurance_bypass_coordinated_review(self) -> None:
+        for tier in ("low", "medium"):
+            with self.subTest(tier=tier):
+                with self.assertRaisesRegex(ValueError, "high or critical"):
+                    plan_review_wave(self.plan(assurance_tier=tier))
+
+    def test_critical_assurance_requires_approval(self) -> None:
+        result = plan_review_wave(self.plan(assurance_tier="critical"))
+
+        self.assertTrue(result["validation_wave_required"])
+        self.assertTrue(result["approval_required"])
+
+    def test_critical_assurance_requires_a_review_council(self) -> None:
+        with self.assertRaisesRegex(ValueError, "at least two"):
+            plan_review_wave(
+                self.plan(
+                    assurance_tier="critical",
+                    changed_paths=["src/api.py"],
+                    surfaces=[surface("backend", ["src/api.py"])],
+                )
+            )
+
+    def test_schema_one_requires_migration(self) -> None:
+        with self.assertRaisesRegex(ValueError, "schema_version must be 2"):
+            plan_review_wave(self.plan(schema_version=1))
 
 
 if __name__ == "__main__":

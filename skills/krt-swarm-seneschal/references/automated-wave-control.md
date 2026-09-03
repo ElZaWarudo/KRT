@@ -79,7 +79,8 @@ than presenting them as rigorous benchmarks.
 
 Build an adaptive input from runtime capacity, approval/ledger authority,
 review capacity, prior wave results, blockers, unresolved dependencies, owned
-paths, and risk surfaces. Then run:
+paths, risk surfaces, and each implementation request's assurance tier. Then
+run:
 
 ```bash
 rtk python3 <seneschal-skill-dir>/scripts/plan_adaptive_wave.py \
@@ -91,13 +92,19 @@ The expected authorization digest is an out-of-band trusted handoff from the
 root-observed user approval or validated autonomy ledger. Never derive it from
 the adaptive plan being checked.
 
+Adaptive-plan schema version 2 requires `assurance_tier` on every request.
+Older queue units remain readable, but classify them before producing a new
+adaptive plan rather than inferring assurance from their implementation lane.
+
 The planner:
 
 - defaults to two Implementers;
 - permits three after two consecutive clean green waves and four after four,
   only when a digest-valid `scale_authorization` artifact permits it;
-- drops to one after a failed/partial wave or review lag;
-- caps implementation by actual review capacity;
+- drops to one after a failed/partial wave;
+- charges review capacity by assurance demand (`low: 0`, `medium: 1`,
+  `high: 2`, `critical: 3`) instead of charging every Implementer equally;
+- lets low-assurance work continue when specialist review capacity is occupied;
 - rejects blocked/dependent requests, overlapping owned paths, and overlapping
   auth/data/migration/public-contract/dependency/generated/release/security
   surfaces;
@@ -116,9 +123,9 @@ The returned allocation is the dispatch authority for that wave. Do not add a
 worker manually after the adaptive plan.
 
 Adaptive allocation owns capacity, not post-implementation review
-partitioning. When one observed diff needs several reviewers, load
-`review-coordination.md` and use `plan_review_wave.py`; do not infer review
-surface ownership from available slots or append reviewers manually.
+partitioning. Only `high` and `critical` units enter `review-coordination.md`
+and `plan_review_wave.py`; do not infer review depth from available slots,
+reviewer count, file count, or code-surface count.
 
 ## Compact Status
 

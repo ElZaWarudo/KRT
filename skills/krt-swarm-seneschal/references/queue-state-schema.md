@@ -132,11 +132,16 @@ units:
       worker_profile: luna
       reasoning_effort: high
       lane_trigger: bounded-local-decisions
+      assurance:
+        tier: medium
+        triggers: [bounded-cli-behavior]
+        review_mode: focused-reviewer
+        review_demand: 1
       worker_contract_path: docs/orchestration/runs/<run-id>/wp-01-ru-02-worker-contract.json
       worker_contract_hash: null
       evidence_trust: unknown
       role_triggers:
-        reviewer: behavior-change
+        reviewer: medium-assurance-bounded-cli-behavior
     risk:
       production: unknown
       security: low
@@ -191,10 +196,29 @@ wave_history:
       artifact: docs/orchestration/runs/<run-id>/<wave-id>-workspaces.json
       workspace_plan_hash: null
       consolidation_invocation: null
-      invocations: []
+      invocations:
+        - invocation_id: wave-2026-06-30-001-review-backend-01
+          unit_id: wp-01-ru-02
+          role: reviewer
+          status: dispatched
+          worker_ref: null
+          workspace_id: review-backend-01
+          started_at: "2026-06-30T10:00:00Z"
+          last_runtime_event_at: null
+          terminal_path: null
+          terminal_digest: null
+          recovery_path: null
+          recovery_digest: null
+          assessment:
+            reasoning_quality: null
+            protocol_compliance: not-observed
+            completion: partial
+            failure_origin: null
     concurrency:
       implementer_cap: 2
       cap_reasons: [default-cap]
+      review_capacity: 2
+      review_capacity_used: 1
       total_slots: 8
       usable_slots: 7
       reserve_slots: 1
@@ -238,6 +262,11 @@ Older wave-history entries without explicit `scope_violations`,
 `merge_conflicts`, and `review_lagging` remain valid history but never count as
 green evidence for raising adaptive concurrency.
 
+Older units without `execution.assurance` remain readable but are not eligible
+for new dispatch until root classifies them. Do not infer assurance from the
+stored execution lane or a historical `behavior-change` reviewer trigger.
+Record the tier, concrete triggers, review mode, and review demand together.
+
 ## Compound Projection Rules
 
 - Use a unique `run_id` and collision-free `state_path` for every active child.
@@ -262,7 +291,9 @@ Do not create real Jira keys, executable `running` units, implementation wave hi
 - `planned`: known but not ready.
 - `ready`: eligible for wave selection.
 - `running`: dispatched worker.
-- `review-gated`: implementation returned and needs review verification.
+- `review-gated`: a medium, high, or critical implementation returned and needs
+  its tier-required independent review or validation. Low-assurance work does
+  not enter this status merely to record self-review.
 - `release-ready`: passed reconciliation gates and can be handed to `krt-release-marshal`.
 - `needs-fix`: bounded fixes required before release handoff.
 - `blocked`: cannot proceed until blocker is resolved.
@@ -326,6 +357,10 @@ Update queue state when:
 - Jira seed plan is proposed, confirmed, or executed by the selected Jira provider skill.
 - Jira issue keys are mapped or remapped.
 - A wave is planned, dispatched, reconciled, or closed.
+- A role invocation is dispatched, returns, is interrupted, or disappears;
+  persist its runtime identity, terminal/recovery digests, and separate
+  assessment dimensions. Do not include an unobserved reasoning score in team
+  averages.
 - A worker reports changed files, verification, branch facts, or blockers.
 - A unit receives or changes its execution route, lane, profile, or role triggers.
 - Aggregate verification is run or reused for a wave fingerprint, or timing

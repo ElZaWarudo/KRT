@@ -4,6 +4,12 @@ Load this reference before assigning a worker profile, admitting optional roles,
 or deciding who owns verification. The objective is to spend orchestration only
 where it buys isolation, parallelism, or risk reduction.
 
+Classify two independent axes. The execution lane describes implementation
+difficulty and selects the worker profile. The assurance tier describes the
+consequence of being wrong and selects review depth. Never infer one from the
+other: a mechanical auth edit can need critical assurance, while a difficult
+internal refactor can remain medium assurance.
+
 ## Break-Even Gate
 
 Do not start a swarm for one small independent unit when the root agent can
@@ -12,12 +18,17 @@ true:
 
 - there is one implementation unit;
 - its decisions are closed and its scope is normally one to three files;
+- its assurance tier is `low`;
 - it does not need isolated parallel work or an independent model mandate; and
 - dispatch, context startup, and reconciliation would cost more than the work.
 
 Use a worker when isolation, concurrency, an explicit independent review, or a
 long-running bounded task provides a concrete benefit. Record `root-direct` as
 the route when the break-even gate keeps work out of the swarm.
+
+A single low-assurance unit routes `root-direct` by default. Override that
+default only for a named isolation, concurrency, or duration benefit—not merely
+because the Seneschal skill is active.
 
 ## Lane Classification
 
@@ -51,6 +62,47 @@ The table selects the implementation worker. Supporting Planner, Reviewer,
 Fixer, Integrator, and Documenter roles never use Spark: use Luna `high` for
 normal support work and Luna `xhigh` only when that role's own bounded task has
 a deep trigger.
+
+## Assurance Classification
+
+Assign every unit exactly one assurance tier before admitting review roles.
+Start at `low` and raise it only for a concrete consequence or integrity
+trigger. File count, number of code surfaces, implementation difficulty, prior
+worker failure, or a generic desire for confidence do not raise the tier.
+
+| Tier | Admission rule | Review mode | Review demand |
+|---|---|---|---|
+| `low` | Reversible, decision-closed, bounded local change with no hard assurance trigger | implementation, focused tests, and one implementer self-review | `0` |
+| `medium` | Bounded behavior, control-flow, CLI, serialization, or compatibility change whose failure remains local and recoverable | exactly one focused independent Reviewer | `1` |
+| `high` | Security, auth, data integrity, migration, public contract, production, or research-evidence integrity can be affected | one relevant specialist plus independent validation of named risks, invariants, claims, or findings | `2` |
+| `critical` | Irreversible or destructive production/data effect, publication-critical empirical claim, legal/compliance exposure, or several coupled high-risk boundaries | coordinated review council, evidence reconciliation, and explicit approval | `3` minimum |
+
+The highest matched trigger wins. If the facts needed to classify the unit are
+missing, perform one bounded root inspection or mark the unit not ready; do not
+use a review council as a substitute for classification.
+
+Research integrity is a hard floor based on consequence, not filename. Code
+that selects evidence, transforms result-bearing data, changes evidence
+lineage or provenance, mutates raw data, or controls cross-paper reuse is at
+least `high`. Destructive raw-data changes and publication-critical empirical
+claims are `critical`. File discovery, YAML serialization, status rendering,
+scaffolding, and CLI mechanics remain `low` or `medium` when they cannot alter
+evidence selection, meaning, lineage, or a public compatibility contract.
+
+Before admitting any independent reviewer, state:
+
+- the unique question that reviewer will resolve;
+- the evidence unavailable from focused tests and self-review;
+- the affected surface or risk boundary; and
+- the result that would change readiness.
+
+Omit the reviewer when these cannot be named. Several reviewers are justified
+only by distinct high-risk boundaries, not by several directories or personas.
+
+For a dispatched low-assurance unit, the Implementer rereads the exact final
+diff against the contract after focused tests and records the result in the
+existing acceptance evidence. This is the one self-review; it creates no
+independent certificate, review plan, findings registry, or validator artifact.
 
 Ordinary correctness review, targeted validation, and mechanical fixes use
 Luna `high`. Security review and work whose assigned question itself concerns
@@ -122,11 +174,11 @@ Start with one Implementer. Add a role only when its trigger is present:
 - **Planner:** broad or ambiguous work still requires decomposition, acceptance
   criteria, dependency mapping, or decision closure. Never admit it for an
   execution-ready work package.
-- **Reviewer:** behavior or control flow changed; risk is elevated; auth, data,
-  security, concurrency, public contracts, compatibility, or architecture is
-  touched; acceptance explicitly requires independent review; or the diff
-  exceeds the narrow mechanical lane. Pure formatting, generated refreshes,
-  and decision-closed docs-only edits do not admit a Reviewer by default.
+- **Reviewer:** assurance is `medium` or higher, or acceptance explicitly
+  requires independent review. `medium` admits exactly one reviewer chosen for
+  the affected surface. `high` admits the relevant specialist and independent
+  validation. `critical` admits coordinated review. A behavior or control-flow
+  change alone is not a Reviewer trigger.
 - **Fixer:** a concrete review finding or failed verification names a bounded
   correction. Group only findings that share one defect cause and owned
   surface; otherwise use separate passes. Never dispatch a speculative Fixer.
@@ -144,20 +196,24 @@ Start with one Implementer. Add a role only when its trigger is present:
 Record each admitted optional role and its trigger in the wave plan. Omitted
 roles need no synthetic placeholder or handoff.
 
-When several Reviewer triggers apply to one observed diff, load
-`review-coordination.md` and partition primary reviewers by non-overlapping code
-surface rather than sending several personas across the entire diff. Admit
-cross-cutting security or public-contract review only for its existing trigger
-and declare its overlap. Use a second validation wave only when the compiled
-review plan requires it; validators receive canonical finding IDs instead of an
-open-ended rediscovery prompt.
+For `medium`, issue one direct certificate using the shape in
+`executable-worker-contracts.md`; do not create a coordinated review plan or
+findings registry. If the finding is disputed or exposes a high-risk boundary,
+raise the unit to `high` before continuing.
+
+For `high` or `critical`, load `review-coordination.md` and partition primary
+reviewers by distinct risk boundary. Code-surface ownership prevents duplicate
+coverage but does not itself justify another reviewer. Admit cross-cutting
+security, public-contract, or evidence-integrity review only for its named hard
+trigger. Validators receive named invariants, claims, or canonical finding IDs
+instead of an open-ended rediscovery prompt.
 
 Compile admitted `Reviewer` and `Security Sentinel` triggers into the executable
-worker contract's `required_certifications`. The implementer may finish its
-terminal, but the unit remains `awaiting_certification` until a different actor
-certifies the same contract hash and root-observed diff digest. A failed
-certificate routes to `needs-fix`; it is never converted into implementer
-self-approval.
+worker contract's `required_certifications`; `low` uses an empty list. The
+implementer may finish its terminal, but a `medium`, `high`, or `critical` unit
+remains `awaiting_certification` until the required different actor certifies
+the same contract hash and root-observed diff digest. A failed certificate
+routes to `needs-fix`; it is never converted into implementer self-approval.
 
 ## Verification Ownership
 

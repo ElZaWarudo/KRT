@@ -42,10 +42,18 @@ For each unit:
      verification does not cover when no native command audit exists.
 
 3. **Review gate**
-   - `execution-lanes.md` was used to decide whether a Reviewer trigger exists.
-   - When triggered, independent review ran and maps to the unit contract.
-   - When not triggered, the wave records the mechanical/docs-only reason; it
-     does not create an empty Reviewer stage.
+   - `execution-lanes.md` was used to assign an assurance tier independently
+     from the implementation lane.
+   - `low` completed focused tests plus one final-diff self-review recorded in
+     the existing acceptance evidence. It creates no independent certificate,
+     review plan, findings registry, or validator stage.
+   - `medium` received exactly one surface-focused independent Reviewer
+     certificate. It does not enter coordinated review unless a disputed
+     finding or newly exposed high-risk boundary raises the tier.
+   - `high` received the relevant specialist review plus independent validation
+     of named risks, invariants, claims, or findings.
+   - `critical` completed the coordinated review council, evidence
+     reconciliation, and its explicit approval gate.
    - Findings at or above threshold were fixed or explicitly deferred.
    - Every contract-required Reviewer certificate names a different actor, the
      exact contract hash, and the reviewed diff digest. Implementer prose cannot
@@ -69,6 +77,10 @@ For each unit:
    - Production-sensitive units preserve compatibility unless manual approval or autonomy ledger policy explicitly allows a breaking change.
    - A required Security Sentinel certificate follows the same actor/hash/diff
      rules as Reviewer certification.
+   - Research evidence selection, result-bearing transformations, lineage,
+     provenance, raw-data mutation, and cross-paper reuse receive at least
+     `high` assurance. Publication-critical empirical claims and destructive
+     raw-data changes receive `critical` assurance.
 
 5. **State gate**
    - Queue status, branch/base facts, blockers, verification evidence, and downstream-fix notes are current.
@@ -123,6 +135,9 @@ For each worker result:
 - When coordinated review ran, record the review-plan hash, findings-registry
   path and digest, exact-duplicate count, validator verdicts, and unresolved
   canonical finding IDs.
+- Compare the recorded assurance tier, triggers, review mode, and review demand
+  to `execution-lanes.md`. Several files or code surfaces alone do not justify
+  coordinated review.
 - Compare the recorded execution lane/profile to `execution-lanes.md` and reject
   silent reasoning-effort or worker substitutions.
 - Record focused unit evidence separately from aggregate wave evidence and
