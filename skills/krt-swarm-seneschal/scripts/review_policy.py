@@ -25,4 +25,3 @@ def normalize_assurance_tier(value: Any, field: str = "assurance_tier") -> str:
 
 def review_demand(value: Any) -> int:
     return REVIEW_DEMAND[normalize_assurance_tier(value)]
-
