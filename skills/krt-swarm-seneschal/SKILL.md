@@ -55,6 +55,10 @@ Legacy names remain accepted as aliases, not separate pipelines:
 ### Plan
 
 1. Inspect the repository, source work, live worker facts, and existing state.
+   Before creating a wave, load `references/worktree-collaboration.md` and run
+   its guarded preflight cleanup in dry-run mode. Apply cleanup only to entries
+   already marked cleanup-ready by canonical state; retain and report every
+   active, failed, diagnostic, or unregistered workspace.
 2. Reject work that lacks checkable acceptance criteria, safe ownership, known
    dependencies, or a resolvable decision boundary.
 3. Require a reviewed documentation packet before seeding Jira or dispatching
@@ -99,7 +103,10 @@ or readiness; root owns that observation in both protocols.
    validators only for high or critical assurance.
 4. Mark each unit `release-ready`, `needs-fix`, `blocked`, `deferred`, or
    `split-required`. Continue independent work when a blocker is local.
-5. Hand release-ready work to `krt-release-marshal`; do not reproduce its
+5. Once an invocation's patch, manifest, and required evidence are durable,
+   mark its workspace cleanup-ready and immediately run the guarded cleanup.
+   Preserve failed or contract-violating workspaces for diagnosis.
+6. Hand release-ready work to `krt-release-marshal`; do not reproduce its
    commit, PR, Jira-transition, reviewer, or merge workflow.
 
 ### Status

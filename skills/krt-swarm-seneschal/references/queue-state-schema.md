@@ -359,6 +359,13 @@ Before every wave, read:
 - live Jira issue state through the resolved provider skill, when Jira is source
 - current git branch/worktree state
 
+Reconcile `cleanup_status` with live Git state before dispatch. Use
+`not-created`, `active`, `cleanup-ready`, `removed`, or
+`preserved-for-diagnosis`. Only `cleanup-ready` may enter the root-owned cleanup
+registry, and only after its patch, manifest, and required evidence are durable.
+Unregistered worktrees and branches remain preserved until their owning run
+state is identified.
+
 Then mark units with open blockers, dependencies on open blockers, or an
 applicable non-approved documentation gate as ineligible for execution.
 

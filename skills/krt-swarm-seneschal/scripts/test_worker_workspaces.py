@@ -49,12 +49,22 @@ class WorkerWorkspacePlanTest(unittest.TestCase):
 
         self.assertEqual(len({item["path"] for item in workspaces.values()}), len(workspaces))
         self.assertEqual(workspaces["runtime-build"]["mode"], "mutable")
+        self.assertTrue(workspaces["runtime-build"]["detached"])
+        self.assertIsNone(workspaces["runtime-build"]["branch"])
+        self.assertTrue(workspaces["runtime-fix"]["detached"])
+        self.assertIsNone(workspaces["runtime-fix"]["branch"])
         self.assertEqual(workspaces["runtime-review"]["mode"], "read-only")
         self.assertTrue(workspaces["runtime-review"]["detached"])
         self.assertEqual(workspaces["aggregate"]["mode"], "disposable-verification")
         self.assertEqual(workspaces["finding-validation"]["mode"], "disposable-verification")
         self.assertEqual(workspaces["compound"]["mode"], "mutable")
         self.assertEqual(result["consolidation_invocation"], "integration")
+        self.assertFalse(workspaces["integration"]["detached"])
+        self.assertEqual(workspaces["integration"]["branch"], "seneschal/codex-agents/integration")
+        self.assertEqual(
+            [item["branch"] for item in workspaces.values() if item["branch"]],
+            ["seneschal/codex-agents/integration"],
+        )
         self.assertLess(result["patch_application_order"].index("foundation-build"), result["patch_application_order"].index("runtime-build"))
         self.assertLess(result["patch_application_order"].index("runtime-fix"), result["patch_application_order"].index("integration"))
         self.assertTrue(result["workspace_plan_hash"].startswith("sha256:"))
@@ -66,6 +76,17 @@ class WorkerWorkspacePlanTest(unittest.TestCase):
 
         with self.assertRaisesRegex(ValueError, "must not own"):
             plan_worker_workspaces(plan)
+
+    def test_can_keep_integrator_detached_when_release_does_not_need_a_branch(self) -> None:
+        plan = self.plan()
+        plan["integration_branch"] = False
+
+        result = plan_worker_workspaces(plan)
+        integration = next(item for item in result["workspaces"] if item["role"] == "integrator")
+
+        self.assertIsNone(result["integration_branch"])
+        self.assertIsNone(integration["branch"])
+        self.assertTrue(integration["detached"])
 
     def test_requires_exactly_one_consolidation_workspace(self) -> None:
         plan = self.plan()

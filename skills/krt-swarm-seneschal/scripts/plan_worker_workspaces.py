@@ -21,6 +21,7 @@ PLAN_FIELDS = {
     "worktree_parent",
     "invocations",
 }
+OPTIONAL_PLAN_FIELDS = {"integration_branch"}
 INVOCATION_FIELDS = {
     "id",
     "unit_id",
@@ -63,9 +64,17 @@ def _paths(value: Any, field: str, *, allow_empty: bool) -> list[str]:
 
 
 def plan_worker_workspaces(plan: dict[str, Any]) -> dict[str, Any]:
-    exact_object(plan, PLAN_FIELDS, "workspace plan")
+    if (
+        not isinstance(plan, dict)
+        or PLAN_FIELDS - set(plan)
+        or set(plan) - PLAN_FIELDS - OPTIONAL_PLAN_FIELDS
+    ):
+        raise ValueError("workspace plan has missing or unknown fields")
     if plan["schema_version"] != 1:
         raise ValueError("schema_version must be 1")
+    integration_branch_enabled = plan.get("integration_branch", True)
+    if not isinstance(integration_branch_enabled, bool):
+        raise ValueError("integration_branch must be boolean")
     run_id = _identifier(plan["run_id"], "run_id")
     base_revision = non_empty_string(plan["base_revision"], "base_revision")
     parent = PurePosixPath(non_empty_string(plan["worktree_parent"], "worktree_parent"))
@@ -164,13 +173,17 @@ def plan_worker_workspaces(plan: dict[str, Any]) -> dict[str, Any]:
     workspaces = []
     for item in normalized:
         invocation_id = item["invocation_id"]
-        mutable = item["mode"].startswith("mutable")
+        branch = (
+            f"seneschal/{run_id}/integration"
+            if item["role"] == "integrator" and integration_branch_enabled
+            else None
+        )
         payload = {
             **item,
             "workspace_id": f"{run_id}-{invocation_id}",
             "path": str(parent / run_id / invocation_id),
-            "branch": f"seneschal/{run_id}/{invocation_id}" if mutable else None,
-            "detached": not mutable,
+            "branch": branch,
+            "detached": branch is None,
             "worker_git_mutation": "forbidden",
             "base_revision": base_revision,
             "dependency_patch_hashes": [],
@@ -183,6 +196,7 @@ def plan_worker_workspaces(plan: dict[str, Any]) -> dict[str, Any]:
         "base_revision": base_revision,
         "worktree_parent": str(parent),
         "consolidation_invocation": consolidation_id,
+        "integration_branch": f"seneschal/{run_id}/integration" if integration_branch_enabled else None,
         "execution_waves": execution_waves,
         "patch_application_order": [
             identifier

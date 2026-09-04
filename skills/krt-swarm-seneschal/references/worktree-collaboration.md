@@ -10,19 +10,23 @@ even when the same agent performs another role later.
 | Role | Worktree mode | Starting snapshot | Permitted result |
 |---|---|---|---|
 | Planner / discovery | detached read-only | recorded source or dependency baseline | artifacts or terminal discovery only |
-| Implementer | mutable, path-scoped | dependency baseline | owned working-tree patch |
+| Implementer | detached mutable, path-scoped | dependency baseline | owned working-tree patch |
 | Reviewer | detached read-only | exact candidate tree | certificate and findings |
 | Security reviewer | separate detached read-only | exact candidate tree | security certificate and findings |
 | Targeted / CI validator | disposable verification | exact candidate or consolidated tree | machine-captured evidence |
-| Fixer | mutable, path-scoped | confirmed-finding candidate | finding-to-change patch |
-| Documenter | mutable, path-scoped | consolidated code baseline | owned documentation patch |
-| Integrator | mutable authoritative consolidation | source plus accepted dependency patches | reconciled checkout and integration patch |
-| Compound Master | isolated mutable or read-only by assigned phase | assigned unit baseline | bounded artifacts or patch |
+| Fixer | detached mutable, path-scoped | confirmed-finding candidate | finding-to-change patch |
+| Documenter | detached mutable, path-scoped | consolidated code baseline | owned documentation patch |
+| Integrator | mutable authoritative consolidation; sole optional run branch | source plus accepted dependency patches | reconciled checkout and integration patch |
+| Compound Master | isolated detached mutable or read-only by assigned phase | assigned unit baseline | bounded artifacts or patch |
 
 The orchestrator owns every worktree, Git index, baseline, patch manifest, and
-cleanup action. Workers may read Git state but must not stage, commit, switch or
-create branches, push, rebase, merge, apply patches, create worktrees, or remove
-worktrees. Release Marshal remains the only final commit/push/PR owner.
+cleanup action. Create planner, implementer, reviewer, validator, fixer,
+documenter, and Compound Master worktrees detached. At most the authoritative
+Integrator may use `seneschal/<run-id>/integration`; omit even that branch when
+Release Marshal can consume a detached consolidated checkout. Workers may read
+Git state but must not stage, commit, switch or create branches, push, rebase,
+merge, apply patches, create worktrees, or remove worktrees. Release Marshal
+remains the only final commit/push/PR owner.
 
 ## Compile Workspace Assignments
 
@@ -36,9 +40,62 @@ rtk python3 <seneschal-skill-dir>/scripts/plan_worker_workspaces.py \
 
 The compiler validates the role/mode mapping, unique invocation IDs and paths,
 candidate/dependency references, read-only ownership, path safety, and exactly
-one authoritative Integrator workspace. Preserve its hash in wave state. A
-Reviewer and Security reviewer for the same candidate still receive different
-detached worktrees.
+one authoritative Integrator workspace. It emits no per-invocation branches
+and at most one integration branch for the run. Set the optional workspace-plan
+field `"integration_branch": false` when Release Marshal can consume a detached
+consolidated checkout; omission preserves the single integration branch for
+compatibility. Preserve the plan hash in wave state. A Reviewer and Security
+reviewer for the same candidate still receive different detached worktrees.
+
+## Guarded Cleanup
+
+Run a cleanup reconciliation before creating a wave and immediately after each
+successful disposable or consolidated invocation becomes reproducible. Build a
+root-owned JSON registry outside all worker worktrees:
+
+```json
+{
+  "schema_version": 1,
+  "entries": [{
+    "workspace_id": "run-1-unit-fixer",
+    "run_id": "run-1",
+    "path": "/absolute/seneschal-worktrees/run-1/unit-fixer",
+    "branch": null,
+    "lifecycle_status": "cleanup-ready",
+    "preserve_for_diagnosis": false,
+    "durable_artifacts": [{
+      "path": "/absolute/orchestration-artifacts/unit-fixer.patch",
+      "sha256": "sha256:<digest>"
+    }]
+  }]
+}
+```
+
+First inspect without mutation:
+
+```bash
+rtk python3 <seneschal-skill-dir>/scripts/cleanup_worker_workspaces.py \
+  --repo-root <repo-root> \
+  --worktree-parent <absolute-run-parent> \
+  --registry <cleanup-registry.json>
+```
+
+Apply only after the dry-run classification matches canonical state:
+
+```bash
+rtk python3 <seneschal-skill-dir>/scripts/cleanup_worker_workspaces.py \
+  --repo-root <repo-root> \
+  --worktree-parent <absolute-run-parent> \
+  --registry <cleanup-registry.json> \
+  --apply
+```
+
+The helper locks cleanup, verifies paths remain inside the run namespace,
+checks durable artifact hashes, removes each eligible worktree before its
+temporary branch, and prunes administrative worktree records last. It never
+removes an active, failed, diagnostic, hash-mismatched, or unregistered item.
+An unregistered `seneschal/*` branch or worktree is a retained orphan requiring
+state reconciliation, not an age-based deletion candidate.
 
 ## Create And Seal A Baseline
 
@@ -147,6 +204,10 @@ hashes, status, patch manifest, and cleanup status for every invocation.
 - Remove successful disposable review/validation worktrees after their
   artifacts are durable. Remove mutable worktrees only after consolidation and
   release handoff evidence make them reproducible.
+- Mark reproducible workspaces `cleanup-ready`, bind their durable artifact
+  hashes in the root-owned cleanup registry, and run guarded cleanup immediately;
+  the next run's preflight is recovery for interrupted cleanup, not the primary
+  lifecycle.
 - Root verifies a path belongs to the run-specific worktree parent before
   cleanup. Never recursively delete a guessed, broad, or unresolved path.
 - `git worktree prune` is housekeeping after explicit removals, not the cleanup
