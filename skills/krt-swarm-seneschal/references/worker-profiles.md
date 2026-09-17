@@ -31,6 +31,15 @@ The registered execution profiles are:
 - `luna_xhigh`: demanding work admitted by `execution-lanes.md`; Luna uses
   `xhigh` and implements only after an accepted checkpoint.
 
+`muse_contributor` is an optional external Implementer, not a Codex custom
+agent. After materializing the ordinary executable worker contract, invoke
+`krt-muse-artificer` with the contract and a root-created worktree. Its model
+is `muse-spark-1.3-contributor` in Muse Code. Do not install it through the
+Codex profile manifest. Its command evidence remains `self-reported`; root
+must observe the actual diff and independently capture readiness-bearing
+checks. An unavailable Muse binary or model blocks that selection; choose
+another worker only through a new wave decision.
+
 Do not mutate reasoning effort dynamically. Select the registered profile whose
 stable effort matches the classified lane.
 

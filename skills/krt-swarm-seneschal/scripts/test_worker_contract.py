@@ -197,12 +197,22 @@ class WorkerContractTest(unittest.TestCase):
         self.assertEqual(set(terminal_schema["required"]), TERMINAL_FIELDS)
 
     def test_contract_rejects_lane_profile_mismatch_and_tampering(self) -> None:
-        with self.assertRaisesRegex(ValueError, "requires profile"):
+        with self.assertRaisesRegex(ValueError, "requires one of"):
             materialize_contract(self.draft(profile="spark"))
         contract = materialize_contract(self.draft())
         contract["objective"] = "Tampered"
         with self.assertRaisesRegex(ValueError, "contract_hash"):
             validate_contract(contract)
+
+    def test_muse_implementer_uses_the_same_contract_and_evaluator(self) -> None:
+        contract = materialize_contract(self.draft(profile="muse_contributor"))
+        self.assertEqual(validate_contract(contract)["profile"], "muse_contributor")
+        result = evaluate_worker_run(
+            contract, self.observation(contract, profile="muse_contributor"), now_ms=5_000
+        )
+        self.assertEqual(result["action"], "awaiting_certification")
+        with self.assertRaisesRegex(ValueError, "requires one of"):
+            materialize_contract(self.draft(lane="deep", profile="muse_contributor"))
 
     def test_contract_requires_positive_elapsed_budget(self) -> None:
         budget = {**self.draft()["execution_budget"], "max_elapsed_ms": 0}

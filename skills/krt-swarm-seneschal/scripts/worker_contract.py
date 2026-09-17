@@ -60,6 +60,10 @@ def _lane_profiles() -> dict[str, str]:
 
 
 LANE_PROFILE = _lane_profiles()
+ALTERNATE_LANE_PROFILES = {
+    "fast": {"muse_contributor"},
+    "standard": {"muse_contributor"},
+}
 CERTIFICATIONS = {"reviewer", "security-sentinel"}
 COMMAND_TRUST = {"self-reported": 0, "runtime-audited": 1}
 PACKAGE_MANIFESTS = {
@@ -267,8 +271,9 @@ def validate_contract(
     lane = contract.get("lane")
     if lane not in LANE_PROFILE:
         raise ValueError("lane must be fast, standard, or deep")
-    if contract.get("profile") != LANE_PROFILE[lane]:
-        raise ValueError(f"lane {lane} requires profile {LANE_PROFILE[lane]}")
+    allowed_profiles = {LANE_PROFILE[lane]} | ALTERNATE_LANE_PROFILES.get(lane, set())
+    if contract.get("profile") not in allowed_profiles:
+        raise ValueError(f"lane {lane} requires one of {sorted(allowed_profiles)}")
     _path_list(contract.get("owned_files"), "owned_files")
     _path_list(contract.get("required_context"), "required_context")
     _string_list(contract.get("closed_decisions"), "closed_decisions")

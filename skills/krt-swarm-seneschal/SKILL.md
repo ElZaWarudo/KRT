@@ -92,6 +92,9 @@ Use `references/lightweight-dispatch.md` for eligible low/medium work. Load
 `references/executable-worker-contracts.md` and `references/subagent-contracts.md`
 only for the advanced protocol. A worker's prose never certifies its real diff
 or readiness; root owns that observation in both protocols.
+The optional Muse Implementer uses the executable contract even for a
+low/medium fast or standard unit because its external runtime needs a common
+terminal and observation boundary.
 
 ### Reconcile
 
@@ -129,6 +132,7 @@ reference only when its trigger is present.
 | Eligible low/medium worker | `references/lightweight-dispatch.md` |
 | High/critical, deep, autonomous, or policy-required worker | `references/executable-worker-contracts.md` |
 | Complex role prompts or named worker profiles | `references/subagent-contracts.md`, then `references/worker-profiles.md` if needed |
+| Muse Code Implementer | `references/executable-worker-contracts.md`, then `krt-muse-artificer` |
 | Concurrent mutable workers | `references/worktree-collaboration.md` |
 | Coupled work around a small shared foundation | `references/staged-decomposition.md` |
 | Adaptive concurrency or reusable aggregate evidence | `references/automated-wave-control.md` |

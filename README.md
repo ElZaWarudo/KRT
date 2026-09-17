@@ -2,7 +2,7 @@
 
 KRT means **Knights of the Round Table**: portable agent skills for keeping a codebase in formation without asking one overcaffeinated linux squire to remember every ritual by heart.
 
-KRT gives agent runtimes 29 reusable skills for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, CI, deployment, testing, security, evaluation, docs, and repo health. The bit is medieval. The contract is not.
+KRT gives agent runtimes 30 reusable skills for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, CI, deployment, testing, security, evaluation, docs, and repo health. The bit is medieval. The contract is not.
 
 Repository documentation and skill instructions use English. Localized Jira values, multilingual routing triggers, parser fixtures, and language-specific writing examples remain in their source language when translation would change behavior.
 
@@ -27,6 +27,7 @@ Start with the job in front of you. The groups below cover every KRT skill witho
 |---|---|
 | A larger initiative that needs artifact-first orchestration | `krt-compound-master` |
 | Multiple ready work packages or dependent backlog units that benefit from bounded agent waves | `krt-swarm-seneschal` |
+| A ready Seneschal worker contract to implement with Muse Code | `krt-muse-artificer` |
 | Compound Master state that has become too noisy | `krt-state-archivist` |
 
 ### Improve The Product Experience
@@ -94,6 +95,15 @@ the change; dispatched implementation uses one of three stable lanes:
 | `standard` | Normal bounded implementation | Luna with `high` reasoning |
 | `deep` | Architecture, auth, data, concurrency, public contracts, or other demanding work | Luna with `xhigh` reasoning |
 
+`krt-muse-artificer` can take a selected `fast` or `standard` Implementer unit
+through Muse Code model `muse-spark-1.3-contributor`. Seneschal creates the
+hashed worker contract and isolated worktree; the Artificer runs Muse against
+that contract and returns a validated terminal artifact. Seneschal still
+inspects the actual diff, captures verification evidence, and decides whether
+the unit is ready. Muse must be installed in the environment running the worker
+(WSL in the current setup). It is an optional route, not a replacement for the
+`deep` lane.
+
 Spark reasoning stays at `xhigh`; the lane changes the worker, not Spark's
 thinking budget. Optional Planner, Reviewer, Fixer, Integrator, and Documenter
 roles join only when their admission trigger is present. Leaf workers run
@@ -110,6 +120,9 @@ Install one skill globally:
 ```bash
 npx -y skills add ElZaWarudo/krt --skill krt-<skill-name> -g
 ```
+
+For Muse-backed Seneschal units, install both `krt-swarm-seneschal` and
+`krt-muse-artificer` in the runtime that launches Muse.
 
 Install everything:
 

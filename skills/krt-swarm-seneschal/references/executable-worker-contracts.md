@@ -154,6 +154,13 @@ The compatibility-only `evaluate_luna_run.py` remains available for existing
 deep-checkpoint callers. New dispatch and reconciliation use
 `evaluate_worker_run.py`.
 
+For `muse_contributor`, use this same materialization, envelope, terminal,
+observation, and evaluation path. Delegate the invocation to
+`krt-muse-artificer`. Its runner checks terminal structure after Muse exits;
+that check does not promote worker claims to root evidence. Keep its JSONL and
+terminal outside the worktree, preserve them on failure, and use the normal
+root observation and certification gates before accepting the unit.
+
 When a worker reports a baseline or environment-related verification gap,
 root applies the evidence and classification rules in
 `role-recoverability.md`. Worker labels alone do not establish attribution.

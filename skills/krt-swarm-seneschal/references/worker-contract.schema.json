@@ -30,7 +30,7 @@
     "contract_id": {"type": "string", "minLength": 1},
     "unit_id": {"type": "string", "minLength": 1},
     "lane": {"enum": ["fast", "standard", "deep"]},
-    "profile": {"enum": ["spark", "luna", "luna_xhigh"]},
+    "profile": {"enum": ["spark", "luna", "luna_xhigh", "muse_contributor"]},
     "objective": {"type": "string", "minLength": 1},
     "owned_files": {"$ref": "#/$defs/pathList"},
     "required_context": {"$ref": "#/$defs/pathList"},

@@ -41,6 +41,14 @@ Luna `xhigh` is admitted only by a concrete deep trigger.
 Reasoning depth and execution duration are independent; higher reasoning never
 expands ownership, rounds, commands, or elapsed budget.
 
+Muse Code is an optional external Implementer for an execution-ready `fast` or
+`standard` unit when the user selects it or the wave plan explicitly names a
+Muse benefit. Use contract profile `muse_contributor` and model
+`muse-spark-1.3-contributor`. It does not replace the `deep` discovery and
+implementation stages. Select its lane from the unit's real difficulty, not
+from the model name. Its process exit and prose are never readiness evidence;
+the same root diff, command, review, and assurance gates apply.
+
 ### Fast Preconditions
 
 All must be true:
@@ -95,6 +103,9 @@ unit not ready. Do not use a review council as a substitute for classification.
 
 - Interactive `fast` or `standard` work at `low` or `medium` assurance uses
   `lightweight-dispatch.md` when all its admission conditions hold.
+- A selected `muse_contributor` uses the executable contract at `fast` or
+  `standard` regardless of assurance tier so its external return can be
+  evaluated through the same terminal and root observation path.
 - Any `deep`, `high`, `critical`, autonomous, or repository-mandated unit uses
   `executable-worker-contracts.md`.
 - Never raise protocol depth merely because the skill is active, and never

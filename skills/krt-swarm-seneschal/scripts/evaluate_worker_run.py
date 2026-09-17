@@ -311,7 +311,10 @@ def evaluate_worker_run(
     if observation.get("profile") != contract["profile"]:
         raise ValueError("observation profile does not match contract")
     transformed = dict(observation)
-    transformed["profile"] = "luna" if contract["profile"] == "spark" else contract["profile"]
+    transformed["profile"] = (
+        "luna" if contract["profile"] in {"spark", "muse_contributor"}
+        else contract["profile"]
+    )
     transformed["owned_files"] = contract["owned_files"]
     transformed["verification_manifest"] = contract["commands"]["verification"]
     base = evaluate_legacy_run(transformed, now_ms=now_ms)
