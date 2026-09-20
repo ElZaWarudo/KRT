@@ -18,6 +18,7 @@ import yaml
 from record_run_timing import document_lock
 from materialize_approval_receipt import validate_receipt
 from deterministic_artifacts import parse_timestamp
+from reconcile_unit import validate_reconciliation
 
 
 UNIT_TRANSITIONS = {
@@ -122,6 +123,9 @@ def _require_current_approval(queue: dict[str, Any], repo_root: Path | None) -> 
         raise ValueError("documentation approval is missing")
     receipt = json.loads(_receipt_path(repo_root, receipt_path).read_text(encoding="utf-8"))
     validate_receipt(repo_root, receipt)
+    approved_paths = gate.get("approval_artifacts", gate.get("source_artifacts"))
+    if not isinstance(approved_paths, list) or sorted(approved_paths) != [item["path"] for item in receipt["artifacts"]]:
+        raise ValueError("approval receipt does not cover the gate approval_artifacts")
     if gate.get("approved_packet_digest") != receipt["packet_digest"]:
         raise ValueError("documentation approval receipt does not match queue state")
     if gate.get("approval_receipt_digest") != receipt["receipt_digest"]:
@@ -194,6 +198,7 @@ def transition_state(
                 "draft": {"in_review"},
                 "in_review": {"changes_requested"},
                 "changes_requested": {"in_review"},
+                "approved": {"in_review"},
             }
             gate = queue["documentation_gate"]
             if gate["status"] != transition["from"]:
@@ -201,6 +206,34 @@ def transition_state(
             if transition["to"] not in allowed.get(transition["from"], set()):
                 raise ValueError("illegal documentation status transition")
             gate["status"] = transition["to"]
+            if transition["from"] == "approved":
+                for field in (
+                    "approved_by", "approved_at", "approval_receipt",
+                    "approved_packet_digest", "approval_receipt_digest",
+                ):
+                    gate.pop(field, None)
+        elif operation == "reconcile-unit":
+            expected = {"schema_version", "operation", "unit_id", "from", "to", "evidence"}
+            if set(transition) != expected or repo_root is None:
+                raise ValueError("reconcile-unit requires exact fields and repo_root")
+            if transition["from"] != "review-gated" or transition["to"] != "release-ready":
+                raise ValueError("illegal reconciliation transition")
+            if not isinstance(transition["unit_id"], str):
+                raise ValueError("reconcile-unit unit_id must be a string")
+            _require_current_approval(queue, repo_root)
+            accepted = validate_reconciliation(
+                root=repo_root, queue=queue, unit_id=transition["unit_id"],
+                evidence=transition["evidence"],
+            )
+            _require_current_approval(queue, repo_root)
+            accepted["documentation_approval"] = {
+                key: queue["documentation_gate"][key] for key in (
+                    "approval_receipt", "approval_receipt_digest", "approved_packet_digest",
+                )
+            }
+            queue["units"][transition["unit_id"]].update({
+                "status": "release-ready", "reconciliation": accepted,
+            })
         elif operation == "unit-status":
             expected = {"schema_version", "operation", "unit_id", "from", "to"}
             if not expected.issubset(transition):

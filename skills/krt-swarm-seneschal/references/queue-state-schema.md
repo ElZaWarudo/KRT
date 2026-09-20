@@ -286,6 +286,17 @@ Record the tier, concrete triggers, review mode, and review demand together.
 - `changes_requested`: user requested revisions; only documentation and blocker records may change.
 - `approved`: explicit approval exists; downstream Jira seed/drain, wave planning, dispatch, and release handoff may proceed through their own gates.
 
+When the approved packet needs review again, use `documentation-status` with
+`from: approved` and `to: in_review`, supplying current queue and blocker digests.
+Reopening clears `approved_by`, `approved_at`, `approval_receipt`,
+`approved_packet_digest`, and `approval_receipt_digest` from the active gate.
+Previous receipt files remain on disk as historical evidence and no longer
+authorize approval-dependent transitions. The artifact lists are preserved.
+After review, use `approve-documentation` with a current receipt and the trusted
+authorization-event digest; receipt integrity, current artifact hashes, and
+coverage checks still apply. Both steps use the existing transaction lock and
+digest preconditions. Rejected transitions leave queue and blocker files unchanged.
+
 When the documentary gate applies to the active broad initiative, do not create
 real Jira keys, executable `running` units, implementation wave history, or
 release handoff packets unless `documentation_gate.status` is `approved`.
@@ -370,6 +381,172 @@ Then mark units with open blockers, dependencies on open blockers, or an
 applicable non-approved documentation gate as ineligible for execution.
 
 ## Update Moments
+
+### Evidence-bound `reconcile-unit`
+
+The only supported reconciliation edge is `review-gated` → `release-ready`.
+`unit-status` still cannot promote release states. `handed-off` and `merged`
+remain the responsibility of the separate release gates.
+
+Root must prepare `units.<id>.reconciliation_policy` before requesting the
+transition. This is trusted queue configuration, protected by the queue digest;
+do not derive or weaken it from a worker's result. It has exactly these fields:
+
+```json
+{
+  "candidate_revision": "<full Git HEAD commit ID>",
+  "candidate_digest": "sha256:<canonical candidate hash>",
+  "contract_hash": "sha256:<current unit contract hash>",
+  "worker_id": "implementer-runtime-id",
+  "required_certifications": ["reviewer", "security-sentinel"],
+  "findings_registry": {"path": "/root-owned/findings.json", "digest": "sha256:<file bytes hash>"}
+}
+```
+
+`candidate_digest` is `canonical_sha256({"candidate_revision": revision,
+"fingerprint": fingerprint["fingerprint"]})`, using
+`scripts/deterministic_artifacts.py`. The fingerprint uses the existing
+`verification_evidence.py` format: a full immutable base commit ID, sorted
+changed paths and content hashes, and ordered required verification commands.
+HEAD must equal `candidate_revision`. The fingerprint must match the complete
+root-observed diff against its base, including untracked, non-ignored files,
+and its current worktree contents. Thus a new HEAD, an additional changed file,
+a content change, or changed verification commands invalidates the candidate.
+This also supports a candidate with uncommitted changes: its identity includes
+both HEAD and the complete content fingerprint.
+
+At least `reviewer` is required. Supported roles are `reviewer` and
+`security-sentinel`; security is mandatory when `risk.security` is absent or
+anything other than `low`, or `execution.role_triggers.security-sentinel` is
+set. If `execution.worker_contract_hash` is present, it must match the policy.
+Root must carry all contract/assurance-required certification into this policy;
+an aggregate reviewer certificate must only be issued after its underlying
+review/validation coverage is complete. Actor identifiers are trusted runtime
+attribution, not cryptographic signatures or worker-selected labels.
+
+Each unit must explicitly have `depends_on: []` or a unique list of queue unit
+IDs. Every referenced dependency must exist, differ from this unit, be
+`release-ready`, `handed-off`, or `merged`, and have no open blockers. The unit
+itself must have no open blockers. The existing queue/blocker cross-validation
+checks both `unit_id` and `affected_units` references in the ledger.
+
+The operation input is an exact JSON object; extra fields are rejected:
+
+```json
+{
+  "schema_version": 1,
+  "operation": "reconcile-unit",
+  "unit_id": "wp-01-ru-02",
+  "from": "review-gated",
+  "to": "release-ready",
+  "evidence": {"path": "/root-owned/reconciliation.json", "digest": "sha256:<file bytes hash>"}
+}
+```
+
+Every evidence reference is exactly `{ "path": "...", "digest": "sha256:..." }`.
+Digests hash the file bytes, not parsed JSON. Paths may be absolute (including
+Windows paths) or relative to `--repo-root`; traversal and symlinks are rejected.
+Use root-owned storage outside the candidate worktree for queue, blockers,
+receipts and evidence, or ignore untracked operational artifacts deliberately.
+Tracked state edits are part of the complete diff and invalidate verification;
+the operation does not silently exclude files from coverage.
+
+The referenced reconciliation bundle has exactly these fields:
+
+```json
+{
+  "schema_version": 1,
+  "unit_id": "wp-01-ru-02",
+  "candidate_revision": "<same full Git HEAD commit ID>",
+  "fingerprint": {"path": "/root-owned/fingerprint.json", "digest": "sha256:..."},
+  "verification": {"path": "/root-owned/passing-record.json", "digest": "sha256:..."},
+  "verification_logs": [{"path": "/root-owned/command-01-exit-0.log", "digest": "sha256:..."}],
+  "certificates": [
+    {"path": "/root-owned/reviewer.json", "digest": "sha256:..."},
+    {"path": "/root-owned/security.json", "digest": "sha256:..."}
+  ],
+  "findings_registry": {"path": "/root-owned/findings.json", "digest": "sha256:..."}
+}
+```
+
+`verification` references one existing `verification_evidence.py` record, not
+the registry wrapper. Its canonical record digest must validate; result must
+be `passed`, with fingerprint, base, paths and commands exactly matching the
+candidate. `verification_logs` must contain one hashed log per command in the
+same order and resolve to the record's evidence paths. Root is responsible for
+capturing the passing record from actual execution; reconciliation reads
+evidence and never executes commands from it. Freshness here means exact
+candidate identity, not a wall-clock expiration policy.
+
+Certificates use the existing exact independent-certificate format:
+
+```json
+{
+  "role": "reviewer",
+  "actor_id": "independent-runtime-id",
+  "status": "passed",
+  "contract_hash": "sha256:<same policy contract hash>",
+  "diff_digest": "sha256:<same candidate_digest>",
+  "findings": []
+}
+```
+
+For this gate, certificate `diff_digest` binds the revision plus fingerprint
+through `candidate_digest`. Required roles must all be present exactly once,
+each actor must differ from the implementer, and every supplied certificate
+must pass and contain no actionable findings. Renew certificates after fixes.
+The findings reference must equal the policy-pinned reference; its contents
+must validate using `finding_registry.py` and bind the same contract and
+candidate digest. Only `fixed` or `rejected` findings permit promotion; fixed
+findings must resolve against this candidate. Proposed, confirmed, revised,
+and deferred findings block reconciliation.
+
+The current documentation receipt is validated before and after evidence
+inspection, even for units with execution-only documentation exemptions.
+The accepted unit gains `reconciliation` containing the bundle reference,
+candidate revision/digest, fingerprint, verification record digest, findings
+registry digest, every accepted artifact reference/hash, and the documentation
+approval receipt reference and digests. The policy and dependencies remain in
+the unit. Validation runs inside the existing state lock and before journal
+creation; rejected operations leave both state files byte-for-byte unchanged.
+Writers must keep candidate content and root-owned evidence stable during the
+transaction: the state lock coordinates queue writers, not arbitrary Git or
+filesystem writers. Evidence and candidate content are rechecked before return.
+
+Executable PowerShell example, after root has prepared the policy and evidence
+files described above (run from the candidate repo; adjust the four paths):
+
+```powershell
+$skillScripts = Join-Path $env:USERPROFILE '.agents/skills/krt-swarm-seneschal/scripts'
+$repoRoot = (Get-Location).Path
+$queuePath = Join-Path $repoRoot '../root-evidence/queue-state.yaml'
+$blockersPath = Join-Path $repoRoot '../root-evidence/blockers.yaml'
+$bundlePath = Join-Path $repoRoot '../root-evidence/reconciliation.json'
+$transitionPath = Join-Path $repoRoot '../root-evidence/reconcile-unit.json'
+$bundle = Get-Content -LiteralPath $bundlePath -Raw | ConvertFrom-Json
+$operation = @{
+    schema_version = 1
+    operation = 'reconcile-unit'
+    unit_id = $bundle.unit_id
+    from = 'review-gated'
+    to = 'release-ready'
+    evidence = @{
+        path = (Resolve-Path -LiteralPath $bundlePath).Path
+        digest = 'sha256:' + (Get-FileHash -LiteralPath $bundlePath -Algorithm SHA256).Hash.ToLowerInvariant()
+    }
+}
+$json = $operation | ConvertTo-Json -Depth 5
+[IO.File]::WriteAllText($transitionPath, $json, [Text.UTF8Encoding]::new($false))
+$queueDigest = 'sha256:' + (Get-FileHash -LiteralPath $queuePath -Algorithm SHA256).Hash.ToLowerInvariant()
+$blockerDigest = 'sha256:' + (Get-FileHash -LiteralPath $blockersPath -Algorithm SHA256).Hash.ToLowerInvariant()
+python (Join-Path $skillScripts 'transition_swarm_state.py') `
+    --repo-root $repoRoot --queue $queuePath --blockers $blockersPath `
+    --transition $transitionPath --expected-queue-digest $queueDigest `
+    --expected-blockers-digest $blockerDigest
+if ($LASTEXITCODE -ne 0) { throw 'Reconciliation rejected; inspect the reported precondition.' }
+```
+
+### Other lifecycle updates
 
 Lifecycle fields are executable state. Apply unit status, documentation
 approval, and blocker-resolution transitions with

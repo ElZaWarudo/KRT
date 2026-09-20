@@ -119,6 +119,74 @@ class SwarmStateTransitionTest(unittest.TestCase):
         self.assertEqual(gate["status"], "approved")
         self.assertEqual(gate["approved_packet_digest"], receipt["packet_digest"])
 
+    def test_reopen_documentation_invalidates_approval_and_allows_renewal(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            queue, blockers = self.fixtures(root)
+            old_receipt = self.approve(root, queue, blockers)
+            old_receipt_bytes = (root / "receipt.json").read_bytes()
+            blocker_bytes = blockers.read_bytes()
+
+            def apply(transition: dict[str, object], **digests: str) -> None:
+                transition_state(
+                    queue_path=queue, blockers_path=blockers, repo_root=root,
+                    transition={"schema_version": 1, **transition},
+                    expected_queue_digest=digests.get("queue", state_digest(queue)),
+                    expected_blockers_digest=digests.get("blockers", state_digest(blockers)),
+                )
+
+            def reject(transition: dict[str, object], error: str, **digests: str) -> None:
+                before = {path: path.read_bytes() for path in root.iterdir() if path.is_file()}
+                with self.assertRaisesRegex(ValueError, error):
+                    apply(transition, **digests)
+                self.assertEqual(before, {path: path.read_bytes() for path in root.iterdir() if path.is_file()})
+
+            reopen = {"operation": "documentation-status", "from": "approved", "to": "in_review"}
+            reject(reopen, "queue digest", queue="sha256:stale")
+            reject(reopen, "blockers digest", blockers="sha256:stale")
+            reject({**reopen, "from": "draft"}, "current status")
+            reject({**reopen, "to": "draft"}, "illegal documentation")
+            journal = root / ".seneschal-state-transaction.json"
+            journal.write_text("{}", encoding="utf-8")
+            reject(reopen, "unfinished state transaction")
+            journal.unlink()
+            (root / "plan.md").write_text("reconciled", encoding="utf-8")
+            apply(reopen)
+            self.assertEqual(_load_yaml(queue)["documentation_gate"], {
+                "status": "in_review", "approval_artifacts": ["plan.md"],
+            })
+            self.assertEqual(blockers.read_bytes(), blocker_bytes)
+            self.assertEqual((root / "receipt.json").read_bytes(), old_receipt_bytes)
+            reject({"operation": "unit-status", "unit_id": "unit-1", "from": "blocked", "to": "ready"}, "approval is missing")
+            approval = {"operation": "approve-documentation", "receipt_path": "receipt.json", "expected_approval_event_digest": APPROVAL_EVENT_DIGEST}
+            reject(approval, "digest mismatch")
+            new_event = "sha256:" + "c" * 64
+            receipt = materialize_receipt(
+                repo_root=root, source_artifacts=["plan.md"], approved_by="user",
+                approved_at="2026-09-05T08:00:00Z", approval_event_digest=new_event,
+            )
+            write_atomic(root / "renewed.json", receipt)
+            approval["receipt_path"] = "renewed.json"
+            reject(approval, "trusted user-event handoff")
+            (root / "other.md").write_text("other", encoding="utf-8")
+            other = materialize_receipt(
+                repo_root=root, source_artifacts=["other.md"], approved_by="user",
+                approved_at="2026-09-05T08:00:00Z", approval_event_digest=new_event,
+            )
+            write_atomic(root / "other.json", other)
+            approval["expected_approval_event_digest"] = new_event
+            reject({**approval, "receipt_path": "other.json"}, "does not cover")
+            apply(approval)
+            gate = _load_yaml(queue)["documentation_gate"]
+            self.assertEqual(gate["status"], "approved")
+            self.assertEqual(gate["approval_receipt"], "renewed.json")
+            self.assertEqual(gate["approval_receipt_digest"], receipt["receipt_digest"])
+            self.assertNotEqual(gate["approved_packet_digest"], old_receipt["packet_digest"])
+            self.assertEqual(blockers.read_bytes(), blocker_bytes)
+            apply({"operation": "resolve-blocker", "blocker_id": "BLK-1", "decided_at": "2026-09-05T08:01:00Z", "decided_by": "user", "decision": "Proceed."})
+            apply({"operation": "unit-status", "unit_id": "unit-1", "from": "planned", "to": "ready"})
+            self.assertEqual(_load_yaml(queue)["units"]["unit-1"]["status"], "ready")
+
     def test_open_blocker_prevents_ready_transition(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
