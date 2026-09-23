@@ -17,7 +17,7 @@ from evaluate_luna_run import terminal_reasons as legacy_terminal_reasons
 from worker_contract import COMMAND_TRUST, is_terminal_validation_argv, validate_contract
 
 
-PROFILES = {"spark", "luna", "luna_xhigh"}
+PROFILES = {"luna", "luna_xhigh"}
 CERTIFICATION_ROLES = {"reviewer", "security-sentinel"}
 CERTIFICATION_STATUSES = {"passed", "failed"}
 TERMINAL_FIELDS = {
@@ -312,7 +312,7 @@ def evaluate_worker_run(
         raise ValueError("observation profile does not match contract")
     transformed = dict(observation)
     transformed["profile"] = (
-        "luna" if contract["profile"] in {"spark", "muse_contributor"}
+        "luna" if contract["profile"] == "muse_contributor"
         else contract["profile"]
     )
     transformed["owned_files"] = contract["owned_files"]

@@ -91,21 +91,21 @@ the change; dispatched implementation uses one of three stable lanes:
 
 | Lane | Use it for... | Worker profile |
 |---|---|---|
-| `fast` | Decision-closed work with a confirmed edit path | Spark with `xhigh` reasoning |
-| `standard` | Normal bounded implementation | Luna with `high` reasoning |
-| `deep` | Architecture, auth, data, concurrency, public contracts, or other demanding work | Luna with `xhigh` reasoning |
+| `fast` | Decision-closed work with a confirmed edit path | Muse when available; GPT-6 Luna with `high` reasoning otherwise |
+| `standard` | Normal bounded implementation | GPT-6 Luna with `high` reasoning; Muse for settled units |
+| `deep` | Architecture, auth, data, concurrency, public contracts, or other demanding work | GPT-6 Luna with `xhigh` reasoning |
 
-`krt-muse-artificer` can take a selected `fast` or `standard` Implementer unit
-through Muse Code model `muse-spark-1.3-contributor`. Seneschal creates the
+`krt-muse-artificer` is preferred for ready `fast` units and can take a settled
+`standard` Implementer unit through Muse Code model
+`muse-spark-1.3-contributor`. Seneschal creates the
 hashed worker contract and isolated worktree; the Artificer runs Muse against
 that contract and returns a validated terminal artifact. Seneschal still
 inspects the actual diff, captures verification evidence, and decides whether
 the unit is ready. Muse must be installed in the environment running the worker
-(WSL in the current setup). It is an optional route, not a replacement for the
-`deep` lane.
+(WSL in the current setup). It is the first choice for eligible fast work and
+does not replace the `deep` lane.
 
-Spark reasoning stays at `xhigh`; the lane changes the worker, not Spark's
-thinking budget. Optional Planner, Reviewer, Fixer, Integrator, and Documenter
+Optional Planner, Reviewer, Fixer, Integrator, and Documenter
 roles join only when their admission trigger is present. Leaf workers run
 focused checks; Seneschal runs aggregate verification once per wave. Low and
 medium fast/standard work uses a lightweight contract when safe; deep,

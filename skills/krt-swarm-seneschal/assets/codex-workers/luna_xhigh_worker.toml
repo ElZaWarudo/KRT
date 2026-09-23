@@ -6,7 +6,7 @@ Use it for architecture, authorization, data, public contracts, migrations,
 concurrency, and production- or security-sensitive surfaces.
 """
 
-model = "gpt-5.6-luna"
+model = "gpt-6-luna"
 model_reasoning_effort = "xhigh"
 
 sandbox_mode = "workspace-write"

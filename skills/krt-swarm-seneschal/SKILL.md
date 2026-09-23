@@ -92,9 +92,9 @@ Use `references/lightweight-dispatch.md` for eligible low/medium work. Load
 `references/executable-worker-contracts.md` and `references/subagent-contracts.md`
 only for the advanced protocol. A worker's prose never certifies its real diff
 or readiness; root owns that observation in both protocols.
-The optional Muse Implementer uses the executable contract even for a
-low/medium fast or standard unit because its external runtime needs a common
-terminal and observation boundary.
+The preferred Muse Implementer for eligible fast units uses the executable
+contract even for a low/medium fast or standard unit because its external
+runtime needs a common terminal and observation boundary.
 
 ### Reconcile
 

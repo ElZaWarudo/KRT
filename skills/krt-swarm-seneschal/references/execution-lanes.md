@@ -32,22 +32,27 @@ parent or foundation lane automatically.
 
 | Lane | Admission rule | Worker profile | Reasoning | Compound Master |
 |---|---|---|---|---|
-| `fast` | Fully decision-closed change with a confirmed edit path, normally 1–3 files, and no demanding trigger | `spark` | `xhigh` | forbidden |
+| `fast` | Fully decision-closed change with a confirmed edit path, normally 1–3 files, and no demanding trigger | `luna` | `high` | forbidden |
 | `standard` | Execution-ready work with bounded local choices and no demanding trigger | `luna` | `high` | normally forbidden |
 | `deep` | Any concrete deep trigger below | `luna_xhigh` | `xhigh` | only when its artifact or quality pipeline is incomplete |
 
-Spark reasoning is intentionally fixed at `xhigh`. Luna `high` is the default for normal work.
-Luna `xhigh` is admitted only by a concrete deep trigger.
+Luna `high` handles fast and standard Codex work. Luna `xhigh` is admitted only
+by a concrete deep trigger.
 Reasoning depth and execution duration are independent; higher reasoning never
 expands ownership, rounds, commands, or elapsed budget.
 
-Muse Code is an optional external Implementer for an execution-ready `fast` or
-`standard` unit when the user selects it or the wave plan explicitly names a
-Muse benefit. Use contract profile `muse_contributor` and model
-`muse-spark-1.3-contributor`. It does not replace the `deep` discovery and
-implementation stages. Select its lane from the unit's real difficulty, not
-from the model name. Its process exit and prose are never readiness evidence;
-the same root diff, command, review, and assurance gates apply.
+Prefer Muse Code for a `fast` unit when its CLI and model are available and the
+unit has a bounded edit path, exact ownership, and focused checks. Also consider
+Muse for `standard` implementation that has settled product and architecture
+decisions but needs local code choices, such as focused feature work, tests,
+refactors, or documentation tied to an implementation. Use contract profile
+`muse_contributor` and model `muse-spark-1.3-contributor`. If Muse is unavailable,
+select the registered Luna profile in the wave plan before dispatch. Do not
+substitute after a contract is materialized or a worker has started. Muse does
+not perform deep discovery or own unresolved auth, data, security, migration,
+public-contract, or production decisions. Select the lane from the unit's real
+difficulty, not the model name. Its process exit and prose are never readiness
+evidence; the same root diff, command, review, and assurance gates apply.
 
 ### Fast Preconditions
 
@@ -60,7 +65,7 @@ All must be true:
   public-contract decision remains; and
 - focused verification is named literally.
 
-Otherwise use `standard`. Spark does not perform discovery.
+Otherwise use `standard`. A fast worker does not perform open-ended discovery.
 
 ### Deep Triggers
 

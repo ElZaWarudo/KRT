@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "lane_stages": {
-    "fast": ["spark"],
+    "fast": ["luna"],
     "standard": ["luna"],
     "deep": ["luna_xhigh_discovery", "luna_xhigh"]
   },
@@ -15,7 +15,7 @@
       ],
       "required_runtime": "codex",
       "expected_name": "luna_worker",
-      "expected_model": "gpt-5.6-luna",
+      "expected_model": "gpt-6-luna",
       "expected_reasoning_effort": "high",
       "expected_protocol": "worker-terminal-v1-terminal-only",
       "model_class": "luna"
@@ -26,7 +26,7 @@
       "user_install": "agents/luna_xhigh_worker.toml",
       "required_runtime": "codex",
       "expected_name": "luna_xhigh_worker",
-      "expected_model": "gpt-5.6-luna",
+      "expected_model": "gpt-6-luna",
       "expected_reasoning_effort": "xhigh",
       "expected_protocol": "worker-terminal-v1-terminal-only",
       "model_class": "luna"
@@ -37,22 +37,11 @@
       "user_install": "agents/luna_xhigh_discovery_worker.toml",
       "required_runtime": "codex",
       "expected_name": "luna_xhigh_discovery_worker",
-      "expected_model": "gpt-5.6-luna",
+      "expected_model": "gpt-6-luna",
       "expected_reasoning_effort": "xhigh",
       "expected_protocol": "discovery-checkpoint-v1-terminal-only",
       "expected_sandbox_mode": "read-only",
       "model_class": "luna"
-    },
-    "spark": {
-      "profile": "assets/codex-workers/spark_worker.toml",
-      "project_override": ".codex/agents/spark_worker.toml",
-      "user_install": "agents/spark_worker.toml",
-      "required_runtime": "codex",
-      "expected_name": "spark_worker",
-      "expected_model": "gpt-5.3-codex-spark",
-      "expected_reasoning_effort": "xhigh",
-      "expected_protocol": "worker-terminal-v1-terminal-only",
-      "model_class": "spark"
     }
   }
 }

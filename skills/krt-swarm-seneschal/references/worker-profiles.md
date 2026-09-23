@@ -1,7 +1,7 @@
 # Worker Profiles
 
 Load this reference before installing or dispatching a named Codex worker such
-as Spark or Luna.
+as Luna.
 
 ## Distribution And Discovery
 
@@ -24,14 +24,14 @@ Resolution order is strict:
 
 The registered execution profiles are:
 
-- `spark`: small, completely decision-closed work; Spark remains `xhigh`.
-- `luna`: normal bounded work; Luna uses `high`.
+- `luna`: fast or standard bounded work; GPT-6 Luna uses `high`.
 - `luna_xhigh_discovery`: read-only first stage for every deep unit; Luna uses
   `xhigh` and returns the terminal discovery checkpoint.
 - `luna_xhigh`: demanding work admitted by `execution-lanes.md`; Luna uses
   `xhigh` and implements only after an accepted checkpoint.
 
-`muse_contributor` is an optional external Implementer, not a Codex custom
+`muse_contributor` is the preferred external Implementer for eligible fast
+units and a useful option for settled standard units, not a Codex custom
 agent. After materializing the ordinary executable worker contract, invoke
 `krt-muse-artificer` with the contract and a root-created worktree. Its model
 is `muse-spark-1.3-contributor` in Muse Code. Do not install it through the
@@ -97,7 +97,7 @@ Root evaluates the deep-stage checkpoint and terminal return through
 `lightweight-supervision.md`. Repeated-read tracing is permitted only in an
 explicit diagnostic sample, never as a normal profile default.
 
-All implementation profiles, including Spark, also receive a materialized
+All Codex implementation profiles also receive a materialized
 `worker-contract.json` and are reconciled through
 `scripts/evaluate_worker_run.py`. The worker echoes the hash and supplies
 criterion and command evidence; root independently supplies the actual diff and

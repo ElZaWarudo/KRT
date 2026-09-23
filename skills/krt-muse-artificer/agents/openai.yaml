@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-muse-artificer"
-  short_description: "Run a Seneschal worker contract with Muse Code"
-  default_prompt: "Use krt-muse-artificer to execute this ready Seneschal worker contract with Muse Code."
+  short_description: "Implement a ready fast or settled standard Seneschal unit with Muse Code"
+  default_prompt: "Use krt-muse-artificer to execute this ready Seneschal implementation contract with Muse Code."

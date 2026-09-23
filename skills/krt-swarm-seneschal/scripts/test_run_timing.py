@@ -57,7 +57,7 @@ class RunTimingTest(unittest.TestCase):
 
     def test_each_lane_records_manifest_owned_model_policy(self) -> None:
         routes = {
-            "fast": ("spark", "spark", "xhigh"),
+            "fast": ("luna", "luna", "high"),
             "standard": ("luna", "luna", "high"),
             "deep": ("luna_xhigh", "luna", "xhigh"),
         }
@@ -170,7 +170,7 @@ class RunTimingTest(unittest.TestCase):
                     wave_id="wave-1",
                     unit_id="unit-1",
                     lane="fast",
-                    worker_profile="luna",
+                    worker_profile="luna_xhigh",
                     phases={},
                     context_bytes=0,
                     verification_fingerprint=None,
@@ -245,7 +245,7 @@ class RunTimingTest(unittest.TestCase):
                 "--lane",
                 "fast",
                 "--worker-profile",
-                "spark",
+                "luna",
                 "--status",
                 "completed",
             ]

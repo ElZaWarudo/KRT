@@ -5,7 +5,7 @@ Read-only Luna worker that discovers the edit path for a deep unit.
 It returns one terminal checkpoint and never implements or modifies files.
 """
 
-model = "gpt-5.6-luna"
+model = "gpt-6-luna"
 model_reasoning_effort = "xhigh"
 
 sandbox_mode = "read-only"

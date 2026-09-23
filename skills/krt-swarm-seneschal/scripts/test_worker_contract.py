@@ -198,7 +198,7 @@ class WorkerContractTest(unittest.TestCase):
 
     def test_contract_rejects_lane_profile_mismatch_and_tampering(self) -> None:
         with self.assertRaisesRegex(ValueError, "requires one of"):
-            materialize_contract(self.draft(profile="spark"))
+            materialize_contract(self.draft(profile="retired_profile"))
         contract = materialize_contract(self.draft())
         contract["objective"] = "Tampered"
         with self.assertRaisesRegex(ValueError, "contract_hash"):
@@ -304,12 +304,12 @@ class WorkerContractTest(unittest.TestCase):
         fast = materialize_contract(
             self.draft(
                 lane="fast",
-                profile="spark",
+                profile="luna",
                 required_certifications=[],
             )
         )
         fast_result = evaluate_worker_run(
-            fast, self.observation(fast, profile="spark"), now_ms=5_000
+            fast, self.observation(fast, profile="luna"), now_ms=5_000
         )
 
         deep = materialize_contract(

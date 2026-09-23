@@ -1,6 +1,6 @@
 ---
 name: krt-muse-artificer
-description: Run Muse Code as a bounded implementation worker for a Seneschal executable worker contract. Use when a ready fast or standard unit explicitly selects Muse; Seneschal retains worktree, review, verification, and release ownership.
+description: Run Muse Code as a bounded Seneschal implementation worker. Prefer it for ready fast units and consider it for settled standard units with focused checks; Seneschal retains worktree, review, verification, and release ownership.
 ---
 
 # KRT Muse Artificer
@@ -9,6 +9,21 @@ Execute one ready Seneschal Implementer contract with Muse Code model
 `muse-spark-1.3-contributor`. This skill owns the Muse invocation and its
 terminal artifact. Seneschal owns unit selection, contract materialization,
 worktree creation, root observation, review, verification, and reconciliation.
+
+## Good assignments
+
+Prefer Muse for a fast unit with a confirmed edit path, exact owned files, closed
+decisions, and named focused checks. Good examples include a small bug fix with
+a known cause, a mechanical code or documentation change, a targeted test, or a
+bounded UI adjustment with clear acceptance criteria. Consider Muse for a
+standard unit when local implementation choices remain but product, architecture,
+compatibility, and risk decisions are settled. This includes focused feature
+work, a contained refactor, or tests for already specified behavior.
+
+Send ambiguous diagnosis, architecture, auth, data, security, migration, public
+contracts, concurrency, and production decisions through Seneschal's deep route.
+If Muse or its model is unavailable, Seneschal may plan a Luna worker before
+materializing a contract. Do not change the worker behind an existing contract.
 
 ## Admission
 

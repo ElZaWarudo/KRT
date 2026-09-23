@@ -24,7 +24,7 @@ class ExecutionLaneContractTest(unittest.TestCase):
             if cells[0].strip("`") in {"fast", "standard", "deep"}
         }
         expected = {
-            "fast": ("spark", "xhigh"),
+            "fast": ("luna", "high"),
             "standard": ("luna", "high"),
             "deep": ("luna_xhigh", "xhigh"),
         }
@@ -34,14 +34,14 @@ class ExecutionLaneContractTest(unittest.TestCase):
                 encoding="utf-8"
             )
         )
-        self.assertEqual(manifest["lane_stages"]["fast"], ["spark"])
+        self.assertEqual(manifest["lane_stages"]["fast"], ["luna"])
         self.assertEqual(manifest["lane_stages"]["standard"], ["luna"])
         self.assertEqual(
             manifest["lane_stages"]["deep"],
             ["luna_xhigh_discovery", "luna_xhigh"],
         )
-        self.assertIn("Spark reasoning is intentionally fixed at `xhigh`", lanes)
-        self.assertIn("default for normal work", lanes)
+        self.assertIn("Prefer Muse Code for a `fast` unit", lanes)
+        self.assertIn("handles fast and standard Codex work", lanes)
         self.assertIn(
             "admitted only by a concrete deep trigger", " ".join(lanes.split())
         )

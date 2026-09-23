@@ -93,10 +93,10 @@ For the advanced protocol, the worker envelope remains mandatory: a profile supp
 behavior, not the unit-specific contract.
 
 Load `execution-lanes.md` before composing the envelope. Its implementation
-mapping is fixed: `fast` -> `spark`/`xhigh`, `standard` -> `luna`/`high`, and
-`deep` -> `luna_xhigh_discovery` then `luna_xhigh`, both at `xhigh`. Spark
-remains `xhigh` and receives only decision-closed contracts. Supporting roles
-use Luna `high` normally and Luna `xhigh` only when their own bounded task has a
+Codex mapping is `fast` or `standard` -> `luna`/`high`, and
+`deep` -> `luna_xhigh_discovery` then `luna_xhigh`, both at `xhigh`.
+Eligible fast units prefer `muse_contributor` through `krt-muse-artificer`.
+Supporting roles use Luna `high` normally and Luna `xhigh` only when their own bounded task has a
 deep trigger.
 
 Set a short elapsed limit proportional to the literal assignment, not the
@@ -182,8 +182,8 @@ branch/base facts, release readiness, and recommended resume invocation.
 
 ### Implementer
 
-Use when the unit is execution-ready. Select Spark only for `fast`, Luna `high`
-for `standard`, and Luna `xhigh` for `deep`.
+Use when the unit is execution-ready. Prefer Muse for eligible `fast` units;
+use Luna `high` for other `fast` and `standard` units and Luna `xhigh` for `deep`.
 
 ```text
 Implement only the described unit.

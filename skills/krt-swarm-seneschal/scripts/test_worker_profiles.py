@@ -39,9 +39,7 @@ class WorkerProfileTest(unittest.TestCase):
         self.assertFalse(
             any(entry["runtime_discoverable"] for entry in result["workers"].values())
         )
-        self.assertEqual(
-            result["workers"]["spark"]["model_reasoning_effort"], "xhigh"
-        )
+        self.assertEqual(result["workers"]["luna"]["model"], "gpt-6-luna")
         self.assertEqual(
             result["workers"]["luna"]["model_reasoning_effort"], "high"
         )
@@ -60,7 +58,7 @@ class WorkerProfileTest(unittest.TestCase):
                 skill_dir=SKILL_ROOT,
                 repo_root=temp_root / "repo",
                 codex_home=temp_root / "codex-home",
-                requested_workers=["spark"],
+                requested_workers=["luna"],
             )
 
         self.assertFalse(result["allowed"])
@@ -74,19 +72,19 @@ class WorkerProfileTest(unittest.TestCase):
             repo_root = temp_root / "repo"
             project_agents = repo_root / ".codex" / "agents"
             project_agents.mkdir(parents=True)
-            (project_agents / "spark_worker.toml").write_bytes(
-                bundled("spark").read_bytes()
+            (project_agents / "luna_worker.toml").write_bytes(
+                bundled("luna").read_bytes()
             )
             result = check_profiles(
                 skill_dir=SKILL_ROOT,
                 repo_root=repo_root,
                 codex_home=temp_root / "codex-home",
-                requested_workers=["spark"],
-                model_class="spark",
+                requested_workers=["luna"],
+                model_class="luna",
             )
 
         self.assertTrue(result["allowed"], result["errors"])
-        self.assertEqual(result["workers"]["spark"]["source"], "project-agent")
+        self.assertEqual(result["workers"]["luna"]["source"], "project-agent")
 
     def test_personal_agent_is_runtime_discoverable(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -205,23 +203,23 @@ class WorkerProfileTest(unittest.TestCase):
             repo_root = temp_root / "repo"
             project_agents = repo_root / ".codex" / "agents"
             project_agents.mkdir(parents=True)
-            (project_agents / "spark_worker.toml").write_text(
+            (project_agents / "luna_worker.toml").write_text(
                 'name = "wrong"\n', encoding="utf-8"
             )
             personal_agents = temp_root / "codex-home" / "agents"
             personal_agents.mkdir(parents=True)
-            (personal_agents / "spark_worker.toml").write_bytes(
-                bundled("spark").read_bytes()
+            (personal_agents / "luna_worker.toml").write_bytes(
+                bundled("luna").read_bytes()
             )
             result = check_profiles(
                 skill_dir=SKILL_ROOT,
                 repo_root=repo_root,
                 codex_home=temp_root / "codex-home",
-                requested_workers=["spark"],
+                requested_workers=["luna"],
             )
 
         self.assertFalse(result["allowed"])
-        self.assertNotIn("spark", result["workers"])
+        self.assertNotIn("luna", result["workers"])
         self.assertTrue(
             any("worker-profile-field-invalid" in error for error in result["errors"])
         )
@@ -232,18 +230,18 @@ class WorkerProfileTest(unittest.TestCase):
             repo_root = temp_root / "repo"
             project_agents = repo_root / ".codex" / "agents"
             project_agents.mkdir(parents=True)
-            profile = bundled("spark").read_text(encoding="utf-8").replace(
-                'model_reasoning_effort = "xhigh"',
+            profile = bundled("luna").read_text(encoding="utf-8").replace(
                 'model_reasoning_effort = "high"',
+                'model_reasoning_effort = "xhigh"',
             )
-            (project_agents / "spark_worker.toml").write_text(
+            (project_agents / "luna_worker.toml").write_text(
                 profile, encoding="utf-8"
             )
             result = check_profiles(
                 skill_dir=SKILL_ROOT,
                 repo_root=repo_root,
                 codex_home=temp_root / "codex-home",
-                requested_workers=["spark"],
+                requested_workers=["luna"],
             )
 
         self.assertFalse(result["allowed"])
@@ -261,8 +259,8 @@ class WorkerProfileTest(unittest.TestCase):
             project_agents = repo_root / ".codex" / "agents"
             project_agents.mkdir(parents=True)
             profile = bundled("luna_xhigh").read_text(encoding="utf-8").replace(
+                'model = "gpt-6-luna"',
                 'model = "gpt-5.6-luna"',
-                'model = "gpt-5.3-codex-spark"',
             )
             (project_agents / "luna_xhigh_worker.toml").write_text(
                 profile, encoding="utf-8"
@@ -329,7 +327,7 @@ class WorkerProfileTest(unittest.TestCase):
                 repo_root=temp_root / "repo",
                 codex_home=temp_root / "codex-home",
                 requested_workers=["luna"],
-                model_class="spark",
+                model_class="other",
                 allow_bundled=True,
             )
 
@@ -437,14 +435,14 @@ class WorkerProfileTest(unittest.TestCase):
             codex_home = temp_root / "codex-home"
             personal_agents = codex_home / "agents"
             personal_agents.mkdir(parents=True)
-            target = personal_agents / "spark_worker.toml"
+            target = personal_agents / "luna_worker.toml"
             target.write_text('name = "custom"\n', encoding="utf-8")
             result = install_profiles(
                 skill_dir=SKILL_ROOT,
                 repo_root=temp_root / "repo",
                 codex_home=codex_home,
                 scope="user",
-                requested_workers=["spark"],
+                requested_workers=["luna"],
                 install=True,
             )
 
@@ -459,14 +457,14 @@ class WorkerProfileTest(unittest.TestCase):
             shutil.copytree(SKILL_ROOT / "assets" / "codex-workers", assets)
             manifest_path = assets / "manifest.yaml"
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-            del manifest["workers"]["spark"]["expected_reasoning_effort"]
+            del manifest["workers"]["luna"]["expected_reasoning_effort"]
             manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
             result = install_profiles(
                 skill_dir=skill_root,
                 repo_root=temp_root / "repo",
                 codex_home=temp_root / "codex-home",
                 scope="user",
-                requested_workers=["spark"],
+                requested_workers=["luna"],
             )
 
         self.assertFalse(result["allowed"])
