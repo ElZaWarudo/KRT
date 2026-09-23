@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-light-compound-master"
+  short_description: "Deliver bounded work with compact state and review"
+  default_prompt: "Use $krt-light-compound-master to plan, implement, verify, and hand off one bounded work package."

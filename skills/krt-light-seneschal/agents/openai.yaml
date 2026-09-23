@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-light-seneschal"
+  short_description: "Coordinate worker waves with minimal records"
+  default_prompt: "Use $krt-light-seneschal to plan, dispatch, reconcile, or report a light worker run."
