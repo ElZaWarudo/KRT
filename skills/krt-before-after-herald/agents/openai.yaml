@@ -1,0 +1,4 @@
+interface:
+  display_name: "krt-before-after-herald"
+  short_description: "Build a before/after HTML report of UI screenshots as review evidence"
+  default_prompt: "Use krt-before-after-herald to capture before and after screenshots, write report.json, build the single-file comparison report, check it in a browser, and return its path."

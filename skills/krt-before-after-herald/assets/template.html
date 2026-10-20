@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="__LANG__">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+:root {
+    --bg: #f4f6fa;
+    --surface: #ffffff;
+    --text: #1d2130;
+    --muted: #5d6478;
+    --border: #dfe3ec;
+    --brand: #2b2be0;
+    --brand-soft: #e9e9ff;
+    --success: #127a4d;
+    --warning: #9a5b00;
+    --danger: #b42318;
+    --shadow: 0 1px 2px rgb(16 24 40 / 0.06);
+}
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --bg: #1b1e29;
+        --surface: #23273a;
+        --text: #eef0f6;
+        --muted: #a6adc2;
+        --border: #363b52;
+        --brand: #8f8fff;
+        --brand-soft: #2f3160;
+        --success: #5fd39a;
+        --warning: #f0b45c;
+        --danger: #ff8a7a;
+        --shadow: none;
+    }
+}
+:root[data-theme="dark"] {
+    --bg: #1b1e29;
+    --surface: #23273a;
+    --text: #eef0f6;
+    --muted: #a6adc2;
+    --border: #363b52;
+    --brand: #8f8fff;
+    --brand-soft: #2f3160;
+    --success: #5fd39a;
+    --warning: #f0b45c;
+    --danger: #ff8a7a;
+    --shadow: none;
+}
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.55 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Inter, Roboto, sans-serif;
+}
+.wrap { max-width: 1480px; margin: 0 auto; padding: 32px 16px 64px; }
+header.page { border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 24px; }
+h1 { font-size: 1.6rem; margin: 0 0 6px; font-weight: 650; }
+h2 { font-size: 1.1rem; margin: 0 0 12px; font-weight: 650; }
+p { margin: 0; }
+.muted { color: var(--muted); }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 10px; font-size: 0.9rem; }
+.meta b { font-weight: 600; }
+code { font: 0.85em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--brand-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.grid-2 { display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr); margin-bottom: 32px; }
+@media (min-width: 960px) { .grid-2 { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); } }
+ul.tight { margin: 0; padding-left: 18px; }
+ul.tight li { margin: 4px 0; }
+.checks { list-style: none; margin: 0; padding: 0; }
+.checks li { display: flex; gap: 10px; padding: 8px 0; border-top: 1px solid var(--border); }
+.checks li:first-child { border-top: 0; }
+.dot { flex: none; width: 8px; height: 8px; border-radius: 50%; margin-top: 8px; }
+.ok { background: var(--success); }
+.note { background: var(--warning); }
+.fail { background: var(--danger); }
+.toolbar {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center;
+    background: var(--bg); padding: 12px 0; border-bottom: 1px solid var(--border); margin-bottom: 16px;
+}
+.seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.seg button {
+    border: 0; background: transparent; color: var(--text); padding: 7px 12px; font: inherit; font-size: 0.875rem; font-weight: 600; cursor: pointer;
+}
+.seg button + button { border-left: 1px solid var(--border); }
+.seg button[aria-pressed="true"] { background: var(--brand-soft); color: var(--brand); }
+.seg button:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.label { font-size: 0.8rem; color: var(--muted); margin-right: 6px; }
+.screen-note { margin-bottom: 16px; }
+.picker { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; flex-basis: 100%; }
+.picker select { height: 36px; min-width: min(100%, 320px); border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); padding: 0 10px; font: inherit; font-size: 0.9rem; }
+.picker select:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.pair { scroll-margin-top: var(--toolbar-h, 120px); display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 900px) { .pair { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } }
+.pair.narrow { grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 360px)); justify-content: center; }
+figure { margin: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); }
+figcaption { display: flex; justify-content: space-between; gap: 8px; padding: 8px 12px; font-size: 0.8rem; font-weight: 650; border-bottom: 1px solid var(--border); }
+figcaption .tag { font-weight: 600; color: var(--muted); }
+figure img { display: block; width: 100%; height: auto; }
+.missing { padding: 24px; color: var(--muted); font-size: 0.9rem; }
+footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 0.85rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <header class="page">
+        <h1>__HEADING__</h1>
+        <p class="muted">__INTRO__</p>
+        <div class="meta">__META__</div>
+    </header>
+
+    __SUMMARY__
+
+    <div class="toolbar" role="group" aria-label="__UI_SETTINGS__">
+        <span id="dimension-controls" style="display: contents"></span>
+        <span><span class="label">__UI_REPORT_THEME__</span><span class="seg" data-key="ui"><button type="button" data-value="auto">__UI_AUTO__</button><button type="button" data-value="light">__UI_LIGHT__</button><button type="button" data-value="dark">__UI_DARK__</button></span></span>
+        <div class="picker" role="group" aria-label="__UI_SCREEN__">
+            <label for="screen-select" class="label">__UI_SCREEN__</label>
+            <select id="screen-select"></select>
+            <span class="seg"><button type="button" id="prev">__UI_PREVIOUS__</button><button type="button" id="next">__UI_NEXT__</button></span>
+            <span class="muted" id="screen-count"></span>
+        </div>
+    </div>
+    <p class="screen-note muted" id="screen-note"></p>
+    <div class="pair" id="pair"></div>
+
+    <footer>__FOOTER__</footer>
+</div>
+
+<script>
+const IMAGES = __IMAGES__;
+const SCREENS = __SCREENS__;
+const DIMENSIONS = __DIMENSIONS__;
+const SIDES = __SIDES__;
+const TEXT = __TEXT__;
+const STORAGE_KEY = __STORAGE_KEY__;
+
+const state = { ui: "auto", screen: SCREENS[0].key };
+for (const dimension of DIMENSIONS) state[dimension.key] = dimension.values[0].value;
+try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    for (const [key, value] of Object.entries(saved)) {
+        const dimension = DIMENSIONS.find((item) => item.key === key);
+        if (key === "ui" || (key === "screen" && SCREENS.some((item) => item.key === value)) || dimension?.values.some((item) => item.value === value)) state[key] = value;
+    }
+} catch (error) {}
+const save = () => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (error) {}
+};
+
+// One segmented control per dimension (for example screenshot theme and viewport).
+const controls = document.getElementById("dimension-controls");
+for (const dimension of DIMENSIONS) {
+    const wrapper = document.createElement("span");
+    const label = document.createElement("span");
+    label.className = "label";
+    label.textContent = dimension.label;
+    const seg = document.createElement("span");
+    seg.className = "seg";
+    seg.dataset.key = dimension.key;
+    for (const option of dimension.values) {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.dataset.value = option.value;
+        button.textContent = option.label;
+        seg.appendChild(button);
+    }
+    wrapper.append(label, seg);
+    controls.appendChild(wrapper);
+}
+
+const renderPicker = () => {
+    const select = document.getElementById("screen-select");
+    if (!select.options.length) {
+        const groups = {};
+        for (const screen of SCREENS) {
+            const groupName = screen.group || "";
+            if (!groups[groupName]) {
+                groups[groupName] = groupName ? document.createElement("optgroup") : select;
+                if (groupName) { groups[groupName].label = groupName; select.appendChild(groups[groupName]); }
+            }
+            const option = document.createElement("option");
+            option.value = screen.key;
+            option.textContent = screen.label;
+            groups[groupName].appendChild(option);
+        }
+        select.addEventListener("change", () => { state.screen = select.value; save(); render({ screenChanged: true }); });
+        const step = (delta) => {
+            const index = SCREENS.findIndex((item) => item.key === state.screen);
+            state.screen = SCREENS[(index + delta + SCREENS.length) % SCREENS.length].key;
+            save();
+            render({ screenChanged: true });
+        };
+        document.getElementById("prev").addEventListener("click", () => step(-1));
+        document.getElementById("next").addEventListener("click", () => step(1));
+        document.addEventListener("keydown", (event) => {
+            if (event.target.closest("select, input, textarea")) return;
+            if (event.key === "ArrowLeft") step(-1);
+            if (event.key === "ArrowRight") step(1);
+        });
+    }
+    select.value = state.screen;
+    const index = SCREENS.findIndex((item) => item.key === state.screen);
+    document.getElementById("screen-count").textContent = TEXT.count.replace("{n}", index + 1).replace("{total}", SCREENS.length);
+};
+
+// Figures are created once and reused: swapping only the image source keeps the scroll position stable.
+const slots = {};
+const slot = (side) => {
+    if (slots[side.key]) return slots[side.key];
+    const fig = document.createElement("figure");
+    const cap = document.createElement("figcaption");
+    const name = document.createElement("span");
+    name.textContent = side.label;
+    const tag = document.createElement("span");
+    tag.className = "tag";
+    cap.append(name, tag);
+    const img = document.createElement("img");
+    img.decoding = "async";
+    const empty = document.createElement("p");
+    empty.className = "missing";
+    empty.textContent = TEXT.missing;
+    fig.append(cap, img, empty);
+    document.getElementById("pair").appendChild(fig);
+    slots[side.key] = { title: side.label, img, tag, empty };
+    return slots[side.key];
+};
+const fill = (entry, tagText, src) => {
+    entry.tag.textContent = tagText;
+    entry.img.hidden = !src;
+    entry.empty.hidden = !!src;
+    entry.img.alt = `${entry.title}: ${tagText}`;
+    if (!src || entry.img.getAttribute("src") === src) return Promise.resolve();
+    return new Promise((resolve) => {
+        entry.img.onload = entry.img.onerror = () => resolve();
+        entry.img.src = src;
+    });
+};
+
+const toolbarHeight = () => document.querySelector(".toolbar").getBoundingClientRect().height + 12;
+
+const render = async ({ screenChanged = false } = {}) => {
+    if (state.ui === "auto") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", state.ui);
+    document.querySelectorAll(".seg[data-key]").forEach((seg) => {
+        seg.querySelectorAll("button").forEach((button) => {
+            button.setAttribute("aria-pressed", String(state[seg.dataset.key] === button.dataset.value));
+        });
+    });
+    renderPicker();
+    const screen = SCREENS.find((item) => item.key === state.screen) || SCREENS[0];
+    document.getElementById("screen-note").textContent = screen.note || "";
+    const chosen = DIMENSIONS.map((dimension) => dimension.values.find((item) => item.value === state[dimension.key]));
+    const id = [screen.key, ...chosen.map((item) => item.value)].join("-");
+    const tag = chosen.map((item) => item.tag || item.label).join(" · ");
+    const pair = document.getElementById("pair");
+    // Hold the current height while the new images decode, so the page never collapses and jumps.
+    pair.style.minHeight = pair.getBoundingClientRect().height + "px";
+    pair.className = "pair" + (chosen.some((item) => item.narrow) ? " narrow" : "");
+    await Promise.all(SIDES.map((side) => fill(slot(side), tag, IMAGES[side.key]?.[id])));
+    pair.style.minHeight = "";
+    if (screenChanged) {
+        document.documentElement.style.setProperty("--toolbar-h", toolbarHeight() + "px");
+        if (pair.getBoundingClientRect().top < toolbarHeight()) pair.scrollIntoView({ block: "start" });
+    }
+};
+
+document.querySelectorAll(".seg[data-key]").forEach((seg) => {
+    seg.addEventListener("click", (event) => {
+        const button = event.target.closest("button");
+        if (!button) return;
+        state[seg.dataset.key] = button.dataset.value;
+        save();
+        render();
+    });
+});
+if (location.hash && SCREENS.some((item) => "#" + item.key === location.hash)) state.screen = location.hash.slice(1);
+render();
+</script>
+</body>
+</html>

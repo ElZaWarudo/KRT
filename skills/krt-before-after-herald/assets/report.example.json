@@ -1,0 +1,50 @@
+{
+    "lang": "en",
+    "title": "Checkout redesign",
+    "heading": "Checkout redesign: before and after",
+    "intro_html": "The new checkout layout from <code>docs/design/checkout.md</code>, applied to every step of the flow.",
+    "meta": [
+        ["Date", "20 Oct 2026"],
+        ["Screens", "3 (light/dark × desktop/mobile each)"],
+        ["Code", "branch <code>feat/checkout-redesign</code> at <code>abc1234</code>"],
+        ["Data", "staging seed data, test account"]
+    ],
+    "changes": [
+        "<b>One header.</b> Each step uses the same page header with the order total on the right.",
+        "<b>Shorter form.</b> The address form went from three columns to one, with labels above the fields."
+    ],
+    "checks": [
+        { "status": "ok", "html": "<b>Screens:</b> 12 captures with no console errors and no horizontal overflow." },
+        { "status": "ok", "html": "<b>Contrast:</b> every visible text reaches 4.5:1 in both themes." },
+        { "status": "note", "html": "<b>Unit tests:</b> 210 pass; 2 fail, the same 2 that failed before this change." }
+    ],
+    "footer_html": "“Before” is <code>main</code> at <code>9f8e7d6</code>. Screenshots were taken with headless Chromium against the same data. Images are embedded in this file.",
+    "storage_key": "checkout-redesign-compare",
+    "sides": [
+        { "key": "before", "label": "Before" },
+        { "key": "after", "label": "After" }
+    ],
+    "dimensions": [
+        {
+            "key": "theme",
+            "label": "Screenshot theme",
+            "values": [
+                { "value": "light", "label": "Light" },
+                { "value": "dark", "label": "Dark" }
+            ]
+        },
+        {
+            "key": "vp",
+            "label": "Viewport",
+            "values": [
+                { "value": "desktop", "label": "Desktop", "tag": "1440px" },
+                { "value": "mobile", "label": "Mobile", "tag": "390px", "narrow": true }
+            ]
+        }
+    ],
+    "screens": [
+        { "group": "Checkout", "key": "cart", "label": "Cart", "note": "Line items became a divided list; the total moved into the header." },
+        { "group": "Checkout", "key": "address", "label": "Address", "note": "One-column form with labels above 40px fields." },
+        { "group": "Confirmation", "key": "receipt", "label": "Receipt", "note": "The receipt reuses the cart list, so both pages read the same way." }
+    ]
+}
