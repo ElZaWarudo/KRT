@@ -1,13 +1,14 @@
 # Safety Model
 
-`krt-review-herald` triages PR review feedback and prepares fixes or replies. It should preserve reviewer intent and avoid notification-causing side effects unless asked.
+`krt-review-herald` edits code in response to review and can write to GitHub.
 
-## Guardrails
-
-- Do not treat every comment as a task; classify validity, severity, and response path.
-- Do not blindly apply suggested changes; validate reviewer premise against current code and project constraints.
-- Do not push, create PRs, request reviewers, resolve threads, or transition Jira without explicit approval.
-- Do not mark a thread addressed unless code, tests, docs, or a clear explanation resolves it.
-- Keep replies concise and professional; explain tradeoffs when disagreeing.
-- Preserve unresolved blockers instead of burying them under a general done message.
-- Ask before fixes that change public API, persistence semantics, authorization, tenancy, security posture, release behavior, or product scope.
+- Posting replies, resolving or unresolving threads, requesting reviewers,
+  dismissing reviews, commenting and pushing all notify people. Do them only
+  after the user approves the exact actions, or within an enclosing release
+  workflow that named them.
+- Publish thread actions through `scripts/apply_review_threads.py`; run it
+  without `--execute` first.
+- Never resolve a thread whose concern is not actually addressed on the PR,
+  and never resolve an open question or a decision that belongs to the user.
+- Ask before fixes that change public API or serialized output, persistence,
+  auth or tenancy, dependencies, release behavior or product scope.

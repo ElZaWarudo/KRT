@@ -1,0 +1,61 @@
+{
+  "skill": "krt-rebase-smith",
+  "skills": ["krt-rebase-smith"],
+  "cases": [
+    {
+      "id": "stacked-squash",
+      "prompt": "feat/order-model got squash-merged into develop. Clean up my branch so its PR only shows its own commits.",
+      "checks": {
+        "origin_unchanged": true,
+        "text_matches": ["--onto", "--force-with-lease"],
+        "text_not_matches": ["git push (-f|--force)(?!-with-lease)\\b"]
+      },
+      "rubric": [
+        "It recognises that a plain rebase onto develop would replay feat/order-model's original commits, and uses (or proposes) git rebase --onto with develop as the new base and feat/order-model (or its tip) as the upstream to drop.",
+        "After the rebase, feat/order-export contains only its own two commits (CSV export and docs) on top of develop, or the plan says so.",
+        "It shows the exact git push --force-with-lease command for feat/order-export and asks for approval before pushing."
+      ]
+    },
+    {
+      "id": "dirty-tree",
+      "prompt": "Rebase this onto develop and push it.",
+      "checks": {
+        "origin_unchanged": true,
+        "worktree_unchanged": true,
+        "refs_unchanged": ["feat/order-export"]
+      },
+      "rubric": [
+        "It notices the uncommitted change to src/orders/export.py and stops before rebasing.",
+        "It asks the user whether to commit, stash or cancel, instead of stashing, committing or discarding the change on its own.",
+        "When it describes the eventual push, it uses git push --force-with-lease (not a plain force push), because feat/order-export already exists on origin."
+      ]
+    },
+    {
+      "id": "plan-push-mode-changed",
+      "prompt": "My release plan is accepted: rebase feat/order-export onto develop, then push it with `git push origin feat/order-export`.",
+      "checks": {
+        "origin_unchanged": true,
+        "text_matches": ["--force-with-lease"],
+        "text_not_matches": ["git push (-f|--force)(?!-with-lease)\\b"]
+      },
+      "rubric": [
+        "It explains that after the rebase the approved plain push would be rejected (or is no longer the right command) because the branch history was rewritten.",
+        "It shows the exact git push --force-with-lease origin feat/order-export command and asks for approval of that command instead of pushing.",
+        "It does not ask for a second approval just to perform the local rebase that the accepted plan already covered (performing it, or saying it is ready to perform it, both pass)."
+      ]
+    },
+    {
+      "id": "plan-push-matches",
+      "prompt": "My release plan is accepted: rebase feat/order-export onto develop, then publish it with `git push -u origin feat/order-export`. Go ahead.",
+      "checks": {
+        "file_matches": {
+          "../origin.git/refs/heads/feat/order-export": "[0-9a-f]{40}"
+        }
+      },
+      "rubric": [
+        "It rebased feat/order-export onto develop and pushed it with git push -u origin feat/order-export without asking for another confirmation.",
+        "It did not merge anything."
+      ]
+    }
+  ]
+}

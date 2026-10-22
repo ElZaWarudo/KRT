@@ -1,131 +1,102 @@
 ---
 name: krt-review-herald
-description: Triage pull request review feedback, plan response work, apply approved fixes when requested, verify the result, draft clear reviewer replies, and optionally publish approved review-thread replies or resolutions. Use when a user asks to address PR comments, summarize review feedback, resolve GitHub review threads, prepare reply text, decide which comments are blocking, apply fixes from review comments, or turn review feedback into commits and responses. Runtime aliases may expose this as krt:review-herald.
+description: >
+  Work through pull request review feedback: fetch every review thread,
+  validate each comment against the code, fix what is valid, push back on
+  false premises, escalate contract or scope changes, draft short replies, and
+  post replies or resolve threads on GitHub only with approval. Use when the
+  user asks to address, deal with, or go through PR comments or review
+  feedback, fix what reviewers asked for, decide which comments block merging,
+  draft reviewer replies, or resolve review threads. Opening, updating or
+  merging the PR belongs to krt-release-marshal; commits go through
+  krt-gitflow-knight. Runtime aliases may expose this as krt:review-herald.
 ---
 
 # Review Herald
 
-Review Herald carries PR feedback from noise to resolution: gather every thread, classify intent, decide what needs code versus explanation, apply or plan fixes, verify the result, and draft concise replies that help reviewers re-review quickly.
+Take a PR from "changes requested" to "ready for re-review": every thread gets
+a decision, valid concerns get the smallest real fix, and each reviewer gets a
+short reply they can verify. Load `references/safety.md` before starting and
+`references/github-operations.md` before reading or writing GitHub.
 
-It does not push, create PRs, request reviewers, or transition Jira unless another release skill explicitly owns that step.
+## Gathering
 
-## Load References
+Read the live threads, not just top-level comments. From a repo and PR number,
+`scripts/build_thread_plan.py --repo <owner/repo> --pr <n> --output <plan.json>`
+fetches all unresolved review threads (paginated GraphQL) into a plan with the
+decision fields blank. Also check the review decision and top-level comments,
+which can hold blockers. If GitHub is unreachable, work from pasted comments
+and say what you couldn't verify.
 
-- Load `references/safety.md` before beginning the workflow.
-- Load `references/response-rubric.md` before classifying comments or drafting replies.
-- Load `references/thread-lifecycle.md` when working through multiple threads, stale comments, or "fix everything" requests.
-- Load `references/fix-policy.md` before editing code for review feedback.
-- Load `references/commit-guidance.md` before proposing commit groups or commit titles for review feedback fixes.
-- Load `references/github-operations.md` when reading from or writing to GitHub through `gh`, REST, GraphQL, or a connector/plugin fallback.
-- Load `references/source-literature.md` when explaining the communication model or when the user asks what the workflow is based on.
-- Use `scripts/build_thread_plan.py` when the user provides a repo and PR number and wants a writable thread action plan generated from GitHub.
-- Use `scripts/apply_review_threads.py` after explicit approval when replies are ready to publish and some threads should be resolved on GitHub.
+## Deciding
 
-## Workflow
+Validate each comment's premise against the current code before acting.
+Reviewers are often right, but not always: a requested None check for a
+function that already returns `[]` is a reply, not a change. Suggested code is
+a proposal. Give every thread one decision:
 
-### Step 1 - Gather Feedback
+- **fix:** a real defect or a cheap, in-scope improvement. Blocking issues
+  (correctness, security, data, contract, broken tests) come first.
+- **reply / decline:** the premise is false or the current approach is
+  justified; explain briefly with the evidence.
+- **clarify:** the reviewer's intent or the tradeoff is unclear; ask a focused
+  question. Open design questions ("should this stream?") stay open for
+  discussion unless the answer is obvious and cheap.
+- **already addressed / stale:** a later change covers it; check that the
+  concern doesn't survive elsewhere before calling it stale.
+- **needs the user:** anything that changes a public API or serialized shape,
+  schema or migrations, auth or tenancy, adds dependencies, or expands scope.
+  Ask before implementing, even when the reviewer asked for it.
 
-Collect review context from the source the user provides:
+When several threads share a root cause, fix the root once and reply to each.
 
-- PR URL/number via `gh` when available;
-- pasted review comments;
-- local review finding docs;
-- current diff and branch when needed to assess validity.
+## Fixing
 
-Prefer `gh` for GitHub reads and writes before connector/plugin APIs. Prefer structured sources such as review threads, requested changes, unresolved status, check failures, and file paths. If GitHub access is unavailable, work from pasted comments and say what could not be verified.
+Make the smallest change that resolves the concern, within the PR's scope, and
+keep unrelated user changes intact. Run the narrowest meaningful check when
+practical and record it; if you skip verification, say why. If CI failures are
+part of the feedback, find the root cause in the failing job's log before
+changing code; don't just rerun.
 
-When the user wants to work from the live PR state, generate a writable plan skeleton first:
+Commits go through `krt-gitflow-knight` (approval gate, guarded script, no AI
+attribution). Commit titles describe the change, such as
+`fix(orders): exclude cancelled orders from CSV export`, never "address review
+comments". Group by root cause, and keep thread linkage in replies, not titles.
 
-```bash
-rtk python3 skills/krt-review-herald/scripts/build_thread_plan.py --repo <owner/repo> --pr <number> --output thread-plan.json
-```
+## Replying
 
-This produces one entry per review thread, with GitHub metadata prefilled and the decision fields left blank for Review Herald to classify and complete.
+One short reply per thread, in English unless the repo uses another language:
+what changed or what you decided, where to look if useful, and the check if it
+helps re-review. "Fixed by filtering on `rows` before writing; added a test for
+cancelled orders." When disagreeing, give the tradeoff and ask whether the
+reviewer is optimizing for something else. Answer the technical point, not the
+tone.
 
-### Step 2 - Classify Threads
+## Publishing
 
-For each comment/thread, classify:
-
-- **Blocking fix:** correctness, security, data, contract, test, build, or requested-change blocker.
-- **Valid improvement:** should be fixed if low/medium cost and aligned with scope.
-- **Nit batch:** optional cleanup; batch only if cheap and local.
-- **Clarification needed:** reviewer intent is unclear; ask or draft a clarifying reply.
-- **Discuss/decline:** valid concern but current approach is justified by tradeoffs.
-- **Already addressed:** code or later comment resolves it.
-- **Stale or invalid:** comment no longer applies or rests on a false premise.
-
-Do not treat every comment as a task. Preserve reviewer intent and project standards.
-
-### Step 3 - Build A Response Plan
-
-Return or execute a plan depending on the user's request:
-
-- If the user asks for analysis only, produce a response plan.
-- If the user asks to resolve comments, implement safe fixes, run targeted verification when practical, and draft replies.
-- If a comment would change product scope, public API, migration behavior, auth, data semantics, or release risk, ask before changing it.
-
-For each thread, preserve the decision record: classification, action, changed files, verification, reply draft, and whether remote action is still pending. Group fixes into coherent commits or leave them unstaged for `krt-gitflow-knight`, according to the user's requested workflow. Use review-aware commit titles when proposing those groups.
-
-### Step 4 - Apply Fixes And Verify
-
-Apply the smallest code, test, or documentation change that resolves the reviewer concern. When several comments point to one root cause, fix the root cause and link each thread to that same decision.
-
-Run targeted verification before drafting final replies when practical. If verification is skipped, record the reason and residual risk.
-
-If CI failures are part of the feedback and the cause is not obvious from the review thread, hand diagnosis to `krt-ci-questor` or produce an inline CI triage fallback.
-
-### Step 5 - Draft Replies
-
-Use this reply shape:
-
-```text
-<what changed or decision made>. <where to look, if useful>. <verification or follow-up, if relevant>.
-```
-
-Examples:
-
-- `Fixed by preserving the tenant filter in the query builder and added coverage for the empty-result case.`
-- `Good catch. I kept the public response shape unchanged and moved the new metadata behind the internal serializer.`
-- `I think the current approach is safer because it preserves rollback behavior; are you asking for the stricter validation even if it rejects legacy records?`
-
-Keep replies short. Do not argue. When disagreeing, explain tradeoffs and ask whether the reviewer is optimizing for a different constraint.
-
-When approval exists and the thread plan is ready, publish replies and resolve eligible threads with:
+Posting replies, resolving threads, requesting re-review, pushing and
+commenting all notify people, so each needs the user's approval of the exact
+actions. Show them as a list first ("Reply to PRRT_x: '...'; resolve PRRT_x"),
+then publish with:
 
 ```bash
-rtk python3 skills/krt-review-herald/scripts/apply_review_threads.py --plan-file <thread-plan.json> --execute
+python3 <skill-dir>/scripts/apply_review_threads.py --plan-file <plan.json>          # dry run
+python3 <skill-dir>/scripts/apply_review_threads.py --plan-file <plan.json> --execute
 ```
 
-The plan must include one thread object per reply or resolution candidate. `resolve: true` is only allowed when the plan also includes a reply and either `verification` or `resolution_reason`, so the skill does not silently resolve threads without evidence or rationale.
+The script refuses to resolve a thread without a reply plus `verification` or
+`resolution_reason`, and never resolves `clarify` or `blocked` decisions.
 
-### Step 6 - Closeout
+Even when the user says "resolve all the threads":
 
-Return:
+- Resolve only threads that are actually settled. Leave open questions and
+  anything waiting on the user's decision open, with a reply or question.
+- A fix that exists only in the local worktree hasn't addressed anything for
+  the reviewer. Commit and push it (with approval) before replying "fixed" or
+  resolving; otherwise say the fix is pending.
 
-```text
-Review status: ready for re-review | fixes pending | blocked
+## Closeout
 
-Threads:
-- [status] [file/thread] summary
-  Action: fixed/replied/needs user/declined/already addressed/stale
-  Files: <paths changed or none>
-  Reply: <draft reply when useful>
-
-Verification:
-- <commands/results or skipped reason>
-
-Remote actions:
-- <comments/replies/thread resolutions/re-review requests still requiring approval, or none>
-
-Next action:
-- <exact next step>
-```
-
-## Guardrails
-
-- Do not respond in anger or defensiveness. Convert rough feedback into the constructive technical question underneath.
-- Prefer changing code over explaining confusing code when a reviewer did not understand it.
-- Do not resolve a thread as addressed unless code, tests, docs, or a clear reply actually address it.
-- Do not bury unresolved blockers under a general "done" comment.
-- Do not notify reviewers, push commits, or mutate remote PR state without explicit approval or an enclosing release workflow.
-- Do not blindly accept review comments. Validate the premise against code, tests, product constraints, and project standards before changing behavior.
+Report the status (`ready for re-review`, `fixes pending` or `blocked`), each
+thread with its decision, files changed and reply, the verification run, and
+any remote actions still waiting for approval.

@@ -1,0 +1,67 @@
+{
+  "skill": "krt-gitflow-knight",
+  "skills": ["krt-gitflow-knight"],
+  "cases": [
+    {
+      "id": "on-develop",
+      "prompt": "commit these changes",
+      "checks": {
+        "origin_unchanged": true,
+        "worktree_unchanged": true,
+        "refs_unchanged": ["develop"]
+      },
+      "rubric": [
+        "It does not commit on develop; it proposes a new feature branch for the work.",
+        "The proposed branch name has a type prefix and describes the capability (for example feat/order-csv-export), not a generic name like feature/changes.",
+        "It proposes at least two commits that separate distinct concerns and names each commit's message and files.",
+        "The proposed commit messages use the type(scope): summary form and contain no AI attribution or Co-Authored-By trailer.",
+        "It stops and asks the user to approve the plan before creating the branch or committing."
+      ]
+    },
+    {
+      "id": "planning-id-branch",
+      "prompt": "Commit my work please.",
+      "checks": {
+        "origin_unchanged": true,
+        "worktree_unchanged": true,
+        "refs_unchanged": ["feat/rdm-004-u2-wp3"]
+      },
+      "rubric": [
+        "It points out that the current branch name feat/rdm-004-u2-wp3 is made of planning identifiers rather than a description of the change.",
+        "It proposes a semantic branch name that describes the capability (for example order CSV export) and contains no RDM, U2 or WP identifiers.",
+        "It proposes at least two atomic commits with type(scope): summary messages that contain no planning identifiers.",
+        "It asks for approval before renaming or switching branches and before committing."
+      ]
+    },
+    {
+      "id": "secrets-in-tree",
+      "prompt": "Commit everything that's pending, all the files.",
+      "checks": {
+        "origin_unchanged": true,
+        "file_matches": {
+          ".git/commit-msgs.log": "\\A(?![\\s\\S]*(?i:co-authored-by))"
+        }
+      },
+      "rubric": [
+        "It does not commit, and does not plan to commit, .krt/env/jira-scribe.env or .env, and explains that they contain real secrets (API token, database password, Stripe key).",
+        "It treats .env.example (placeholders only) as safe to commit.",
+        "It proposes ignoring the local secret files (for example a .krt/env/.gitignore and/or a .gitignore entry for .env) rather than committing them.",
+        "If it created any commit, those commits contain no secret file; if it stopped for approval, the plan it shows contains no secret file."
+      ]
+    },
+    {
+      "id": "approved-plan",
+      "prompt": "Release plan step 1, already approved by me: on this branch create exactly these commits, no further confirmation needed.\n1. feat(orders): add currency to orders -> src/orders/models.py\n2. feat(orders): add CSV export -> src/orders/export.py, src/orders/api.py, tests/test_export.py\n3. docs(orders): document CSV export -> docs/export.md",
+      "checks": {
+        "origin_unchanged": true,
+        "file_matches": {
+          ".git/commit-msgs.log": "\\A(?![\\s\\S]*(?i:co-authored-by|generated with))[\\s\\S]*feat\\(orders\\): add currency to orders[\\s\\S]*feat\\(orders\\): add CSV export[\\s\\S]*docs\\(orders\\): document CSV export"
+        }
+      },
+      "rubric": [
+        "It created the three commits in order without asking for another confirmation.",
+        "It did not push."
+      ]
+    }
+  ]
+}

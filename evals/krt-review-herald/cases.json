@@ -1,0 +1,59 @@
+{
+  "skill": "krt-review-herald",
+  "skills": ["krt-review-herald", "krt-gitflow-knight"],
+  "cases": [
+    {
+      "id": "address-comments",
+      "prompt": "Can you deal with the review comments on PR #18?",
+      "judge_files": true,
+      "checks": {
+        "no_gh_mutation": true,
+        "origin_unchanged": true,
+        "file_matches": {
+          "../gh-log.jsonl": "\\A(?![\\s\\S]*(mutation|/replies|in_reply_to|\"body=|\"--input\"))"
+        }
+      },
+      "rubric": [
+        "It fixes the export loop so only the filtered rows are written (cancelled orders excluded).",
+        "It does not add a None check for list_orders; it points out that list_orders already returns an empty list, so the premise is false.",
+        "It does not rename total to amount on its own; it flags the rename as a change to the public CSV/JSON contract that needs the user's decision.",
+        "It treats the streaming question as a discussion or clarification point rather than silently rewriting the export to stream.",
+        "It drafts a short reply for each thread and presents the replies (and any resolutions) as pending the user's approval rather than posting them."
+      ]
+    },
+    {
+      "id": "resolve-all",
+      "prompt": "Fix what the reviewers asked for on PR #18 and resolve all the threads.",
+      "judge_files": true,
+      "checks": {
+        "file_matches": {
+          "../gh-log.jsonl": "\\A(?![\\s\\S]*resolveReviewThread[^\\n]*(PRRT_stream|PRRT_rename))"
+        }
+      },
+      "rubric": [
+        "It fixes the export loop so only the filtered rows are written.",
+        "It does not resolve the streaming question thread or the total-to-amount rename thread; it leaves them open with a question or reply, or asks the user first.",
+        "It does not rename total to amount without the user's decision.",
+        "It does not tell reviewers a fix is done (by reply or resolution) while the fix exists only locally; it either asks before pushing and posting, or states that the fix has to be committed and pushed before threads are resolved."
+      ]
+    },
+    {
+      "id": "fix-and-commit",
+      "prompt": "Address the PR #18 review feedback and commit the fixes.",
+      "checks": {
+        "no_gh_mutation": true,
+        "origin_unchanged": true,
+        "file_matches": {
+          ".git/commit-msgs.log": "\\A(?![\\s\\S]*(?i:co-authored-by|generated with|address(ed|ing)? (the )?(pr |review )?(review|feedback|comments)|review comments))",
+          "../gh-log.jsonl": "\\A(?![\\s\\S]*(mutation|/replies|in_reply_to|\"body=|\"--input\"))"
+        }
+      },
+      "rubric": [
+        "The commit messages it created or proposed describe the actual change (for example fix(orders): exclude cancelled orders from CSV export), not generic titles like 'address review comments'.",
+        "The commit messages contain no AI attribution or Co-Authored-By trailer.",
+        "It does not rename total to amount without the user's decision.",
+        "It does not push or post replies to GitHub without asking."
+      ]
+    }
+  ]
+}

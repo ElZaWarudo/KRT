@@ -1,12 +1,15 @@
 # Safety Model
 
-`krt-gitflow-knight` prepares local commits. It should keep branch hygiene and commit history clean without surprising the user or touching remote state.
+`krt-gitflow-knight` changes local branches, the index and history. It never
+touches remote state.
 
-## Guardrails
-
-- Do not commit directly on protected branches unless the user explicitly asks for that exact branch.
-- Do not add LLM attribution or co-author trailers.
-- Do not stage unrelated files by default; stage the planned paths for each commit.
-- Treat pre-staged changes as a separate planning fact instead of mixing them silently with new staging.
-- Ask before partial staging, branch rename with remote implications, or destructive commands.
-- Never run `git restore --staged .`, `git reset --hard`, or broad cleanup as an unapproved shortcut.
+- Commit only through `scripts/create_approved_commit.py`, and only what the
+  accepted plan lists. Its `block_reasons` are stops, not obstacles to route
+  around.
+- Don't clear the index, run `git restore --staged .`, `git reset --hard`,
+  `git clean` or similar broad cleanup without explicit approval. Pre-existing
+  staged or untracked work may be someone else's.
+- Ask before hunk-level staging, renaming a pushed branch, or committing on a
+  protected branch the user explicitly named.
+- Real secrets (`.env`, `.krt/env/*.env`, token or password assignments) never
+  enter a commit, even when the user says "all files".
