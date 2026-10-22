@@ -1,151 +1,69 @@
 ---
 name: krt-interface-warden
-description: "Independently design or implement distinctive, functional frontend interfaces using Editorial Product UI: content-led hierarchy, working-surface metaphors, deliberate layout archetypes, restrained containers, purposeful typography, and accessible code. Use for visual direction, redesign, polish, or implementation when a screen risks generic AI/SaaS cards, dashboard templates, unnecessary tables, weak hierarchy, or decorative chrome; honor a krt-frontend-ux-guardian contract and consume a krt-interface-inquisitor brief when supplied, without requiring either companion."
+description: "Design, build, redesign, or critique frontend interfaces with the Editorial Product UI doctrine: content-led hierarchy, a working-surface metaphor, a deliberate layout archetype, few containers, and purposeful typography instead of generic AI/SaaS card grids. Use when building or restyling a screen, page, dashboard, or app view; when a UI looks generic, templated, or AI-generated; and for visual critique, design review, or visual audit requests such as 'critique this UI', 'why does this look generic', 'visual audit', or 'make this feel less like a SaaS template'. For motion and interaction feel use krt-interaction-polisher."
 ---
 
 # krt-interface-warden
 
-Use this skill when designing, implementing, or reviewing a frontend interface that must feel specific, functional, and intentionally designed instead of generic, AI-generated, or template-like.
+The goal is an interface composed for its specific content and task, so it reads as a dossier, logbook, or control table for this domain rather than a pile of widgets that could belong to any startup. The left-to-right default (sidebar, header, a row of identical KPI cards, a table, everything boxed with border plus shadow) is what models produce unprompted and what users call "generic". Identity should come from content and composition, not from decoration.
 
-The mission is not to make screens "pretty." Compose a complete product surface around real content and work: a dossier, map, logbook, control table, workshop, archive, or report that helps people inspect, decide, operate, compare, validate, or navigate.
+The same doctrine serves two modes: **design** (build or redesign) and **critique** (audit and hand off). Operability always wins over distinctiveness: never trade away the primary task, required states, accessibility, or established product mechanics for a look.
 
-Use **Editorial Product UI** as the default design stance: typographic hierarchy, open space, rigorous alignment, purposeful density, and very few artificial surfaces. Identity should come from the content and composition before decoration.
+## The doctrine
 
-## Collaboration Role
+**Lead with one thing.** Decide what the user's task is and which single element (a figure, a decision, a queue, a work zone) should dominate. Give it type size, position, and space. Everything else is quieter. Equal visual weight for every module is the most common failure.
 
-Warden operates independently and owns the visual system and implementation decisions. It must infer the user task, constraints, and visual direction itself when no companion artifact exists.
+**Pick a surface metaphor** that fits the work, and let the layout follow it:
 
-When the companion skills are also active:
+- Dossier: reviewing one entity, case, claim, or record.
+- Map: relationships, dependencies, flows, topology.
+- Logbook: events, history, incidents, audit trails.
+- Control table: monitoring queues, workloads, live states.
+- Workshop: creating, editing, configuring.
+- Archive: searching, filtering, comparing many records.
+- Report: findings, evidence, recommendations.
 
-- Guardian supplies the functional UX contract and owns its verification gate.
-- Inquisitor supplies evidence-based critique and prioritized change inputs.
-- Warden records the rationale for accepted, adapted, or deferred findings.
+**Pick one layout archetype** (combine two only when each owns a distinct region): editorial page, master-detail, canvas with inspector, staged flow, document with contextual rail, operational list, narrative dashboard, split view, timeline/feed. A persistent sidebar is navigation infrastructure, not a design concept.
 
-Consume a Guardian UX contract or Inquisitor critique brief only when supplied. Otherwise derive the same minimum product constraints from the request and existing interface. Preserve the primary task, completion signal, persistent context, required states, accessibility/responsive constraints, and established mechanics. Visual distinctiveness must not reduce operability.
+**Build hierarchy with the cheapest tool that works**, in this order: typography, space, alignment, proportion, dividers, subtle background shifts, borders, elevation. Reach for a closed surface only when the earlier tools cannot express a real boundary.
 
-For critique-and-fix work with Inquisitor active, implement only after its brief is complete and record which findings were accepted, adapted, or deferred. Without Inquisitor, perform Warden's own pre-design diagnosis and continue. Do not reopen supplied product constraints; surface a conflict when the requested visual change cannot satisfy them.
+**Cards must earn their place.** A card is justified for an independent object among peers, something selectable or draggable as a unit, a summary that opens detail, an object with its own primary action, or a stateful item needing a boundary. "Groups related content" is not a reason; headings, proximity, and rules already do that. Test: would it still be clear with only a title, space, alignment, and a divider? Then drop the card. No nested cards, and no container combining full border, contrasting fill, and shadow.
 
-## Core Rules
+**Tables are for comparison.** Keep one when users compare columns, sort or filter many records, recognize patterns, or act in bulk, and then improve it (numeric alignment, sticky header, fine rules, a clear bulk-action bar) rather than replacing it. One entity's metadata belongs in a definition list; history belongs in a timeline; simple title-status lists belong in rich rows. Do not "fix" a justified table by turning rows into cards.
 
-Do not design the interface as a collection of cards or start by selecting components.
+**Metrics tell a story.** One protagonist figure, supporting measures in an aligned band, an annotation that says why the number matters. Not a grid of identical KPI boxes.
 
-Build hierarchy in this order:
+**Surface budget.** Keep the base background visible over most of the viewport (roughly 60-70% when the product allows), at most one dominant contained surface per viewport, at most two elevation levels. Shadows are for things that float: menus, popovers, dialogs, drag objects.
 
-**Typography -> space -> alignment -> proportion -> dividers -> subtle background shifts -> borders -> elevation.**
+**Color and type as signage.** Color marks action, state, risk, selection, or data, never atmosphere; no decorative gradients, glass, or blobs. Typography carries identity: a work sans, optionally a serif for a protagonist figure or editorial title, mono for codes, dates, and IDs. Don't swap a mature product's typeface; build hierarchy with what exists.
 
-Use a closed surface only when those earlier tools cannot express a real semantic boundary. If a card is used, it must behave like an independent object with a clear functional reason. Otherwise replace it with sections, bands, rails, annotated margins, rich rows, definition lists, tables when comparison requires them, or functional layers.
+**States belong to the surface.** Empty, loading, error, blocked, partial, and conflict states should speak the same language as the metaphor. Status never relies on color alone.
 
-## Required Composition Brief
+**Recompose for narrow screens.** Reprioritize the task: master-detail becomes list then detail, rails become disclosures or drawers, and tables scroll horizontally only when the columns are the task. Mechanically stacking every desktop box, or turning every row into a card, is the failure.
 
-Before choosing components or writing JSX/CSS, record a compact composition brief. Do not skip it for autonomous implementation and do not turn it into an approval checkpoint unless the user asks.
+**Reuse before inventing.** Keep the product's components, tokens, and mechanics unless they are the cause of the problem, and say why when you depart.
 
-1. What supplied Guardian constraints, explicit product requirements, or inferred functional needs are immutable?
-2. If an Inquisitor brief exists, which findings are accepted, adapted, deferred, or not applicable?
-3. What is the user's primary task and completion signal?
-4. What single information element must dominate visually?
-5. What working-surface metaphor fits the domain?
-6. Which layout archetype fits the task: editorial page, master-detail, canvas with inspector, staged flow, document with contextual rail, operational list, narrative dashboard, split view, or timeline/feed?
-7. How do main content, navigation, and contextual information relate?
-8. Which elements need a closed surface? For each one, state the semantic reason.
-9. Does the user need to compare columns, sort dense records, or perform bulk actions? If not, do not default to a table.
-10. What remains visible, what moves behind disclosure, and what becomes a separate view on narrow screens?
-11. What generic AI/SaaS pattern are you avoiding, and what content-led structure replaces it?
-12. What makes the composition recognizable without a logo?
+The generic patterns to recognize and replace (not merely delete) are listed in `references/visual-grammar.md`, together with replacements, typography and spacing ranges, and archetype detail. Read it for any material design or audit.
 
-If an answer is unclear, infer the most useful composition from the data and workflow. Do not block unless the missing choice would materially change the product behavior.
+## Design mode
 
-## Surface Metaphors
+Decide the task, dominant element, metaphor, and archetype before writing markup; let those choices show in the result. Then ask what can be removed: at least one container usually can. Check the subtraction test before finishing: mentally strip borders, shadows, icons, and accent color. If the hierarchy collapses, it was carried by chrome.
 
-- **Dossier**: reviewing one entity, case, user, client, asset, claim, or record.
-- **Map**: navigating relationships, dependencies, flows, ownership, or topology.
-- **Logbook**: reading events, history, activity, changes, incidents, or audit trails.
-- **Control table**: monitoring operations, queues, workloads, states, or live metrics.
-- **Workshop**: creating, editing, composing, transforming, or configuring.
-- **Archive**: searching, filtering, comparing, and retrieving many records.
-- **Report**: explaining findings, recommendations, conclusions, or evidence.
+Keep the explanation short when the user mainly wants code; the interface should carry the argument. A few lines on the chosen metaphor and archetype, any card or table kept and why, and what generic pattern was replaced are enough.
 
-The layout must follow the selected metaphor.
+If a functional or accessibility contract exists (from the user or the codebase), treat it as fixed. If a requested visual change cannot satisfy it, say so instead of quietly breaking it.
 
-## Layout Archetypes
+## Critique mode
 
-Select one primary archetype before implementation; combine two only when each owns a distinct region.
+When asked to critique, review, or audit, produce a report and leave files untouched unless the user also asked for the fix. Ground every point in evidence: the code (cite file, selector, or line), a screenshot region, or the rendered page if you can open it. Label anything inferred.
 
-- **Editorial page**: executive summary, report, or overview with one dominant fact and a contextual rail.
-- **Master-detail**: entities that must be scanned while one remains open for inspection.
-- **Canvas with inspector**: builders, agents, diagrams, automations, and configurators.
-- **Staged flow**: onboarding, creation, review, and other consequential multi-step work.
-- **Document with contextual rail**: readable evidence, evaluations, agent output, or documentation with annotations.
-- **Operational list**: inboxes, tasks, incidents, queues, and activity organized through rows and separators.
-- **Narrative dashboard**: a metric story led by one measure, supporting measures, visualization, and interpretation.
-- **Split view**: two directly related work zones that must remain visible together.
-- **Timeline or feed**: sequence, provenance, activity, and history where order matters more than column comparison.
+Aim for a few sharp findings, ordered by impact, rather than broad aesthetic commentary. Severity that has worked well:
 
-Do not default to `sidebar + header + KPI card grid + table`. Treat a persistent sidebar as navigation infrastructure, not the page's design concept.
+- **P0 operability**: the screen cannot be understood, operated, or trusted.
+- **P1 identity**: it reads as a generic template, or the metaphor is incoherent.
+- **P2 structure**: hierarchy, density, states, or layout weak enough to slow work.
+- **P3 polish**: craft improvements that don't change structure.
 
-## Design Directives
+Each material finding needs a concrete, implementable change, shaped as: *replace <observed pattern> with <specific structure> so <workflow outcome>, while preserving <constraint>.* "Make it more modern", "improve spacing", or "add visual interest" are not findings. Also say what is working and should be kept, so the implementer doesn't redesign it away, and name at least one container to remove (or why the surface budget is already disciplined). Accessibility problems you notice (contrast, focus, labels, color-only state) are operability findings, not polish.
 
-- Prefer bands, rails, annotated margins, expressive tables, status marks, layers, legends, and connection lines over standalone cards.
-- Keep the base background visible across roughly 60-70% of the viewport when the product context permits.
-- Allow at most one dominant contained surface per viewport and two visible elevation levels.
-- Never nest cards. Do not combine border, contrasting background, and shadow on the same container without an exceptional functional reason.
-- Use color as signage: action, state, risk, grouping, navigation, priority. Do not use decorative gradients unless they encode real information.
-- Use typography as the primary identity: readable sans for work, optional serif for selected editorial titles or protagonist figures, and mono or semi-mono for metadata, codes, dates, statuses, and technical values.
-- Give one metric narrative priority. Place supporting measures in aligned rows or bands instead of identical KPI cards.
-- Use tables only for column comparison, sorting/filtering dense records, pattern recognition, or bulk action. Otherwise prefer rich lists, master-detail, timelines, grouped states, definition lists, or charts with detail on demand.
-- Make states part of the identity: empty, loading, error, blocked, success, partial data, too much data, review, and conflict states should match the surface metaphor.
-- Use depth through functional layers: main panel, inspector, drawer, review overlay, timeline, comparison view. Do not rely on soft shadows for personality.
-- On narrow screens, reprioritize the task and move secondary context into disclosure, panels, or separate views. Do not merely stack every desktop container or turn every row into a card.
-- Keep accessibility non-negotiable: contrast, keyboard navigation, visible focus, semantic structure, responsive behavior, tables that remain understandable, and signals that do not depend on color alone.
-- Reuse established components, tokens, and interaction mechanics unless evidence or a supplied critique identifies them as the source of the problem. Explain any deliberate departure.
-
-For every material design, redesign, or implementation, read `references/visual-grammar.md` before completing the composition brief. It contains the surface budget, component decisions, typography/tokens, responsive transformations, and final self-critique.
-
-## Default Replacements
-
-- Metric card -> protagonist figure with an aligned supporting band, margin counter, or dense summary row.
-- Feature card -> editorial block with a rule line, number, concrete example, or workflow step.
-- User card -> compact dossier record with metadata and state marks.
-- Project card -> rich row with status, owner, date, risk, and next action.
-- Dashboard card -> editorial section, narrative data view, or integrated operational region.
-- Pricing card -> comparison table or contract-like plan sheet.
-- News card -> logbook entry.
-- Task card -> operational line with priority, state, and owner.
-- Product card -> technical sheet or inventory record.
-
-## Delivery Requirements
-
-When generating or materially changing an interface, include:
-
-1. UX and product constraints honored, whether supplied or inferred.
-2. Inquisitor findings accepted, adapted, or deferred with concise reasons, only when a brief exists.
-3. Composition brief: task, dominant information, surface metaphor, layout archetype, region relationship, and responsive transformation.
-4. Surface and table ledger: each card/table retained and its semantic reason.
-5. Visual rules and main components applied.
-6. Replacements made to avoid generic cards or other AI/SaaS patterns.
-7. Clean, accessible, maintainable frontend code when implementation is requested.
-8. Visual and interaction evidence gathered for verification or an optional Guardian final gate.
-9. A short note explaining why the UI avoids generic AI aesthetics.
-
-Keep the explanation brief when the user primarily asked for code; the interface itself should carry the design argument.
-
-## Final Checklist
-
-Before delivery, verify:
-
-- Any supplied Guardian UX contract remains satisfied; otherwise the inferred functional baseline remains intact.
-- When an Inquisitor brief exists, every finding is accepted, adapted, deferred with reason, or explicitly not applicable.
-- The screen does not read as a generic SaaS template.
-- Cards are absent or functionally justified.
-- At least one unnecessary container was considered for removal; no retained surface exists merely to group related content.
-- The base surface remains visually predominant and elevation is reserved for content that truly floats.
-- Any table exists because users compare columns, sort/filter dense data, recognize patterns, or act in bulk.
-- One task, action, or information element clearly dominates instead of every module receiving equal weight.
-- Bento grids, glassmorphism, decorative gradients, and filler icons are avoided.
-- Margins, rails, bands, tables, or layers do real work.
-- The chosen surface metaphor and layout archetype are visible in the composition.
-- Hierarchy works without decorative clutter.
-- The hierarchy still works when borders, icons, and accent color are mentally removed.
-- States have a recognizable system language.
-- The design would still be identifiable without a logo.
-- The narrow-screen layout preserves the primary task through reprioritization, not mechanical stacking.
-- Accessibility and responsiveness remain intact.
+If the user asks for critique and fix together, finish the critique first, then implement against it and note which findings you adopted, adapted, or deferred.

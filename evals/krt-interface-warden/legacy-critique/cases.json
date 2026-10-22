@@ -1,0 +1,42 @@
+{
+  "_comment": "Run only with --variant old=main. Same critique cases as ../cases.json, but installs main's krt-interface-inquisitor plus krt-interface-warden, which no longer both exist in the worktree.",
+  "skill": "krt-interface-inquisitor",
+  "skills": [
+    "krt-interface-inquisitor",
+    "krt-interface-warden"
+  ],
+  "allowed_tools": [
+    "Edit"
+  ],
+  "cases": [
+    {
+      "id": "critique-returns",
+      "prompt": "Why does index.html look so generic? Give me a visual critique I can hand to whoever implements the fix. Don't change any files.",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "It identifies the four identical KPI cards as a generic pattern and proposes a concrete structural replacement (for example one protagonist figure plus an aligned supporting band), not just 'improve the cards'.",
+        "It says nothing clearly dominates (or names what should dominate, such as the over-SLA returns) and ties this to the team's task.",
+        "It flags the gradient welcome hero and the emoji icon tiles as decoration that does no work.",
+        "It flags the nested quick-action cards (cards inside a card) or excessive border+shadow surfaces, and names at least one container to remove.",
+        "Findings are prioritized (severity levels or an explicit ordered list), and each material finding has a concrete, implementable change referencing the actual elements or selectors (for example .grid, .card, .hero).",
+        "It raises at least one accessibility or narrow-screen issue grounded in the code (for example the status badges relying on color or the fixed 240px + 4-column grid)."
+      ]
+    },
+    {
+      "id": "audit-invoices",
+      "prompt": "Do a visual audit of index.html (our accounts receivable screen). Report only; don't edit anything.",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "It keeps the invoice table and says why: users compare amounts, due dates and matched payments across rows and reconcile in bulk. It does not recommend replacing the table with cards or rows of cards.",
+        "It flags the nested cards (the page card wrapping a card wrapping the filter card) and recommends removing containers in favour of headings, space, or dividers.",
+        "It flags the three identical stat cards and proposes a structural alternative (for example one lead figure such as overdue amount with the rest in an aligned band).",
+        "It suggests improving the table itself rather than replacing it (for example right-aligned or tabular numerals for amounts, sticky header, emphasising overdue rows, a clearer bulk-action bar).",
+        "It notes at least one concrete accessibility issue grounded in the code, such as unlabeled row checkboxes, the missing header for the checkbox column, or color-only status badges."
+      ]
+    }
+  ]
+}

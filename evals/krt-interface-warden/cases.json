@@ -1,0 +1,66 @@
+{
+  "skill": "krt-interface-warden",
+  "skills": ["krt-interface-warden"],
+  "allowed_tools": ["Edit"],
+  "cases": [
+    {
+      "id": "redesign-returns",
+      "prompt": "This returns dashboard looks like every other SaaS template. Redesign index.html and styles.css so it actually fits a warehouse returns team. Keep it static HTML/CSS.",
+      "judge_files": true,
+      "checks": {},
+      "rubric": [
+        "The redesigned page no longer presents the four metrics as a row of identical boxed cards (same border/shadow/radius/padding); supporting figures sit in an aligned band, row, or similar unboxed structure.",
+        "One element is clearly dominant (for example the over-SLA returns or the inspection queue) through type size, position, or space, rather than every module having equal weight.",
+        "The gradient welcome hero, emoji icon tiles, and the nested quick-action cards inside a card are removed or replaced with something that does work (for example plain actions placed next to the queue).",
+        "Cards, borders and shadows are used sparingly: no card nested in a card, and no container combines a full border, a contrasting fill, and a drop shadow.",
+        "Status is conveyed by text (and optionally a mark or color), not by color alone, and the returns list keeps proper table or list semantics.",
+        "The CSS includes a narrow-screen rule (media query or intrinsic layout) that reprioritizes the content rather than leaving a fixed 240px sidebar plus 4-column grid."
+      ]
+    },
+    {
+      "id": "build-claim",
+      "prompt": "Build claim.html: the screen an adjuster uses to review this insurance claim and decide on it. The data is in claim.json; inline it into the page. Single static file with inline CSS.",
+      "judge_files": true,
+      "checks": {
+        "file_matches": {"claim.html": "CLM-88213"}
+      },
+      "rubric": [
+        "The layout reads as a dossier or document for one claim (for example a main column with the decision and line items, plus a side rail for claimant/policy facts and history), not a dashboard grid of equal cards.",
+        "The decision (adjuster recommendation and amount, with approve/decline style actions) is the visually dominant element or the clear primary action.",
+        "Claimant and policy metadata are shown as a definition list or similar label/value structure, not as a data table and not as a separate card per field.",
+        "The claim history is presented as a timeline, log, or ordered list rather than a grid of cards; a table is used only for the claimed-vs-assessed line items where comparing columns is the task.",
+        "The page uses few closed surfaces: no card nested in a card, and most of the page sits on the base background.",
+        "Action buttons are real <button> elements with descriptive labels, and the layout has a narrow-screen rule."
+      ]
+    },
+    {
+      "id": "critique-returns",
+      "prompt": "Why does index.html look so generic? Give me a visual critique I can hand to whoever implements the fix. Don't change any files.",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "It identifies the four identical KPI cards as a generic pattern and proposes a concrete structural replacement (for example one protagonist figure plus an aligned supporting band), not just 'improve the cards'.",
+        "It says nothing clearly dominates (or names what should dominate, such as the over-SLA returns) and ties this to the team's task.",
+        "It flags the gradient welcome hero and the emoji icon tiles as decoration that does no work.",
+        "It flags the nested quick-action cards (cards inside a card) or excessive border+shadow surfaces, and names at least one container to remove.",
+        "Findings are prioritized (severity levels or an explicit ordered list), and each material finding has a concrete, implementable change referencing the actual elements or selectors (for example .grid, .card, .hero).",
+        "It raises at least one accessibility or narrow-screen issue grounded in the code (for example the status badges relying on color or the fixed 240px + 4-column grid)."
+      ]
+    },
+    {
+      "id": "audit-invoices",
+      "prompt": "Do a visual audit of index.html (our accounts receivable screen). Report only; don't edit anything.",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "It keeps the invoice table and says why: users compare amounts, due dates and matched payments across rows and reconcile in bulk. It does not recommend replacing the table with cards or rows of cards.",
+        "It flags the nested cards (the page card wrapping a card wrapping the filter card) and recommends removing containers in favour of headings, space, or dividers.",
+        "It flags the three identical stat cards and proposes a structural alternative (for example one lead figure such as overdue amount with the rest in an aligned band).",
+        "It suggests improving the table itself rather than replacing it (for example right-aligned or tabular numerals for amounts, sticky header, emphasising overdue rows, a clearer bulk-action bar).",
+        "It notes at least one concrete accessibility issue grounded in the code, such as unlabeled row checkboxes, the missing header for the checkbox column, or color-only status badges."
+      ]
+    }
+  ]
+}
