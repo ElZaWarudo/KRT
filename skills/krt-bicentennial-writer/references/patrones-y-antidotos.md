@@ -1,6 +1,6 @@
 # Patterns and Antidotes
 
-Use this reference when text feels generic, overly polished, or recognizably mechanical. Treat the list as diagnostic guidance, not a mechanical checklist.
+Catalog of tells and antidotes for auditing or rewriting. Treat it as diagnostic guidance, not a mechanical checklist.
 
 ## AI-Like Patterns
 
@@ -108,9 +108,27 @@ Después: La iniciativa reduce las decisiones escondidas en chats privados y dej
 
 ## Final Checklist
 
-- Does the first sentence say something that could not open a hundred different texts?
-- Does each paragraph answer “what changed and for whom?”
+- Could the first sentence open a hundred different texts?
+- Does each paragraph change something for a specific reader?
 - Are adjectives backed by evidence?
 - Do transitions perform logical work?
-- Did the rewrite preserve facts and intent?
-- Does any added detail pretend to be personal experience that the user did not provide?
+- Are facts and intent preserved, with no added detail posing as the author's experience?
+
+## Research Basis
+
+- AI-text detectors are probabilistic and produce false positives; OpenAI
+  retired its own classifier for low accuracy, and Turnitin says its indicator
+  must be read alongside the context of the work.
+  (openai.com/blog/new-ai-classifier-for-indicating-ai-written-text;
+  guides.turnitin.com, "Using the AI Writing Report")
+- Detectors misclassify much writing by non-native English speakers as
+  AI-generated (Stanford HAI, "AI detectors biased against non-native English
+  writers"), so regular or formal prose is not evidence of AI use.
+- Bibliometric studies show certain words and formulas spiking after LLM
+  adoption (pubmed 40601754). Useful for stylistic audits, insufficient for
+  attribution.
+- ICMJE treats AI as assistive technology requiring human accountability and
+  transparent disclosure in manuscripts; many journals and universities follow
+  similar rules.
+- The practical improvement is specificity (real data, constraints, tradeoffs,
+  examples, visible decisions), not introduced mistakes.

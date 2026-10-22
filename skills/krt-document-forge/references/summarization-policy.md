@@ -1,33 +1,20 @@
 # Summarization Policy
 
-Use this policy to inspect, classify, and redact converted Markdown before any summary becomes versionable.
+How to write the staged summary and private sidecar that Harness Wise checks
+and promotes.
 
-## Artifact Layout
+## Redact before anything becomes versionable
 
-```text
-docs/harnesses/
-├── sources/
-│   └── <base>.md
-├── staging/
-│   └── <base>.md
-├── provenance/
-│   └── <base>.json
-└── summaries/
-    └── <base>.md  # created only by successful promotion
-```
+1. Inspect extraction gaps, image-only pages, malformed tables, and converter
+   warnings.
+2. Classify secrets, personal data, commercial terms, private URLs, source
+   paths, hashes, and client identifiers.
+3. Keep the minimum implementation-relevant facts. Express sensitive values as
+   roles or technical implications ("client operations contact", "fixed-price
+   contract").
+4. Put private traceability and warnings in the sidecar, not the summary.
 
-`sources/`, `staging/`, and `provenance/` are ignored. Only a deterministically checked staged summary may be copied to `summaries/`.
-
-## Inspect, Classify, Redact
-
-1. Inspect extraction gaps, image-only pages, malformed tables, and conversion warnings.
-2. Classify secrets, personal data, commercial detail, private URLs, source paths, hashes, and client identifiers.
-3. Redact to the minimum implementation-relevant facts. Express sensitive values as roles or technical implications.
-4. Record private traceability and warnings in the sidecar, not the summary.
-
-## Staged Summary
-
-Start every staged summary with:
+## Staged summary: `docs/harnesses/staging/<base>.md`
 
 ```yaml
 ---
@@ -36,9 +23,10 @@ provenance_id: prov-<random-uuid4>
 ---
 ```
 
-Generate the UUID4 randomly. Never derive it from source bytes, a filename, a source hash, or other source metadata. Do not include source paths, hashes, warning text, private URLs, contacts, or fallback links in the staged summary.
-
-Use these sections:
+Generate the UUID4 randomly (`python3 -c "import uuid; print(uuid.uuid4())"`).
+Never derive it from source bytes, filenames, or hashes. No source paths,
+hashes, warning text, private URLs, contacts, or links to ignored images or raw
+sources.
 
 ```markdown
 # <Document Title>
@@ -51,9 +39,12 @@ Use these sections:
 ## Figures And Tables
 ```
 
-## Private Sidecar
+Keep it short enough for a model to read by default. Preserve identifiers,
+dates, constraints, and acceptance criteria when safe. Do not invent
+requirements or certainty; put uncertainty under Risks And Open Questions.
+Describe relevant figures in words.
 
-Create `docs/harnesses/provenance/<base>.json` with the same opaque ID:
+## Private sidecar: `docs/harnesses/provenance/<base>.json`
 
 ```json
 {
@@ -66,13 +57,23 @@ Create `docs/harnesses/provenance/<base>.json` with the same opaque ID:
 }
 ```
 
-Set `classification` explicitly to `public`, `internal`, `confidential`, `restricted`, or `unknown`. Promotion requires `redaction_status: completed` and a non-empty `publication_rationale`. The sidecar may also record private source paths, hashes, manifest references, or classification notes. For every warning, add a non-empty decision under the exact warning key before promotion. Missing or empty decisions block publication.
+`classification` is one of `public`, `internal`, `confidential`, `restricted`,
+`unknown`. Promotion requires `redaction_status: completed`, a non-empty
+`publication_rationale`, and a non-empty decision under the exact key of every
+warning. The sidecar may also hold source paths, hashes, and manifest
+references.
 
-## Writing Rules
+## Handoff note
 
-- Keep the summary short enough for a model to read by default.
-- Preserve implementation-relevant names, identifiers, dates, constraints, and acceptance criteria only when safe.
-- Replace personal names and private identifiers with roles or implementation-safe descriptions.
-- Do not invent requirements, decisions, or certainty that the source does not support.
-- Mark uncertainty in `Risks And Open Questions`.
-- Describe relevant figures and tables without linking ignored images or raw sources.
+```text
+Use krt-harness-wise to validate and promote:
+- Staged Summary: docs/harnesses/staging/<base>.md
+- Private Sidecar: docs/harnesses/provenance/<base>.json
+
+Objective: <user's goal>
+
+Converted by krt-document-forge; --check passed. Run check_evidence.py, resolve
+every sidecar warning, then promote_evidence.py. Only the resulting
+docs/harnesses/summaries/<base>.md is versionable; never copy raw sources,
+images, manifests, hashes, or sidecars.
+```

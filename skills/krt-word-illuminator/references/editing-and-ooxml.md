@@ -1,18 +1,11 @@
 # Editing and OOXML
 
-## Safe editing sequence
+## Basic editor scope
 
-1. Inspect the input package and save its report.
-2. Copy to a new output path.
-3. Apply the smallest deterministic operation.
-4. Inspect and compare before/after packages.
-5. Render and inspect all pages.
-6. Validate the requested final variant.
-
-The basic editor supports exact paragraph replacement, insertion after a
-uniquely named heading, section append, and selected core-property changes.
-Abort zero-match and multi-match replacements unless the patch explicitly
-allows all matches.
+`edit_docx.py` supports exact paragraph replacement, insertion after a uniquely
+named heading, section append, and selected core-property changes. Zero-match
+and multi-match replacements abort unless the patch explicitly allows all
+matches.
 
 Exact replacement updates one existing run in place. It is deliberately limited
 to a plain-text paragraph containing exactly one run and no fields, hyperlinks,

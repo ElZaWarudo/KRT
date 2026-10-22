@@ -28,10 +28,8 @@ it becomes hard to read.
 
 ## Rendering loop
 
-Render DOCX to PDF with LibreOffice headless, then rasterize every page to PNG.
-Inspect pages at readable resolution, including pages that appear repetitive.
-
-Check:
+Inspect every rendered page at readable resolution, including pages that look
+repetitive. Check:
 
 - unexpected blank or almost-empty pages;
 - clipped, overlapping, or overflowing text;

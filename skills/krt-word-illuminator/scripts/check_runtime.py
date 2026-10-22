@@ -33,17 +33,19 @@ def runnable_command(*names: str) -> str | None:
         command = shutil.which(name)
         if not command:
             continue
-        try:
-            completed = subprocess.run(
-                [command, "--version"],
-                check=False,
-                capture_output=True,
-                timeout=10,
-            )
-        except (OSError, subprocess.SubprocessError):
-            continue
-        if completed.returncode == 0:
-            return command
+        # Poppler's pdftoppm rejects --version (exit 1) but accepts -v.
+        for flag in ("--version", "-v"):
+            try:
+                completed = subprocess.run(
+                    [command, flag],
+                    check=False,
+                    capture_output=True,
+                    timeout=10,
+                )
+            except (OSError, subprocess.SubprocessError):
+                continue
+            if completed.returncode == 0:
+                return command
     return None
 
 

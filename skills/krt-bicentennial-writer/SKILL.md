@@ -1,141 +1,103 @@
 ---
 name: krt-bicentennial-writer
-description: Writing and editing guidance for natural, specific, contextual prose that avoids generic patterns associated with AI-generated writing. Use when the user asks to draft, rewrite, humanize, naturalize, polish, localize, or audit text so it sounds less formulaic; when working on theses, academic articles, research documents, academic reasoning, critical argument, or AI-assisted authorship; or when they mention "sounds like AI," "AI detector," "humanize text," "natural writing," "human tone," "AI writing tells," "Bicentennial Writer," "suena a IA," "detector de IA," "humanizar texto," "redacción natural," or "tono humano," or want to avoid typical AI-writing patterns in Spanish or English. Runtime aliases may expose this as krt:bicentennial-writer.
+description: Draft, rewrite, or audit Spanish and English prose so it reads as specific, situated, and written with a purpose instead of generic AI output, and strengthen academic reasoning in theses, articles, literature reviews, and research documents. Use when the user says a text "sounds like AI" or "like ChatGPT", asks to humanize, naturalize, polish, or de-robotize writing, wants AI-writing tells removed, or asks about AI detectors or AI-assisted authorship; also for "suena a IA", "humanizar texto", "redacción natural", "tono humano", "detector de IA", "marco teórico", or "mejorar mi tesis". Runtime aliases may expose this as krt:bicentennial-writer.
 ---
 
 # Bicentennial Writer
 
-Bicentennial Writer helps draft or revise prose so it sounds concrete, situated, and written by someone with a real purpose. The goal is editorial quality, not evading detectors or misrepresenting authorship.
+The goal is editorial quality: text that is concrete, takes a position, and
+could only have been written about this subject for this reader. "Sounds less
+like AI" is treated as a quality problem, not as camouflage. A rewrite that
+passes a detector but says nothing is a failure; a plain, formal text that says
+something specific is a success.
 
-## Load References
+## What makes text read as machine-written
 
-- Load `references/patrones-y-antidotos.md` when auditing or rewriting text for common AI-writing tells.
-- Load `references/base-investigacion.md` when the user asks for the rationale behind the approach, requests a review of the skill, wants to discuss AI detectors, or is working on academic authorship involving AI.
-- Do not load extra references for short drafts when the user has already supplied the audience, purpose, and tone.
+Use `references/patrones-y-antidotos.md` for the full catalog of Spanish and
+English tells, antidotes, voice controls, and before/after examples. The
+patterns that do the most damage, in order:
 
-## Workflow
+- **Empty openings and closings.** A panorama sentence before the subject ("En
+  el panorama actual…", "In today's fast-paced world…") and a closing that
+  restates the introduction or delivers a moral ("En conclusión…",
+  "Ultimately, this underscores the importance of…").
+- **Announced importance.** "Cabe destacar", "es crucial", "it is important to
+  note": the sentence claims relevance instead of showing the consequence.
+- **Templated structure.** Reflex triads of adjectives ("integrales,
+  innovadoras y sostenibles", "robust, scalable, and comprehensive"), repeated
+  "no solo… sino también" / "not only… but also", paragraphs that all make the
+  same move.
+- **Inflated vocabulary without evidence.** Transformative, pivotal, delve,
+  tapestry, landscape, "llevar al siguiente nivel", "un antes y un después".
+- **Neutrality where the author should commit.** Every side balanced, no
+  recommendation, no stated tradeoff.
 
-### Step 1 - Define the Assignment
+These are weak signals, not proof. Judge frequency, register, and whether a
+more concrete alternative exists; a listed word that is idiomatic for the genre
+or required by a style guide can stay. Formal, concise, second-language, or
+neurodivergent writing often looks regular without being AI-generated, so do
+not diagnose it as such.
 
-Before writing, identify:
+## Rewriting without inventing
 
-- audience;
-- channel and format;
-- purpose of the text;
-- relationship between writer and reader;
-- constraints on length, register, language, country, or sector;
-- facts that must remain unchanged.
+The most common failure when "humanizing" is to replace generic claims with
+invented specifics: an on-call engineer's bad morning, "last year", Slack
+threads, a statistic, a client name. Even when disclosed afterwards, those
+details end up in a text the author may publish as fact. So:
 
-If the user provides little context and the risk is low, make reasonable assumptions and state them briefly. Ask only when missing context would change the voice, factual content, or risk of the text.
+- Keep every fact the user supplied, and add no new facts, numbers, dates,
+  names, tools, anecdotes, quotations, or lived experiences.
+- When a passage needs a concrete detail only the author has, leave a visible
+  bracketed placeholder (`[ejemplo concreto de tu municipio]`, `[which tool
+  replaced what]`) or tell the author what to supply. Do not fill it with a
+  plausible guess.
+- If the original is weak because the idea is vague, say so and name what is
+  missing; style cannot hide a missing point.
+- Do not add typos, slang, or fake imperfections to look human, and do not
+  flatten necessary legal, medical, technical, or academic precision.
 
-### Step 2 - Separate Quality from Camouflage
+Useful moves: start at the point; turn abstract nouns into verbs with a
+subject; replace an adjective with its consequence; use transitions that carry
+logic (porque, por eso, because, so) instead of decorative connectors; end on
+an implication, open question, or decision rather than a summary. Preserve the
+author's register: formal text can sound natural.
 
-Treat “avoid sounding like AI” as an editorial-quality problem:
+For a rewrite, return the revised text first, then a short note on the main
+changes and on what the author should customize. For a long text, name the two
+or three patterns that hurt most rather than listing every flaw.
 
-- make the text more specific;
-- reduce filler and generic praise;
-- vary rhythm only when it serves the meaning;
-- preserve factual accuracy;
-- keep the author's real constraints and voice.
+## Academic writing
 
-Do not guarantee that a detector will classify the text as human-written. Do not help misrepresent authorship when a rule, institution, client, or publication requires disclosure of AI use.
+For theses, articles, theoretical frameworks, literature reviews, and
+proposals, fluency is not the goal; verifiable thinking is.
 
-When the context has authorship, academic-assessment, or publication rules, prioritize transparency and process: the author's own notes, sources, versions, editorial decisions, and disclosure of AI use when applicable.
+- Build the text around a question, problem, or tension. A theoretical
+  framework should compare positions and expose the gap the research
+  addresses, not chain one summary per author.
+- Separate description, analysis, interpretation, and the author's position.
+  Connect objectives, method, evidence, and conclusions without logical jumps.
+- Name limitations, selection criteria, assumptions, and reasonable
+  alternatives.
+- Do not write as if a thesis were proven when data or sources are missing;
+  mark evidence gaps as pending (`[PENDIENTE: dato sobre…]`).
+- Citations: prefer the user's own sources. If you cite from your own
+  knowledge, say plainly that the references must be checked against the
+  originals (authors, year, pages, DOI) before use, because recalled citations
+  can be wrong in details or entirely fabricated. Never invent a source to fill
+  a gap.
+- Ask for or use the researcher's raw material (notes, readings, corpus, field
+  decisions, doubts); it is what makes the reasoning traceable to a person.
 
-### Step 3 - Diagnose the Tells
+## Authorship and detectors
 
-For existing text, look for:
+AI detectors are probabilistic, produce false positives, and are biased against
+non-native writers; do not promise that any rewrite will pass one. When an
+institution, publication, or client requires disclosure of AI use, or forbids
+it, do not help disguise AI-generated work as the user's own. Point to the
+legitimate path instead: disclosure, the applicable policy, or helping the user
+write their own version from their own notes and argument. When authorship
+matters, favor traceability: the author's notes, versions, and editorial
+decisions.
 
-- openings that say too much before contributing anything useful;
-- symmetrical structures repeated paragraph after paragraph;
-- inflated adjectives unsupported by evidence;
-- transitions that announce the logic instead of creating it;
-- conclusions that summarize instead of ending on an idea;
-- examples that could apply to any person, company, country, or product;
-- overly polished neutrality where a real author would take a position.
-
-For long text, return a short diagnosis before rewriting. Name the two or three most damaging patterns instead of listing every flaw.
-
-Do not automatically treat formal, concise, second-language, or neurodivergent writing as “suspicious.” Those styles can appear regular without being AI-generated.
-
-### Step 4 - Build a Plausible Voice
-
-Infer or request a voice profile:
-
-- **stance:** direct, cautious, skeptical, warm, technical, commercial, reflective;
-- **texture:** plain, sharp, conversational, formal, editorial, practical;
-- **evidence style:** examples, numbers, lived details, citations, tradeoffs, anecdotes;
-- **risk level:** safe corporate prose, personal essay, sales copy, academic, legal-adjacent.
-
-Prefer signs of voice that arise from choices and details, not fake imperfections. Do not add typos, slang, personal memories, or emotional claims unless the user supplies or approves them.
-
-When authenticity matters, ask for or use the author's raw material: rough notes, real examples, constraints, a specific opinion, a short voice sample, or the reason they are writing.
-
-### Step 5 - Strengthen Academic Reasoning
-
-When the assignment is a thesis, article, theoretical framework, literature review, proposal, report, or research document, prioritize verifiable thinking over superficial fluency:
-
-- formulate a question, problem, or tension capable of sustaining the text;
-- distinguish description, analysis, interpretation, and the author's own position;
-- connect objectives, method, evidence, results, and conclusions without logical gaps;
-- compare authors, theories, contexts, or data instead of chaining summaries;
-- name limitations, assumptions, selection criteria, and reasonable alternatives;
-- turn broad claims into inferences supported by sources, data, or methodological decisions;
-- request or preserve the researcher's raw material: notes, readings, field decisions, findings, doubts, corpus, data, or criteria.
-
-When building research documents:
-
-- do not write as if a thesis has already been proven when data or sources are missing;
-- use citations and references only when supplied by the user or independently verifiable;
-- mark evidence gaps as pending instead of covering them with polished prose;
-- keep the academic voice precise without making it impersonal by default;
-- help keep human authorship traceable through decisions, versions, notes, methodological justification, and disclosure of AI use when applicable.
-
-If the user asks for “human-level” writing, translate that request into intellectual quality: specificity, judgment, argumentative tension, command of the subject, and responsibility for sources. Do not treat it as camouflage from detectors.
-
-### Step 6 - Draft or Rewrite
-
-Apply these moves:
-
-- start closer to the point;
-- replace generic claims with consequences, examples, constraints, or concrete implications;
-- cut filler openings such as “in today's world” or “it is important to note”;
-- keep one idea per paragraph unless the genre rewards density;
-- use transitions that carry meaning, not decorative connectors;
-- let some sentences stay short when the point deserves emphasis;
-- choose verbs over abstract nouns;
-- keep terminology consistent in professional or technical contexts.
-
-When rewriting user text, preserve its meaning by default. If the original is weak because the idea itself is vague, identify the missing substance instead of hiding it with style.
-
-### Step 7 - Deliver with Judgment
-
-Return the revised text first when the user asked for a rewrite. Add a compact note only when it helps:
-
-```text
-Key changes:
-- <what changed>
-- <what to customize if the user wants a stronger personal voice>
-```
-
-When drafting from scratch, include only the final draft unless assumptions, factual gaps, or useful alternatives should be shown.
-
-## Output Modes
-
-- **Light edit:** preserve the structure while correcting stiffness and filler.
-- **Natural rewrite:** rebuild the flow without losing the intent.
-- **Editorial diagnosis:** identify AI-like patterns without rewriting everything.
-- **Academic construction:** propose a problem, thesis, structure, argument, evidence gaps, and reasoning improvements for research documents.
-- **Tone variants:** provide two or three versions with different voice profiles.
-- **Change list:** explain what changed and why; useful for collaborative writing.
-
-## Guardrails
-
-- Do not invent biographical details, client results, metrics, quotations, or lived experiences.
-- Do not add deliberate errors as a “humanization” trick.
-- Do not turn all text into casual prose; formal writing can also sound natural.
-- Do not overplay an extravagant, cynical, or excessively colloquial voice.
-- Do not remove necessary legal, academic, medical, or technical precision merely because it sounds formal.
-- Do not present a rewrite as a reliable way to beat detectors; detectors are fallible and changeable.
-- Do not fabricate sources, data, results, the researcher's views, or field experience to create the appearance of human reasoning.
-- Keep the author's agency visible: flag places where a stronger point of view requires a real decision from the user.
+`references/patrones-y-antidotos.md` also carries the research basis for these
+positions, for when the user asks why or wants to discuss detectors.

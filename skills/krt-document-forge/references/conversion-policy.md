@@ -1,122 +1,67 @@
 # Conversion Policy
 
-Use these rules when converting PDFs and DOCX files into harness-ready Markdown.
+Details for `scripts/convert_to_markdown.py` output. Look up when output shape,
+images, the manifest, or extractor choice matters.
 
-## Artifact Location
+## Source Markdown shape
 
-Default private artifact paths:
-
-```text
-docs/harnesses/sources/<source-stem>.md
-docs/harnesses/images/<source-stem>/
-docs/harnesses/provenance/conversion-manifest.json
-```
-
-Keep raw files, generated source Markdown, images, manifests, hashes, and warnings in ignored areas. Never place them directly under `docs/harnesses/summaries/`.
-
-## Markdown Shape
-
-Generated files should start with frontmatter-like provenance:
+The converter writes `docs/harnesses/sources/<base>.md` starting with private
+provenance frontmatter:
 
 ```yaml
 ---
-source_path: path/to/source.pdf
-source_type: pdf
-converted_at: 2026-05-25T10:30:00+00:00
-converter: krt-document-forge
-conversion_method: pdftotext
+source_path: "docs/inbox/brief.pdf"
+source_type: "pdf"
+converted_at: "2026-05-25T10:30:00+00:00"
+converter: "krt-document-forge"
+conversion_method: "pdftotext"
 ---
 ```
 
-After provenance, use:
+Then a top heading, source headings, paragraphs, Markdown tables for DOCX tables
+when the structure is detectable, page separators for PDFs when the extractor
+provides them, and image links when `--extract-images` is used. This
+frontmatter is private: never copy it into a staged summary.
 
-- `# <document title or filename>` as the top heading.
-- Source headings when present.
-- Plain paragraphs for body text.
-- Markdown tables for DOCX tables when structure is detectable.
-- Page separators for PDFs when the extraction method provides page boundaries.
-- Linked image references when `--extract-images` is used.
+If a table is too irregular for Markdown, keep rows as plain text and mention
+the limitation. Prefer readable Markdown over pixel-faithful layout.
 
-This provenance is private. Do not copy it into a staged or promoted summary.
+## Images
 
-## Image Assets
-
-Do not embed images as base64 in Markdown. Store them as normal files so they can be reviewed, diffed by path, and carried into a harness handoff.
-
-Default layout:
+Images are files, never base64, linked relatively from the source Markdown:
 
 ```text
-docs/harnesses/
-├── sources/
-│   └── brief.md
-└── images/
-    └── brief/
-        ├── brief-image-001.png
-        └── brief-page-003-image-002.jpeg
+docs/harnesses/images/<base>/<base>-image-001.png
+docs/harnesses/images/<base>/<base>-page-003-image-002.jpeg
 ```
-
-Use relative Markdown links from the generated `.md` file:
 
 ```markdown
 ![brief image 001](../images/brief/brief-image-001.png)
 ```
 
-For DOCX files, extract embedded `word/media/*` images and place links near the paragraph or table where the image relationship appears.
+DOCX images come from `word/media/*` and are placed near the paragraph or table
+that references them. PDF images need PyMuPDF and are named by page. No OCR.
 
-For PDF files, extract embedded image objects when PyMuPDF is available. Name PDF images with page numbers when possible. Do not OCR image content.
+`--clean-assets` (with `--overwrite --extract-images`) deletes only
+`docs/harnesses/images/<base>/` for the documents being regenerated.
 
-Use `--clean-assets` only during regeneration. It deletes the generated asset folder for each source document before extracting new images:
+## Manifest and check mode
 
-```text
-docs/harnesses/images/<source-stem>/
-```
+`--manifest docs/harnesses/provenance/conversion-manifest.json` records, per
+file: source path and SHA-256, output path and SHA-256, method, status,
+message, extracted assets with hashes, and staged-summary hashes when present.
 
-It does not delete source documents or unrelated image folders.
+`--check` validates without rewriting: outputs exist and are non-empty, image
+links resolve, staged summaries have valid frontmatter (`summary_type:
+harness-ready`, UUID4 `provenance_id`, no private source metadata), and hashes
+match the manifest when one is given. It also accepts the older list-shaped
+manifest.
 
-## Manifest And Check Mode
+## Extractors
 
-Use `--manifest docs/harnesses/provenance/conversion-manifest.json` to write a private reproducibility manifest. It contains:
+PDF text, in order: `pdftotext` (Poppler), `pypdf`, `pdfplumber`. PDF images:
+PyMuPDF. DOCX: standard library only (text, headings, basic lists, tables).
 
-- converter identity and generation timestamp.
-- output and images directories.
-- summary directory and summary hashes when summaries exist.
-- source path and source SHA-256 per file.
-- generated Markdown path and SHA-256 per file.
-- conversion status, method, and message.
-- extracted asset paths and SHA-256 hashes.
-
-Use `--check` to validate an existing conversion without rewriting artifacts. Check mode validates:
-
-- expected Markdown output exists and is non-empty.
-- Markdown image links point to existing files.
-- source, output, and asset hashes match the manifest when one is supplied.
-
-Check mode accepts both the current object manifest and the earlier list-shaped summary for backward compatibility.
-
-## Quality Rules
-
-- Treat empty extraction as a failed conversion unless the user explicitly accepts an empty shell artifact.
-- Treat image-only PDFs as documents with no extractable text. With `--extract-images`, preserve embedded images as linked assets; without it, report the limitation.
-- Preserve ambiguous source wording. Summaries, normalization, and conflict resolution belong in `krt-harness-wise`.
-- If layout is complex, prefer readable Markdown over pixel-perfect formatting.
-- Keep tables compact. If a table is too irregular for Markdown, preserve rows as plain text blocks and mention the limitation.
-
-## Dependency Strategy
-
-For PDFs, prefer installed deterministic extractors in this order:
-
-1. `pdftotext` from Poppler.
-2. Python `pypdf`.
-3. Python `pdfplumber`.
-
-Use `--install-missing` only when the user accepts local dependency installation. It creates or reuses:
-
-```text
-.krt/document-forge/venv
-```
-
-and installs optional Python packages there. It does not install system packages such as Poppler.
-
-For PDF image extraction, use PyMuPDF when available or when installed through `--install-missing`.
-
-For DOCX, the bundled script can extract document text, headings, basic lists, and tables with the Python standard library.
+`--install-missing` (user approval required) creates or reuses
+`.krt/document-forge/venv` and installs the optional Python packages there. It
+does not install system packages such as Poppler.
