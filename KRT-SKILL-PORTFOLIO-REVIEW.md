@@ -1,5 +1,10 @@
 # Consolidated KRT Skill Portfolio Review
 
+> **Historical.** This review describes the portfolio as of 2026-07-27. The
+> 2026-10 modernization removed or merged several skills listed here; see
+> `docs/skills.md` for the current catalog and `evals/*/RESULTS.md` for the
+> evidence behind each change.
+
 Review status: 2026-07-27
 
 Branch reviewed: `feat/skill-portfolio-corrections`

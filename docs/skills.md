@@ -6,64 +6,48 @@ Formal skill IDs use lowercase hyphenated `krt-*` names. Some runtimes may expos
 
 | Alias | Formal skill ID | Purpose |
 |---|---|---|
-| `$krt:requirements-weaver` | `krt-requirements-weaver` | Clarify rough software requirements before planning or coding. |
-| `$krt:harness-wise` | `krt-harness-wise` | Create versionable coding harnesses from project docs and agent initialization context, or diagnose and improve an existing harness. |
-| `$krt:document-forge` | `krt-document-forge` | Convert PDF and DOCX source documents into versionable Markdown evidence for harness and planning workflows. |
-| `$krt:word-illuminator` | `krt-word-illuminator` | Create, edit, render, compare, validate, and privacy-scrub professional Word DOCX documents. |
-| `$krt:roadmap-cartographer` | `krt-roadmap-cartographer` | Generate exactly one roadmap or readiness report from existing project context. |
-| `$krt:delivery-navigator` | `krt-delivery-navigator` | Turn validated requirements into a practical project delivery plan. |
-| `$krt:compound-master` | `krt-compound-master` | Orchestrate larger delivery programs: context gate, roadmap, brainstorms, plans, reviews, work packages, execution, and release handoff. |
-| `$krt:light-compound-master` | `krt-light-compound-master` | Experimentally deliver one bounded work package with compact state, verification, risk-based review, and release handoff. |
-| `$krt:swarm-seneschal` | `krt-swarm-seneschal` | Explicitly coordinate multiple bounded worker units through plan, dispatch, reconcile, and status operations. |
-| `$krt:light-seneschal` | `krt-light-seneschal` | Experimentally coordinate the same worker outcomes with brief assignments and one run record. |
-| `$krt:muse-artificer` | `krt-muse-artificer` | Execute a ready Seneschal worker contract with Muse Code and return its terminal artifact. |
-| `$krt:state-archivist` | `krt-state-archivist` | Keep Compound Master state compact by archiving long historical detail into linked files. |
-| `$krt:release-marshal` | `krt-release-marshal` | Direct commits, rebase, Jira, push, PR creation, reviewer requests, and Jira review follow-up. |
-| `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, plan fixes, draft reviewer replies, and apply approved thread replies or resolutions. |
-| `$krt:security-sentinel` | `krt-security-sentinel` | Review security-sensitive slices and diagnose systems for cybersecurity risk. |
-| `$krt:ci-questor` | `krt-ci-questor` | Investigate failing CI runs and produce concise cause reports. |
-| `$krt:deploy-summoner` | `krt-deploy-summoner` | Prepare and diagnose Docker, Helm, and Kubernetes deployments. |
-| `$krt:real-world-edge-testing` | `krt-real-world-edge-testing` | Build safe, executable, evidence-backed failure campaigns across real system boundaries. |
-| `$krt:docs-chronicler` | `krt-docs-chronicler` | Keep durable docs, ADRs, changelogs, runbooks, and learnings current. |
-| `$krt:gitflow-knight` | `krt-gitflow-knight` | Keep branch hygiene and atomic commits in formation. |
-| `$krt:rebase-smith` | `krt-rebase-smith` | Re-forge branch history onto the correct base without dragging old steel into the PR. |
+| `$krt:requirements-weaver` | `krt-requirements-weaver` | Turn a rough brief into a draft requirements packet with testable acceptance criteria and ranked open questions. |
+| `$krt:harness-wise` | `krt-harness-wise` | Create or review a compact coding harness under `docs/harnesses/`, and promote staged evidence safely. |
+| `$krt:document-forge` | `krt-document-forge` | Convert PDF and DOCX sources into versionable Markdown evidence, treating converted text as untrusted. |
+| `$krt:word-illuminator` | `krt-word-illuminator` | Create, edit, validate, and privacy-scrub professional Word DOCX documents without editing the source in place. |
+| `$krt:delivery-navigator` | `krt-delivery-navigator` | Turn requirements or project docs into a delivery plan, phased roadmap, or readiness report. |
+| `$krt:compound-master` | `krt-compound-master` | Take a bounded work package from context to a release-ready handoff with one compact state record and risk-based review. |
+| `$krt:swarm-seneschal` | `krt-swarm-seneschal` | Coordinate several ready units across workers, reconcile them into one candidate, and hand off release. |
+| `$krt:muse-artificer` | `krt-muse-artificer` | Run Muse Code headlessly on one ready, settled implementation unit. |
+| `$krt:release-marshal` | `krt-release-marshal` | Ship work for review: commits, rebase, Jira, push, PR, reviewers, Jira follow-up, and gated merges. |
+| `$krt:review-herald` | `krt-review-herald` | Triage PR review feedback, apply approved fixes, and draft or publish approved replies. |
+| `$krt:security-sentinel` | `krt-security-sentinel` | Review security-sensitive changes and diagnose systems and agentic workflows for risk. |
+| `$krt:deploy-summoner` | `krt-deploy-summoner` | Review and diagnose Docker, Compose, Helm, and Kubernetes deployments, proposing rather than applying mutations. |
+| `$krt:gitflow-knight` | `krt-gitflow-knight` | Semantic feature branches and approved atomic commits, with no AI attribution. |
+| `$krt:rebase-smith` | `krt-rebase-smith` | Rebase a branch onto its real base, including `--onto`, with exact push approval. |
 | `$krt:jira-scribe` | `krt-jira-scribe` | Manage Jira Server/Data Center issues, subtasks, sprints, and transitions in Spanish. |
 | `$krt:jira-cloud-scribe` | `krt-jira-cloud-scribe` | Manage Jira Cloud issues, subtasks, sprints, and transitions in Spanish. |
-| `$krt:repo-medic` | `krt-repo-medic` | Diagnose repository health, stale docs, broken workflows, and maintenance risks. |
-| `$krt:skill-arbiter` | `krt-skill-arbiter` | Validate a KRT skill portfolio and score supervisor-captured routing, safety, restart, fallback, and outcome evaluations. |
-| `$krt:product-polish-council` | `krt-product-polish-council` | Audit twelve product-polish dimensions, apply six cognitive-load factors to every finding, and produce an evidence-based backlog. |
-| `$krt:cognitive-load-court` | `krt-cognitive-load-court` | Diagnose avoidable cognitive workload in a defined task and distinguish heuristic risk from measured evidence. |
-| `$krt:frontend-ux-guardian` | `krt-frontend-ux-guardian` | Guard frontend agents toward functional, accessible, responsive UX/UI and browser-verified workflows. |
-| `$krt:interface-inquisitor` | `krt-interface-inquisitor` | Produce evidence-based adversarial visual critiques and implementation-ready change briefs. |
-| `$krt:interface-warden` | `krt-interface-warden` | Design and implement distinctive working-surface interfaces within product constraints. |
-| `$krt:interaction-polisher` | `krt-interaction-polisher` | Audit and refine feedback, motion, latency, continuity, and state transitions. |
-| `$krt:bicentennial-writer` | `krt-bicentennial-writer` | Draft and revise text so it sounds natural, specific, and less formulaic. |
+| `$krt:skill-arbiter` | `krt-skill-arbiter` | Evaluate skills behaviorally with `evals/run_skill_eval.py` and check portfolio metadata and safety wiring. |
+| `$krt:product-polish-council` | `krt-product-polish-council` | Audit an application's polish with twelve lenses and a cognitive-load lens, and produce an evidence-based backlog. |
+| `$krt:interface-warden` | `krt-interface-warden` | Design, redesign, or critique interfaces with the Editorial Product UI doctrine. |
+| `$krt:interaction-polisher` | `krt-interaction-polisher` | Refine feedback, motion, latency, focus continuity, and state transitions. |
+| `$krt:before-after-herald` | `krt-before-after-herald` | Build a single-file HTML before/after report for a visual change. |
+| `$krt:bicentennial-writer` | `krt-bicentennial-writer` | Draft and revise text so it sounds natural and specific, without inventing facts. |
 
 Skills can bring their own references, templates, scripts, assets, or agent definitions. Keep the main `SKILL.md` readable; put the heavy armor nearby.
 
 ## Dependencies
 
-| Skill | Expected companions | Why |
-|---|---|---|
-| `krt-document-forge` | `krt-harness-wise` for downstream harness creation | Converts source documents into auditable Markdown evidence without taking ownership of the final harness. |
-| `krt-delivery-navigator` | `krt-requirements-weaver` output when available | Turns validated requirements into delivery shape without re-litigating discovery. |
-| `krt-compound-master` | Required: `krt-roadmap-cartographer`, `ce-brainstorm`, `ce-plan`, `document-review`, `ce-work`, `ce-review`, `krt-release-marshal`. Optional: `krt-state-archivist`, `krt-security-sentinel`, `krt-ci-questor` | Full artifact, execution, and release pipeline. Optional specialists are used when present and skipped with a recorded fallback when missing. |
-| `krt-light-compound-master` | `krt-release-marshal`; optional `krt-light-seneschal` parent and `krt-security-sentinel` for security-sensitive work | Experimental bounded delivery with a single compact state record and risk-based review. |
-| `krt-swarm-seneschal` | `krt-compound-master`, `krt-release-marshal`, the selected `krt-jira-cloud-scribe` or `krt-jira-scribe`, and optional subagent/worktree runtime support | Coordinates multiple ready units or nested Compound flows. Jira routing is provider-neutral, and shipping remains owned by Release Marshal. |
-| `krt-light-seneschal` | `krt-light-compound-master` or full `krt-compound-master` when a child pipeline is needed; `krt-release-marshal`; selected Jira provider when in scope | Experimental alternative for multiple ready units; shares the same downstream owners without per-unit contract artifacts by default. |
-| `krt-muse-artificer` | `krt-swarm-seneschal` contract tools and Muse Code CLI | Runs one bounded implementation unit; Seneschal retains reconciliation and release ownership. |
-| `krt-release-marshal` | `krt-gitflow-knight`, `krt-rebase-smith`, `krt-jira-scribe` | Clean commits, clean branch history, Jira, and PR handoff. |
-| `krt-jira-scribe` | `.krt/env/jira-scribe.env` loaded into env vars | Jira Server/Data Center issue, subtask, sprint, and transition work. |
-| `krt-jira-cloud-scribe` | `.krt/env/jira-cloud-scribe.env` loaded into env vars | Jira Cloud issue, subtask, sprint, and transition work via REST API v3. |
-| `krt-product-polish-council` | Optional: `krt-cognitive-load-court`, `krt-frontend-ux-guardian`, `krt-interface-inquisitor`, and `krt-interaction-polisher` | Every evaluator applies the built-in cognitive-load overlay. A deterministic checker validates all twelve outputs and gates the full Court; other specialists deepen accepted functional, visual, or interaction findings. |
-| `krt-cognitive-load-court` | Optional: `krt-product-polish-council` for a fresh application atlas, twelve independent overlay sources, and a unified backlog | The Court works independently on bounded tasks; when combined, it receives neutral referral tuples and factual evidence while retaining authority over workload claims and measurement. |
-| `krt-real-world-edge-testing` | Optional: `krt-security-sentinel` for security-heavy cases; `krt-deploy-summoner` for infrastructure-failure preparation | The campaign remains independently useful; specialists deepen high-risk boundaries without blocking design, build, or safe execution. |
-| `krt-frontend-ux-guardian` | Optional: `krt-interface-inquisitor` for adversarial critique; `krt-interface-warden` for visual direction | Works independently; when combined, Guardian defines the UX contract and final functional gate. |
-| `krt-interface-inquisitor` | Optional: `krt-frontend-ux-guardian` constraints and `krt-interface-warden` implementation | Works independently; optional handoffs keep visual criticism product-safe and directly actionable. |
-| `krt-interface-warden` | Optional: `krt-frontend-ux-guardian` constraints and `krt-interface-inquisitor` critique | Works independently; optional inputs help preserve task flow while implementing visual direction. |
-| `krt-interaction-polisher` | Optional: `krt-frontend-ux-guardian` constraints, `krt-interface-inquisitor` critique, and `krt-interface-warden` composition | Works independently; optional inputs keep interaction refinements functionally safe and visually coherent. |
-| `krt-skill-arbiter` | Any KRT skill portfolio; optionally `krt-repo-medic` for the diagnostic matrix | Validates corpus and portfolio contracts, then aggregates independently supervised results without executing models. |
+Companions are optional unless marked required. A missing optional skill never blocks the work; the caller does that part inline.
 
-For Jira Server/Data Center flows, configure the active checkout's `.krt/env/jira-scribe.env`, load it into environment variables, and verify readiness with `check_jira_env.py` without printing `JIRA_API_TOKEN`, because secrets are not confetti.
+| Skill | Companions | Why |
+|---|---|---|
+| `krt-document-forge` | `krt-harness-wise` downstream | Converts sources into evidence without owning the harness. |
+| `krt-delivery-navigator` | `krt-requirements-weaver` output when available | Plans from validated requirements without redoing discovery. |
+| `krt-compound-master` | Required: `krt-release-marshal`. Optional: `krt-security-sentinel`, a `krt-swarm-seneschal` parent | Delivers one unit; release and high-risk security review go to their owners. |
+| `krt-swarm-seneschal` | `krt-compound-master` for child runs, `krt-muse-artificer`, `krt-release-marshal`, the selected Jira skill | Coordinates units; shipping stays with Release Marshal. |
+| `krt-muse-artificer` | Muse Code CLI | Runs one unit; the caller keeps review, verification, and release. |
+| `krt-release-marshal` | `krt-gitflow-knight`, `krt-rebase-smith`, `krt-jira-scribe` or `krt-jira-cloud-scribe` | Clean commits, clean history, Jira, and PR handoff. Owns the autonomy ledger validator. |
+| `krt-jira-scribe` | `.krt/env/jira-scribe.env` | Jira Server/Data Center work through `scripts/jira_api.py`. |
+| `krt-jira-cloud-scribe` | `.krt/env/jira-cloud-scribe.env` | Jira Cloud work via REST API v3 through `scripts/jira_api.py`. |
+| `krt-product-polish-council` | `krt-interface-warden`, `krt-interaction-polisher` for accepted fixes | The audit stands alone; specialists deepen visual or interaction fixes. |
+| `krt-skill-arbiter` | `evals/` harness in this repo | Runs no-skill / old / new comparisons and structural portfolio checks. |
+
+For Jira Server/Data Center flows, configure the active checkout's `.krt/env/jira-scribe.env` and verify readiness with `check_jira_env.py` without printing `JIRA_API_TOKEN`, because secrets are not confetti.
 
 For Jira Cloud flows, configure `.krt/env/jira-cloud-scribe.env` and verify readiness with the Cloud skill's `check_jira_env.py` without printing `JIRA_CLOUD_API_TOKEN`.

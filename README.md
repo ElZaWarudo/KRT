@@ -2,7 +2,7 @@
 
 KRT means **Knights of the Round Table**: portable agent skills for keeping a codebase in formation without asking one overcaffeinated linux squire to remember every ritual by heart.
 
-KRT gives agent runtimes 30 reusable skills for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, CI, deployment, testing, security, evaluation, docs, and repo health. The bit is medieval. The contract is not.
+KRT gives agent runtimes 22 reusable skills for requirements, harnesses, roadmaps, delivery orchestration, release hygiene, deployment, security, and skill evaluation. Each skill keeps only what a current model would get wrong without it, and every one has a behavioral eval under [`evals/`](evals/). The bit is medieval. The contract is not.
 
 Repository documentation and skill instructions use English. Localized Jira values, multilingual routing triggers, parser fixtures, and language-specific writing examples remain in their source language when translation would change behavior.
 
@@ -18,28 +18,24 @@ Start with the job in front of you. The groups below cover every KRT skill witho
 | A professional Word document to create, edit, render, or validate | `krt-word-illuminator` |
 | A fuzzy brief, prompt, or feature idea | `krt-requirements-weaver` |
 | A repo you do not trust yourself to touch yet | `krt-harness-wise` |
-| Existing context that needs a roadmap or readiness report | `krt-roadmap-cartographer` |
-| Validated requirements that need a delivery plan | `krt-delivery-navigator` |
+| Validated requirements or project docs that need a delivery plan, roadmap, or readiness report | `krt-delivery-navigator` |
 
 ### Coordinate Delivery
 
 | When you have... | Start with... |
 |---|---|
-| A larger initiative that needs artifact-first orchestration | `krt-compound-master` |
-| Multiple ready work packages or dependent backlog units that benefit from bounded agent waves | `krt-swarm-seneschal` |
-| A ready Seneschal worker contract to implement with Muse Code | `krt-muse-artificer` |
-| Compound Master state that has become too noisy | `krt-state-archivist` |
+| A bounded work package to take from context to a release-ready PR | `krt-compound-master` |
+| Several ready units that benefit from parallel or sequential workers | `krt-swarm-seneschal` |
+| A ready, settled implementation unit to hand to Muse Code | `krt-muse-artificer` |
 
 ### Improve The Product Experience
 
 | When you have... | Start with... |
 |---|---|
-| An application that needs an end-to-end product polish audit with cognitive-load signals on every finding | `krt-product-polish-council` |
-| A task flow that feels mentally taxing or needs workload evidence | `krt-cognitive-load-court` |
-| Frontend work that must stay functional, accessible, and responsive | `krt-frontend-ux-guardian` |
-| An interface that needs an adversarial visual critique | `krt-interface-inquisitor` |
-| An interface that needs distinctive design or implementation | `krt-interface-warden` |
+| An application that needs an end-to-end polish audit, or a flow that feels mentally taxing | `krt-product-polish-council` |
+| An interface that needs distinctive design, a redesign, or a visual critique | `krt-interface-warden` |
 | A working interface that still feels dead, abrupt, or sluggish | `krt-interaction-polisher` |
+| A visual change that needs before/after screenshot evidence | `krt-before-after-herald` |
 | English or Spanish text that sounds generic or AI-written | `krt-bicentennial-writer` |
 
 ### Ship And Collaborate
@@ -58,12 +54,8 @@ Start with the job in front of you. The groups below cover every KRT skill witho
 | When you have... | Start with... |
 |---|---|
 | Security-sensitive work or a repository-wide security review | `krt-security-sentinel` |
-| A failing CI run | `krt-ci-questor` |
 | Deployment manifests, rollout, or rollback risk | `krt-deploy-summoner` |
-| A system that needs realistic, executable failure-mode testing | `krt-real-world-edge-testing` |
-| Stale, missing, or noisy docs | `krt-docs-chronicler` |
-| Suspicious repo health | `krt-repo-medic` |
-| A skill portfolio that needs deterministic corpus, metadata, or safety checks | `krt-skill-arbiter` |
+| A new or changed skill that needs a behavioral eval, or portfolio metadata and safety checks | `krt-skill-arbiter` |
 
 Full descriptions, aliases, and dependencies: [`docs/skills.md`](docs/skills.md). Prompt examples: [`docs/examples.md`](docs/examples.md).
 
@@ -73,45 +65,25 @@ Full descriptions, aliases, and dependencies: [`docs/skills.md`](docs/skills.md)
 |---|---|
 | Document intake | `krt-document-forge` -> `krt-harness-wise` |
 | Document production | `krt-word-illuminator` |
-| Discovery | `krt-requirements-weaver` -> `krt-roadmap-cartographer` -> `krt-delivery-navigator` |
+| Discovery | `krt-requirements-weaver` -> `krt-delivery-navigator` |
 | Execution | `krt-harness-wise` -> `krt-compound-master` -> `krt-release-marshal` |
 | Swarm execution | `krt-swarm-seneschal` -> `krt-compound-master` -> `krt-release-marshal` |
-| Product polish | `krt-product-polish-council` with a six-factor overlay on every finding -> `krt-cognitive-load-court` when the referral gate fires -> targeted implementation specialists |
-| Cognitive workload | `krt-cognitive-load-court` standalone or referred from `krt-product-polish-council` |
-| Operations | `krt-review-herald`, `krt-ci-questor`, `krt-deploy-summoner`, `krt-real-world-edge-testing`, `krt-docs-chronicler`, `krt-repo-medic`, `krt-security-sentinel` |
-| Skill portfolio quality | `krt-repo-medic` -> `krt-skill-arbiter` |
+| Product polish | `krt-product-polish-council` (with its cognitive-load lens) -> `krt-interface-warden` / `krt-interaction-polisher` for fixes |
+| Skill quality | `krt-skill-arbiter` with `evals/run_skill_eval.py` |
 
-`krt-compound-master` treats a **work package** as the PR/Jira unit while preserving the plan's implementation units inside it. One PR may carry the package; the bookkeeping should still know which pieces marched where.
+`krt-compound-master` keeps one compact state record per run and sizes PRs for human review: at most two or three open stacked PRs, Jira at review-unit granularity.
 
-### Seneschal Execution Lanes
+### Seneschal Workers
 
-Seneschal does not summon the whole court for every loose horseshoe. Small
-independent work stays with the root agent when dispatch would cost more than
-the change; dispatched implementation uses one of three stable lanes:
+Seneschal keeps a clear single task with the root agent. When several ready units benefit from separate workers, it routes them by risk:
 
-| Lane | Use it for... | Worker profile |
-|---|---|---|
-| `fast` | Decision-closed work with a confirmed edit path | Muse when available; GPT-6 Luna with `high` reasoning otherwise |
-| `standard` | Normal bounded implementation | GPT-6 Luna with `high` reasoning; Muse for settled units |
-| `deep` | Architecture, auth, data, concurrency, public contracts, or other demanding work | GPT-6 Luna with `xhigh` reasoning |
+| Unit | Worker |
+|---|---|
+| Fast or settled standard work | Muse Code via `krt-muse-artificer` (model `muse-spark-1.3-contributor`), when installed |
+| Standard work | GPT-6 Luna (`luna_worker`) |
+| Deep, ambiguous, or high-risk work | `luna_xhigh_discovery_worker` read-only first, then `luna_xhigh_worker` |
 
-`krt-muse-artificer` is preferred for ready `fast` units and can take a settled
-`standard` Implementer unit through Muse Code model
-`muse-spark-1.3-contributor`. Seneschal creates the
-hashed worker contract and isolated worktree; the Artificer runs Muse against
-that contract and returns a validated terminal artifact. Seneschal still
-inspects the actual diff, captures verification evidence, and decides whether
-the unit is ready. Muse must be installed in the environment running the worker
-(WSL in the current setup). It is the first choice for eligible fast work and
-does not replace the `deep` lane.
-
-Optional Planner, Reviewer, Fixer, Integrator, and Documenter
-roles join only when their admission trigger is present. Leaf workers run
-focused checks; Seneschal runs aggregate verification once per wave. Low and
-medium fast/standard work uses a lightweight contract when safe; deep,
-high-risk, critical, or autonomous work retains the executable contract.
-
-Canonical policy: [`execution-lanes.md`](skills/krt-swarm-seneschal/references/execution-lanes.md).
+Seneschal still inspects each diff, merges the units into one candidate, runs the full suite there, and hands release to `krt-release-marshal`. Muse must be installed in the environment that runs the worker (WSL in the current setup).
 
 ## Install
 
@@ -132,35 +104,18 @@ npx -y skills add ElZaWarudo/krt --all -g
 
 ### Install Seneschal Worker Profiles
 
-The skill package carries Spark, Luna `high`, and Luna `xhigh` profiles, while
 Codex discovers custom agents only from `.codex/agents/` in a project or
-`agents/` under the active Codex home. After installing
-`krt-swarm-seneschal`, preview the personal-agent copy:
-
-```bash
-rtk python3 <installed-seneschal-skill-dir>/scripts/install_worker_profiles.py --scope user
-```
-
-Then apply the reviewed copy:
-
-```bash
-rtk python3 <installed-seneschal-skill-dir>/scripts/install_worker_profiles.py --scope user --install
-```
-
-Existing differing profiles are preserved as conflicts unless `--replace` is
-explicitly supplied. With that flag, the installer also retires recognized
-legacy aliases such as `luna-worker.toml`; customized aliases remain guarded as
-conflicts. Projects can instead commit overrides under `.codex/agents/`.
+`agents/` under the active Codex home. Copy the profiles from the installed
+skill's `assets/codex-workers/` into one of those, after reviewing any existing
+profile with the same name. This repo already carries them in `.codex/agents/`.
 
 Install the Compound Master pipeline:
 
 ```bash
 npx -y skills add ElZaWarudo/krt \
   --skill krt-requirements-weaver \
-  --skill krt-roadmap-cartographer \
   --skill krt-delivery-navigator \
   --skill krt-compound-master \
-  --skill krt-state-archivist \
   --skill krt-release-marshal \
   --skill krt-gitflow-knight \
   --skill krt-rebase-smith \
@@ -173,9 +128,6 @@ Install the product polish suite:
 ```bash
 npx -y skills add ElZaWarudo/krt \
   --skill krt-product-polish-council \
-  --skill krt-cognitive-load-court \
-  --skill krt-frontend-ux-guardian \
-  --skill krt-interface-inquisitor \
   --skill krt-interface-warden \
   --skill krt-interaction-polisher \
   --skill krt-bicentennial-writer \
@@ -220,6 +172,13 @@ Per-skill safety notes live in [`docs/safety.md`](docs/safety.md). They are shor
 ## Develop
 
 Edit skills in `skills/<name>/`. Keep reusable detail in `references/` or `assets/` so `SKILL.md` stays readable.
+
+Measure a changed skill against `main` and against no skill (see [`evals/README.md`](evals/README.md)):
+
+```bash
+python3 evals/run_skill_eval.py evals/<skill-name> \
+  --variant none=none --variant old=main --variant new=worktree --reps 2
+```
 
 Validate a changed skill:
 

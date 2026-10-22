@@ -1,5 +1,11 @@
 # UX/UI Frontend Skill Research
 
+> **Historical.** This research predates the 2026-10 modernization, which
+> merged `krt-interface-inquisitor` into `krt-interface-warden`, removed
+> `krt-frontend-ux-guardian`, and rewrote the rest; see
+> `docs/skills.md` for the current catalog and `evals/*/RESULTS.md` for the
+> evidence behind each change.
+
 Date: 2026-07-06
 
 ## Goal

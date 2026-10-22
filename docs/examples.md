@@ -52,22 +52,16 @@ Use $krt:harness-wise to improve docs/harnesses/billing-refactor.md.
 
 ## Delivery
 
-Turn a documented initiative into artifacts:
+Plan a bounded work package before writing code:
 
 ```text
-Use $krt:compound-master for docs/specs/reporting.md mode:artifacts
+Use $krt:compound-master for docs/specs/reporting.md mode:plan
 ```
 
 Resume execution from orchestration state:
 
 ```text
-Use $krt:compound-master mode:resume jira-policy:optional parallel:false
-```
-
-Compact noisy Compound Master state:
-
-```text
-Use $krt:state-archivist on docs/orchestration/compound-master-state.md
+Use $krt:compound-master mode:resume
 ```
 
 ## Operations
@@ -84,37 +78,19 @@ Resolve PR feedback:
 Use $krt:review-herald to address review comments on PR #42, apply safe fixes, verify them, and prepare replies.
 ```
 
-Investigate CI:
-
-```text
-Use $krt:ci-questor to explain why the latest GitHub Actions run failed and what to do next.
-```
-
 Prepare deployment:
 
 ```text
 Use $krt:deploy-summoner to review Helm values and produce a safe rollout and rollback plan.
 ```
 
-Build and safely execute an edge-case campaign:
-
-```text
-Use $krt:real-world-edge-testing to exercise this ingestion pipeline across malformed files, attribution errors, dependency timeouts, retries, and recovery using deterministic synthetic fixtures.
-```
-
-Design a campaign without touching the environment:
-
-```text
-Use $krt:real-world-edge-testing in design mode for the booking workflow. Produce executable cases and strong oracles, but do not run external operations.
-```
-
-Update durable docs:
-
-```text
-Use $krt:docs-chronicler to update docs and ADRs after this incident fix.
-```
-
 ## Skill Portfolio Quality
+
+Measure whether a changed skill still earns its place:
+
+```text
+Use $krt:skill-arbiter to write an eval suite for krt-gitflow-knight and compare no skill, main, and the working tree.
+```
 
 Check structural, metadata, and safety wiring:
 
@@ -122,30 +98,24 @@ Check structural, metadata, and safety wiring:
 Use $krt:skill-arbiter to validate this KRT skill portfolio.
 ```
 
-Score supervisor-captured results without running a model:
-
-```text
-Use $krt:skill-arbiter to validate the corpus and score eval-results.json, preserving inconclusive cases.
-```
-
 ## Frontend Craft
 
 Run a comprehensive polish audit with cognitive-load coverage:
 
 ```text
-Use $krt:product-polish-council to audit the application's critical flows. Require every evaluator to apply the six-factor cognitive-load overlay and convene the full Court whenever the referral gate fires.
+Use $krt:product-polish-council to audit the application's critical flows and tag each finding with its cognitive-load factor.
 ```
 
 Audit avoidable cognitive workload in a critical task:
 
 ```text
-Use $krt:cognitive-load-court to audit the project-creation flow for first-time administrators and separate predicted burden from measured evidence.
+Use $krt:product-polish-council to audit the cognitive load of the project-creation flow for first-time administrators and separate predicted burden from measured evidence.
 ```
 
 Compare a redesigned flow against its baseline:
 
 ```text
-Use $krt:cognitive-load-court in measured comparison mode for the current and proposed approval flows. Define equivalent tasks, target profiles, workload evidence, and acceptance criteria before comparing them.
+Use $krt:product-polish-council to compare the cognitive load of the current and proposed approval flows. Define equivalent tasks, target profiles, workload evidence, and acceptance criteria before comparing them.
 ```
 
 Audit an implemented workflow's interaction feel:
