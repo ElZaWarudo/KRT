@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "contract_id": "autonomy-expired",
+  "issued_at": "2026-05-20T09:00:00Z",
+  "expires_at": "2026-05-21T09:00:00Z",
+  "status": "active",
+  "issuer": {
+    "type": "user",
+    "id": "teb",
+    "approval_hash": "sha256:approval-visible-message"
+  },
+  "scope": {
+    "repository": "acme/widgets",
+    "base_branch": "main",
+    "branch_patterns": [
+      "feature/*"
+    ],
+    "jira_keys": [
+      "KRT-42"
+    ]
+  },
+  "allowed_mutations": [
+    "pr_merge"
+  ],
+  "stop_conditions": [
+    "contract_expired"
+  ],
+  "audit": {
+    "path": "docs/orchestration/autonomy-ledgers/autonomy-expired-audit",
+    "head_hash": "GENESIS"
+  },
+  "contract_hash": "3dc165c5bd89620e05862eeae9ad047abe4c5fbf65831eab985c997e494e7244"
+}

@@ -13,6 +13,8 @@ DOC_PREFIXES = (
     "docs/plans/",
     "docs/work-packages/",
     "docs/orchestration/compound-master-state.md",
+    "docs/orchestration/compound-master/",
+    "docs/orchestration/seneschal/",
 )
 
 GENERATED_MARKERS = (

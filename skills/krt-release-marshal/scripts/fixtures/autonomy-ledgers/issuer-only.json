@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "contract_id": "autonomy-issuer-only",
+  "issued_at": "2026-05-22T09:00:00Z",
+  "expires_at": "2026-05-23T09:00:00Z",
+  "status": "active",
+  "issuer": {
+    "type": "user",
+    "id": "teb"
+  },
+  "scope": {
+    "repository": "acme/widgets",
+    "base_branch": "main",
+    "branch_patterns": ["feature/*"],
+    "jira_keys": ["KRT-42"]
+  },
+  "allowed_mutations": ["pr_merge"],
+  "stop_conditions": ["audit_write_failed"],
+  "audit": {
+    "path": "docs/orchestration/autonomy-ledgers/autonomy-issuer-only-audit",
+    "head_hash": "GENESIS"
+  }
+}

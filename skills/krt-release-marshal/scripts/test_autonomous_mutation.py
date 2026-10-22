@@ -14,7 +14,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 EXECUTOR = ROOT / "autonomous_mutation.py"
 FIXTURES = ROOT / "fixtures" / "github-autonomy"
-LEDGER = ROOT.parents[1] / "krt-compound-master" / "scripts" / "fixtures" / "autonomy-ledgers" / "active.json"
+LEDGER = ROOT / "fixtures" / "autonomy-ledgers" / "active.json"
 NOW = "2026-05-22T12:00:00Z"
 CONTRACT_HASH = "b74b94b95a17d325383b9d29a44fcd0c6830ddcec49f3a138d74d26b5d804968"
 

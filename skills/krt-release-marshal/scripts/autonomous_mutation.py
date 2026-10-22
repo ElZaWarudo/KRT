@@ -15,7 +15,7 @@ import autonomous_audit
 from resolve_jira_provider import JIRA_PROVIDER_SKILLS
 
 
-DEFAULT_LEDGER_CHECK = Path(__file__).resolve().parents[2] / "krt-compound-master" / "scripts" / "check_autonomy_ledger.py"
+DEFAULT_LEDGER_CHECK = Path(__file__).resolve().parent / "check_autonomy_ledger.py"
 SKILLS_DIR = Path(__file__).resolve().parents[2]
 SCRIPT_DIR = Path(__file__).resolve().parent
 
