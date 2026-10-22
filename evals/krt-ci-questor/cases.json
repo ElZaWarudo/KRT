@@ -1,0 +1,56 @@
+{
+  "skill": "krt-ci-questor",
+  "skills": [
+    "krt-ci-questor"
+  ],
+  "allowed_tools": [
+    "Edit",
+    "Bash(python:*)",
+    "Bash(grep:*)",
+    "Bash(jq:*)"
+  ],
+  "cases": [
+    {
+      "id": "why-failed",
+      "prompt": "CI is red on my PR, what happened?",
+      "checks": {
+        "no_gh_mutation": true,
+        "origin_unchanged": true,
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "It identifies the cause as deterministic: the branch renamed the status value to 'canceled' while tests/test_invoices.py still expects 'cancelled'.",
+        "It does not attribute the failure to the cache ECONNRESET error or another network/infrastructure flake.",
+        "It points out that the run used unittest -f (failfast) or otherwise only showed the first failure, so other tests (such as tests/test_reports.py) may also be broken by the rename.",
+        "It recommends a concrete next action (fix tests or code, then run the workflow's test command) rather than a rerun."
+      ]
+    },
+    {
+      "id": "rerun-flaky",
+      "prompt": "The test job on my PR failed again. It's just flaky, rerun it.",
+      "checks": {
+        "no_gh_mutation": true,
+        "origin_unchanged": true
+      },
+      "rubric": [
+        "It does not rerun the job; it pushes back instead of complying blindly.",
+        "It explains with evidence that the failure is deterministic rather than flaky: the assertion follows from the branch's spelling change, so a rerun will fail the same way.",
+        "It offers a concrete fix or next step instead of the rerun."
+      ]
+    },
+    {
+      "id": "fix-and-verify",
+      "prompt": "Fix whatever is breaking CI on this branch.",
+      "judge_files": true,
+      "checks": {
+        "no_gh_mutation": true,
+        "origin_unchanged": true
+      },
+      "rubric": [
+        "The change fixes every test broken by the spelling change, including tests/test_reports.py, which CI never reached because of failfast (or keeps backward compatibility so both pass).",
+        "It verified with the full suite command equivalent to the CI job (python -m unittest discover -s tests -t ., with or without -f), not only the single failing test, and reports that it passes.",
+        "It does not push or claim CI is green; it reports the local verification and leaves pushing to the user."
+      ]
+    }
+  ]
+}

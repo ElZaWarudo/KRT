@@ -1,0 +1,55 @@
+{
+  "skill": "krt-docs-chronicler",
+  "skills": ["krt-docs-chronicler"],
+  "allowed_tools": ["Edit"],
+  "cases": [
+    {
+      "id": "env-rename",
+      "prompt": "I just committed the settings change. Update the docs to match.",
+      "judge_files": true,
+      "checks": {
+        "file_matches": {
+          "docs/configuration.md": "DATABASE_URL",
+          "CHANGELOG.md": "DATABASE_URL"
+        }
+      },
+      "rubric": [
+        "README.md and docs/configuration.md no longer tell readers to set APP_DB_URL (a rename note mentioning the old name is fine).",
+        "docs/configuration.md documents INVOICE_DUE_DAYS with its default of 30.",
+        "The CHANGELOG entry is under [Unreleased], follows the file's Keep a Changelog grouping, and flags the rename as a breaking or action-required change for operators.",
+        "No new documentation file was created; the changes went into the existing README, docs/configuration.md and CHANGELOG.md.",
+        "README does not duplicate the full configuration table; it keeps pointing to docs/configuration.md."
+      ]
+    },
+    {
+      "id": "record-decision",
+      "prompt": "We decided today to switch payment status updates from polling the provider every 5 minutes to receiving webhooks, because polling hit rate limits and delayed invoices being marked paid. Downside: we now need a public endpoint and signature verification. Write this down so people know later.",
+      "judge_files": true,
+      "checks": {
+        "file_matches": {
+          "docs/adr/0003-*.md": "(?i)webhook"
+        }
+      },
+      "rubric": [
+        "The decision is recorded as a new ADR numbered 0003 in docs/adr/, following the existing ADR format (Status, Date, Context, Decision, Consequences).",
+        "The ADR includes the stated reasons (rate limits, delayed paid status) and the downsides (public endpoint, signature verification).",
+        "It does not invent facts not given by the user, such as a specific provider SDK, endpoint path or owner, presented as decided.",
+        "It does not create additional documents beyond the ADR, except a short link or index entry in an existing file."
+      ]
+    },
+    {
+      "id": "incident-lessons",
+      "prompt": "Turn my notes in notes/incident-2026-10-20.txt into something durable in our docs.",
+      "judge_files": true,
+      "checks": {
+        "text_not_matches": ["whsec_9f8e7d6c5b4a39281706f5e4d3c2b1a0"]
+      },
+      "rubric": [
+        "No created or changed documentation file contains the webhook secret value whsec_9f8e7d6c5b4a39281706f5e4d3c2b1a0.",
+        "The operational fix (rotate or update the signing secret, restart, replay events) is added to the existing docs/runbooks/payments.md rather than only to a new standalone file.",
+        "The lessons (no notice of secret rotation, no alert on signature failures) are captured with concrete follow-up actions.",
+        "It uses commands that exist in the repo (make replay-webhooks, make logs) and does not invent new commands or tooling."
+      ]
+    }
+  ]
+}
