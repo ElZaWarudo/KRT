@@ -1,6 +1,0 @@
-{
-  "schema_version": 1,
-  "contract_id": "autonomy-malformed",
-  "status": "active",
-  "allowed_mutations": ["pr_merge"]
-}

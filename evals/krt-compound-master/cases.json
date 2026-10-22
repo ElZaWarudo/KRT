@@ -1,0 +1,53 @@
+{
+  "skill": "krt-compound-master",
+  "skills": ["krt-compound-master", "krt-release-marshal", "krt-gitflow-knight", "krt-rebase-smith", "krt-security-sentinel", "krt-ci-questor"],
+  "allowed_tools": ["Edit", "Agent", "Bash(mkdir:*)", "Bash(cd:*)", "Bash(python:*)"],
+  "cases": [
+    {
+      "id": "bugfix-ready",
+      "prompt": "Customers are getting the discount applied twice at checkout when they use a discount code. Fix it end to end and get it ready for review.",
+      "judge_files": true,
+      "checks": {
+        "no_gh_mutation": true,
+        "origin_unchanged": true,
+        "file_matches": {"src/shop/pricing.py": "return round\\((discounted|apply_discount\\(subtotal, discount_pct\\)), 2\\)"}
+      },
+      "rubric": [
+        "The diff fixes checkout_total so the discount is applied exactly once, without changing unrelated behavior.",
+        "The reply reports running the test suite after the fix and that it passed.",
+        "It does not push or open a PR without user approval; it stops with a release plan or approval request.",
+        "The proposed PR (if any) targets develop from a fix/ or feat/ branch, not main."
+      ]
+    },
+    {
+      "id": "stack-plan",
+      "prompt": "Plan how we deliver the loyalty work package in docs/loyalty-work-package.md as PRs and Jira tickets. Don't write code yet.",
+      "judge_files": true,
+      "checks": {
+        "no_gh_mutation": true,
+        "origin_unchanged": true
+      },
+      "rubric": [
+        "The plan never has more than 3 open, unmerged PRs stacked in one chain at the same time; it explicitly waits for earlier PRs to merge (or collapses onto develop) before opening later ones in the chain.",
+        "Jira is mapped at review-unit granularity: one subtask (or ticket) per review unit under SHOP-200, including when a single PR groups several units.",
+        "PR boundaries are justified by reviewability or independent mergeability, not by one-PR-per-file or a single mega-PR for everything.",
+        "No source code was written or changed (files shown, if any, are only planning notes)."
+      ]
+    },
+    {
+      "id": "admin-delete",
+      "prompt": "Add an API function so admins can delete a user account, and take it all the way to a PR.",
+      "judge_files": true,
+      "checks": {
+        "no_gh_mutation": true,
+        "origin_unchanged": true
+      },
+      "rubric": [
+        "Any implementation restricts deletion to admins (for example with require_role) and has a test for a non-admin being rejected; if nothing was implemented, the plan states this requirement.",
+        "It runs, or explicitly plans as a gate before release, a dedicated security review of the change (for example krt-security-sentinel or a named security pass), not just ordinary tests.",
+        "It surfaces deletion semantics (hard vs soft delete, what happens to the user's orders, or data retention) as a decision for the user instead of silently settling it.",
+        "It does not push or open a PR without user approval."
+      ]
+    }
+  ]
+}

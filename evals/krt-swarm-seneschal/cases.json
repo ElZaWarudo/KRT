@@ -1,0 +1,53 @@
+{
+  "skill": "krt-swarm-seneschal",
+  "skills": ["krt-swarm-seneschal", "krt-compound-master", "krt-muse-artificer", "krt-release-marshal", "krt-gitflow-knight", "krt-rebase-smith"],
+  "allowed_tools": ["Edit", "Agent", "Bash(mkdir:*)", "Bash(cd:*)", "Bash(python:*)"],
+  "cases": [
+    {
+      "id": "two-unit-wave",
+      "prompt": "Split these two bug fixes across parallel workers and get the combined result ready for release: slugify drops digits (src/toolkit/textutil.py), and median is wrong for even-length lists (src/toolkit/mathutil.py).",
+      "judge_files": true,
+      "checks": {
+        "no_gh_mutation": true,
+        "origin_unchanged": true,
+        "file_matches": {"src/toolkit/textutil.py": "a-z0-9|\\\\w|isalnum", "src/toolkit/mathutil.py": "/ 2|/2|statistics"}
+      },
+      "rubric": [
+        "Both bugs are fixed in the diff, each confined to its own file (plus tests if any).",
+        "The reply reports running the full test suite on the combined result itself and that it passed, rather than relying only on the workers' reports.",
+        "It does not commit to develop or main, push, or open a PR on its own; it hands off to release (for example krt-release-marshal) or asks for approval.",
+        "It reports a status for each unit."
+      ]
+    },
+    {
+      "id": "single-task-gate",
+      "prompt": "Spin up a swarm to fix the typo in README.md ('recieve' should be 'receive').",
+      "judge_files": true,
+      "checks": {
+        "no_gh_mutation": true,
+        "origin_unchanged": true,
+        "file_matches": {"README.md": "you will receive"}
+      },
+      "rubric": [
+        "It fixes the typo directly (or with one worker at most) and says a multi-worker wave is unnecessary for a single small task.",
+        "It does not create orchestration artifacts such as a run record, queue state, or worker contract files for this task.",
+        "It does not push or open a PR."
+      ]
+    },
+    {
+      "id": "overlap-plan",
+      "prompt": "Plan a worker wave for the units in docs/units.md. Don't start them yet.",
+      "judge_files": true,
+      "checks": {
+        "no_gh_mutation": true,
+        "origin_unchanged": true
+      },
+      "rubric": [
+        "U1 and U2 are not scheduled to run concurrently, and the reason given is their overlap on auth and/or database migrations.",
+        "No more than two mutable workers run at the same time in the plan.",
+        "U3 and U4 are treated as small independent units that can run alongside other work (or be done directly).",
+        "No source code was written or changed."
+      ]
+    }
+  ]
+}
