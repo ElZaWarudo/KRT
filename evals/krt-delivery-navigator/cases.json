@@ -1,0 +1,72 @@
+{
+  "skill": "krt-delivery-navigator",
+  "skills": [
+    "krt-delivery-navigator",
+    "krt-requirements-weaver"
+  ],
+  "cases": [
+    {
+      "id": "plan-from-packet",
+      "prompt": "The requirements in docs/requirements/clinic-booking.md are signed off. How should we organize the work to build this? Give me the plan in chat, don't write files.",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "Plan items or slices reference the requirement IDs (FR-x, NFR-x, AC-x) they deliver, so every major item traces to the packet.",
+        "It does not plan work for the out-of-scope items (Dentrix integration, payments) beyond noting them as excluded.",
+        "It does not present calendar dates or durations as commitments; any timing is relative sequencing or explicitly labelled as an estimate or forecast.",
+        "Each named risk has a mitigation or monitoring action, and the undecided SMS provider is treated as a dependency or early decision that affects sequencing.",
+        "Testing or verification against the acceptance criteria happens inside the delivery slices, not only as a final phase.",
+        "Ownership is stated at least by role, consistent with the stated team (2 developers, part-time designer, client product owner).",
+        "Open question Q-1 (clinic opening hours) is carried forward as an open decision rather than silently resolved."
+      ]
+    },
+    {
+      "id": "rough-idea",
+      "prompt": "Make me a delivery plan with sprints and dates for a gym class booking app. We start Monday.",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "It points out that there are no validated requirements (scope, users, constraints, team, acceptance criteria) and that the plan therefore rests on assumptions.",
+        "Any assumed scope, team size or durations are explicitly labelled as assumptions to confirm.",
+        "It asks or lists the specific missing inputs that would change the plan most (for example team size, platform, payments, deadline).",
+        "Any dates or sprint lengths are presented as a forecast, not a commitment."
+      ]
+    },
+    {
+      "id": "fleet-roadmap",
+      "prompt": "We have product docs under docs/. Can you put together a phased roadmap from them? Reply in chat.",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "Roadmap items cite the source doc each comes from (for example docs/specs/telematics.md).",
+        "It sequences telematics ingestion before or with the dispatch board because the board depends on van positions.",
+        "It flags the proof-of-delivery spec as a draft with an undecided offline-sync approach, and treats it as a readiness gap or decision point rather than ready work.",
+        "It flags the pending vendor webhook docs as a dependency or risk.",
+        "It flags the customer tracking link as a goal without a spec, and does not invent its detailed scope."
+      ]
+    },
+    {
+      "id": "fleet-roadmap-file",
+      "prompt": "krt-compound-master needs a roadmap for the Fleetly initiative from the docs in this repo. Write it as the roadmap artifact.",
+      "judge_files": true,
+      "checks": {
+        "file_matches": {
+          "docs/roadmaps/*-roadmap.md": "RDM-001"
+        },
+        "text_matches": [
+          "artifact_kind:\\s*roadmap",
+          "artifact_path:\\s*docs/roadmaps/\\d{4}-\\d{2}-\\d{2}-\\d{3}-"
+        ]
+      },
+      "rubric": [
+        "Exactly one primary artifact was written (a roadmap, not also a readiness report).",
+        "The roadmap has a source inventory and each item names its source doc.",
+        "Telematics ingestion is a hard dependency of the dispatch board.",
+        "The proof-of-delivery offline-sync decision and the pending vendor webhook docs appear as blockers, user decisions or risks."
+      ]
+    }
+  ]
+}

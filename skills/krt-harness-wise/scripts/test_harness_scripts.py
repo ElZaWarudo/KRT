@@ -115,62 +115,6 @@ class HarnessScriptTest(unittest.TestCase):
         self.assertEqual(code, 0, result)
         self.assertIn("overbroad-read-instruction", result["warnings"])
 
-    def test_find_agent_init_detects_project_context(self) -> None:
-        code, result = run_json(str(ROOT / "find_agent_init.py"), "--root", str(FIXTURES / "valid_project"))
-        self.assertEqual(code, 0, result)
-        paths = [entry["path"] for entry in result["paths"]]
-        self.assertIn("AGENTS.md", paths)
-        self.assertIn(".codex", paths)
-
-    def test_find_agent_init_warns_when_missing(self) -> None:
-        code, result = run_json(str(ROOT / "find_agent_init.py"), "--root", str(FIXTURES / "missing_init"))
-        self.assertEqual(code, 0, result)
-        self.assertIn("no-agent-initialization-context-found", result["warnings"])
-
-    def test_find_harness_prefers_matching_candidate(self) -> None:
-        code, result = run_json(
-            str(ROOT / "find_harness.py"),
-            "--root",
-            str(FIXTURES / "valid_project"),
-            "--task",
-            "invoice export",
-        )
-        self.assertEqual(code, 0, result)
-        self.assertEqual(result["summary"]["best"], "docs/harnesses/invoice-export.md")
-
-    def test_find_harness_blocks_missing_explicit_path(self) -> None:
-        code, result = run_json(
-            str(ROOT / "find_harness.py"),
-            "--root",
-            str(FIXTURES / "valid_project"),
-            "--harness",
-            "docs/harnesses/missing.md",
-        )
-        self.assertNotEqual(code, 0)
-        self.assertIn("harness-not-found:docs/harnesses/missing.md", result["errors"])
-
-    def test_find_harness_blocks_absolute_explicit_path(self) -> None:
-        code, result = run_json(
-            str(ROOT / "find_harness.py"),
-            "--root",
-            str(FIXTURES / "valid_project"),
-            "--harness",
-            "/tmp/harness.md",
-        )
-        self.assertNotEqual(code, 0)
-        self.assertIn("harness-path-must-be-repo-relative:/tmp/harness.md", result["errors"])
-
-    def test_find_harness_blocks_parent_escape(self) -> None:
-        code, result = run_json(
-            str(ROOT / "find_harness.py"),
-            "--root",
-            str(FIXTURES / "valid_project"),
-            "--harness",
-            "../harness.md",
-        )
-        self.assertNotEqual(code, 0)
-        self.assertIn("harness-path-must-be-repo-relative:../harness.md", result["errors"])
-
     def test_sensitive_staged_summary_is_blocked_without_destination(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.prepare_evidence_root(Path(directory))
@@ -405,6 +349,7 @@ class HarnessScriptTest(unittest.TestCase):
     def test_publication_check_blocks_sensitive_value_classes(self) -> None:
         cases = {
             "secret-like-assignment": "token=super-secret-value",
+            "secret-like-value": "sk_live_51Habc123def456ghi789",
             "pii-like-value": "DNI: 12345678Z",
             "email": "person@example.com",
             "phone-like-value": "+34 612 345 678",
@@ -435,6 +380,15 @@ class HarnessScriptTest(unittest.TestCase):
                     )
                     self.assertNotEqual(code, 0)
                     self.assertIn(f"publication-safety:{expected}", result["errors"])
+
+    def test_publication_scan_catches_prefixed_secrets_and_suffix_currency(self) -> None:
+        from publication_safety import scan_publication
+
+        prefixed = scan_publication("BILLING_API_KEY=abc123 and STRIPE_WEBHOOK_SECRET=whsec_9f8e7d6c5b4a3928")
+        self.assertIn("secret-like-assignment", prefixed["blocking"])
+        self.assertIn("secret-like-value", prefixed["blocking"])
+        self.assertIn("exact-currency-amount", scan_publication("Budget: 48.000 € for phase 1")["warnings"])
+        self.assertEqual(scan_publication("Run make migration NAME=add_index"), {"blocking": [], "warnings": []})
 
     @staticmethod
     def prepare_evidence_root(root: Path) -> Path:

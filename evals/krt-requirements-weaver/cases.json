@@ -1,0 +1,49 @@
+{
+  "skill": "krt-requirements-weaver",
+  "skills": ["krt-requirements-weaver", "krt-delivery-navigator"],
+  "cases": [
+    {
+      "id": "client-notes",
+      "prompt": "Notes from today's call with the client (a chain of 6 dental clinics):\n\n- they want patients to book appointments online, should be fast and easy\n- receptionists need to see the day's schedule and move appointments around\n- send reminders so people stop missing appointments\n- must be secure, it's medical data\n- maybe integrate with their current software later (Dentrix?)\n- launch before summer\n\nBefore anyone starts designing or coding this, help me pin down what we're actually building.",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "It separates what the client actually stated from what is inferred or assumed (for example with explicit assumption labels or a separate assumptions list).",
+        "It turns at least two vague terms from the notes (such as 'fast and easy', 'secure', 'reminders', 'before summer') into either measurable criteria explicitly marked as proposals to confirm, or targeted questions; it does not present invented numbers as if the client stated them.",
+        "Its clarification questions are specific to this brief (for example reminder channel and timing, cancellation/rescheduling rules, multi-clinic staff or patient identity, which data counts as medical) rather than generic checklists such as 'who are the users?' or 'what is the budget?'.",
+        "It provides acceptance criteria that are testable (observable conditions with concrete expected outcomes, such as Given/When/Then or explicit pass conditions) for at least the booking and reminder behaviour.",
+        "It stays at the requirements level: it does not propose a tech stack, database schema, API endpoints, or code.",
+        "It separates in-scope from out-of-scope or deferred items (for example the Dentrix integration marked as later or open)."
+      ]
+    },
+    {
+      "id": "rewrite-vague",
+      "prompt": "Our spec has these lines and QA says they can't test them. Rewrite them so they're testable:\n\n1. The system should be fast and handle lots of users.\n2. Users can export and email reports.\n3. The app must be secure and comply with regulations.\n4. Search should return relevant results.",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "It splits compound statements into singular requirements (for example export and email become separate requirements; fast and handle many users become separate requirements).",
+        "Every numeric threshold or named standard it introduces that is not in the original lines is explicitly marked as a placeholder, assumption, or value to confirm with stakeholders.",
+        "For 'comply with regulations' it does not pick a specific regulation as fact; it asks which regulations apply or marks the choice as an open question.",
+        "For 'relevant results' it proposes an observable test (for example a fixed query set with expected top results, or a precision measure) rather than restating relevance in other words.",
+        "Each rewritten requirement has a visible actor or system subject and an observable outcome a tester could check."
+      ]
+    },
+    {
+      "id": "solution-biased",
+      "prompt": "Requisito del profe para el proyecto final: \"Desarrollar una app con blockchain e inteligencia artificial para que la universidad controle la asistencia de los estudiantes\". Ayúdame a entender bien qué hay que construir antes de empezar.",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "The reply is written in Spanish.",
+        "It restates the underlying need (recording and verifying student attendance) separately from the proposed technologies, and questions whether blockchain and AI are actual requirements or solution choices to confirm with the teacher.",
+        "It asks specific questions about attendance behaviour (for example how attendance is captured, who records or validates it, what counts as late or absent, what reports are needed) rather than only generic ones.",
+        "It identifies stakeholders beyond the student (for example teacher, administration) and who validates the scope (the professor).",
+        "It does not jump into architecture, smart-contract design, model choice, or code."
+      ]
+    }
+  ]
+}

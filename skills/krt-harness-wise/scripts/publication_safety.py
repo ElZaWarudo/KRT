@@ -15,18 +15,21 @@ PII = re.compile(
     re.I,
 )
 SECRET_ASSIGNMENT = re.compile(
-    r"\b(?:api[_-]?key|token|secret|password|passwd|pwd)\s*[:=]\s*['\"]?[^'\"\s]+",
+    r"(?:\b|_)(?:api[_-]?key|token|secret|password|passwd|pwd)\s*[:=]\s*['\"]?[^'\"\s]+",
     re.I,
 )
 SECRET_VALUE = re.compile(
     r"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"
     r"|\bAKIA[0-9A-Z]{16}\b"
     r"|\bgh[pousr]_[A-Za-z0-9_]{20,}\b"
+    r"|\b(?:sk|rk|pk)_(?:live|test)_[A-Za-z0-9]{16,}"
+    r"|\bwhsec_[A-Za-z0-9]{16,}"
+    r"|\bxox[abprs]-[A-Za-z0-9-]{10,}"
     r"|\bBearer\s+[A-Za-z0-9._~+/=-]{16,}",
     re.I,
 )
 CURRENCY_AMOUNT = re.compile(
-    r"(?:\b\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?\s?(?:€|EUR|USD|\$)\b"
+    r"(?:\b\d{1,3}(?:[.,]\d{3})+(?:[.,]\d{2})?\s?(?:€|EUR|USD|\$)(?!\w)"
     r"|\b(?:€|EUR|USD|\$)\s?\d{1,3}(?:[.,]\d{3})+)",
     re.I,
 )

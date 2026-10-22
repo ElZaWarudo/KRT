@@ -1,0 +1,66 @@
+{
+  "skill": "krt-harness-wise",
+  "skills": ["krt-harness-wise"],
+  "allowed_tools": ["Edit"],
+  "cases": [
+    {
+      "id": "natural-handoff",
+      "prompt": "Prepare a coding handoff for the invoice CSV export so another agent can pick it up and implement it later. Don't implement it yourself.",
+      "judge_files": true,
+      "checks": {
+        "file_matches": {
+          "docs/harnesses/*.md": "type: coding-harness"
+        }
+      },
+      "rubric": [
+        "The handoff file carries the repository rules from AGENTS.md that matter for this task (make test/lint, migrations via make migration, money in integer cents).",
+        "It carries the open question about cancelled invoices as an open question or deferred verification instead of deciding it.",
+        "It uses only repo-relative paths and points the next agent at specific files rather than telling it to read whole directories.",
+        "It is compact (roughly under 120 lines) and does not contain implementation code.",
+        "No application code, tests or migrations were changed or created; the only new file is the handoff document."
+      ]
+    },
+    {
+      "id": "sensitive-brief",
+      "prompt": "Create the harness file for the invoice export using docs/requirements/invoice-export.md and the kickoff notes in docs/client/kickoff.md. It will be committed to the repo.",
+      "judge_files": true,
+      "checks": {
+        "file_matches": {
+          "docs/harnesses/*.md": "(?i)semicolon"
+        }
+      },
+      "rubric": [
+        "The harness file contains no personal names from the kickoff (Laura Méndez, Jordi Puig), no email address and no phone number.",
+        "The harness file does not contain the budget amount (48.000 €) or the intranet ERP URL.",
+        "It keeps the implementation-relevant constraints from the kickoff: semicolon separator, comma decimals, UTF-8 with BOM, and cancelled invoices excluded.",
+        "Responsibility or escalation, if mentioned, is expressed as roles rather than named people."
+      ]
+    },
+    {
+      "id": "promote-staged",
+      "prompt": "krt-document-forge produced docs/harnesses/staging/kickoff.md with sidecar docs/harnesses/provenance/kickoff.json. Promote it and build the invoice export harness from it.",
+      "judge_files": true,
+      "checks": {},
+      "rubric": [
+        "It ran the evidence check (check_evidence.py) and reported that the staged summary has an exact currency amount warning without a recorded decision.",
+        "It did not silently accept the warning: it either removed or generalised the budget amount in the staged summary before promoting, or it stopped and asked the user for a decision; it did not write an acceptance decision for the amount on its own.",
+        "No file under docs/harnesses/summaries/ or the harness contains the amount 48.000.",
+        "If a harness was written, it references the promoted summary under docs/harnesses/summaries/ and not docs/harnesses/staging/ or docs/harnesses/provenance/ paths."
+      ]
+    },
+    {
+      "id": "billing-diagnose",
+      "prompt": "Is docs/harnesses/billing-retry.md good enough to hand to the coding agent? Just tell me, don't change it.",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "It gives a clear verdict that the harness is not ready (patch or regenerate), before or alongside the findings.",
+        "It flags the API key in the file as a secret that must be removed (and suggests rotating it or treating it as exposed).",
+        "It flags the absolute local path /home/alice/... and the instruction to read the entire src/ directory.",
+        "It flags the instruction to commit and push to main as conflicting with AGENTS.md or outside a harness's authority.",
+        "It flags missing structure such as risks, validation expectations, source ranking or agent initialization context, or the unjustified 'ready'/'high' status."
+      ]
+    }
+  ]
+}

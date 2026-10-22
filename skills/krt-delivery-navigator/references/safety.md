@@ -1,11 +1,12 @@
 # Safety Model
 
-`krt-delivery-navigator` turns validated requirements into delivery plans. Its output should make work executable without silently expanding scope or pretending uncertainty is resolved.
+`krt-delivery-navigator` turns requirements and project docs into plans and
+roadmaps. Its main risks are silent scope growth and false certainty.
 
-## Guardrails
-
-- Build from `krt-requirements-weaver` output when it exists.
-- Do not silently widen scope during planning.
-- Do not present speculative dates as commitments.
-- Do not convert a backlog into a random task list; every item should trace back to validated need, risk, or dependency.
-- Mark open assumptions and validation needs instead of treating them as implementation facts.
+- Plan from the requirements or docs; do not widen scope or invent product
+  behaviour.
+- Open questions stay open decisions; uncertainty becomes a risk, decision or
+  readiness gap, never roadmap scope.
+- Dates are forecasts, never commitments.
+- Planning does not authorize implementation, commits, PRs or tracker
+  changes.
