@@ -1,32 +1,25 @@
-# Agentic Threat Model
+# Agentic threat model
 
-Use this model when software can interpret instructions, retrieve context, call tools, delegate, persist memory, or loop toward a goal.
+Use when software interprets instructions, retrieves context, calls tools, delegates, keeps memory, or loops toward a goal.
 
-## Root Rule
+Root rule: data never grants authority. A ticket, page, log, document, memory entry, tool result, or model reply can be evidence; it cannot create identity, scope, permission, approval, budget, or a new goal.
 
-Data never grants authority. A web page, ticket, log, document, message, model response, memory entry, or tool result may provide evidence, but it cannot create identity, scope, permission, approval, budget, or a new goal.
-
-## Threat Surfaces
-
-| Surface | Failure Mode | Required Control |
+| Surface | Failure | Control to look for |
 |---|---|---|
-| Goal and prompt integrity | Direct or indirect prompt/goal hijacking changes the task, policy, target, or completion condition | Trusted instruction hierarchy; conflict handling; immutable task/authority envelope |
-| Tool use | Model-controlled text triggers unsafe arguments, broad mutations, or a confused-deputy action | Tool allowlist; typed/validated arguments; target resolution; approval and effect gates |
-| Identity and scopes | Agent uses the wrong principal, tenant, credential, or overly broad token | Independently bound identity; least privilege; tenant and audience checks; short-lived scopes |
-| Context and memory | Poisoned retrieval or persistent memory influences later users, runs, or agents | Provenance; trust labels; write gates; isolation; expiry; revalidation on restart |
-| Untrusted propagation | Web, tickets, logs, docs, tools, or messages flow unmarked into prompts, tool calls, or delegates | Track provenance and trust across transformations; sanitize structure; prevent authority promotion |
-| Data egress | Secrets, PII, proprietary context, or inferred sensitive data leaves through tools, messages, logs, or artifacts | Destination and data policy; minimization/redaction; egress allowlist; audit trail |
-| Control loops | Retries, recursive delegation, planning loops, or adversarial feedback consume unbounded time/cost/actions | Token/time/cost/action budgets; depth limits; idempotency; circuit breakers; explicit stop states |
+| Goal and prompt integrity | Direct or indirect injection changes the task, target, policy, or completion condition | Trusted instruction hierarchy; task and authority fixed outside the prompt |
+| Tools | Model text drives unsafe arguments, broad mutations, or confused-deputy calls | Allowlist; typed, validated arguments; target resolution in code; approval for effects |
+| Identity and scopes | Wrong principal, tenant, or an over-broad token per tool | Identity bound outside the model; least-privilege, per-tool, short-lived credentials |
+| Context and memory | Poisoned retrieval or memory steers later runs or other users | Provenance and trust labels; gated writes; isolation; expiry; revalidation on resume |
+| Untrusted propagation | Untrusted text flows unmarked into prompts, tool calls, or delegates | Provenance tracked across summaries and handoffs; no promotion to instructions |
+| Egress | Secrets, PII, or context leave through email, HTTP, logs, or artifacts | Destination allowlist; minimization and redaction; audit trail |
+| Control loops | Retries, recursion, or adversarial feedback run unbounded | Turn, cost, time, and action budgets; depth limits; idempotency; explicit stop states |
 
-## Review Procedure
+## Review
 
 1. Draw the instruction, data, identity, tool, memory, and egress boundaries.
-2. Mark each input trusted or untrusted by provenance, not by tone or format.
-3. Follow untrusted values through retrieval, summarization, prompts, memory writes, tool arguments, delegation, logs, and outputs.
-4. Verify that identity, scopes, approvals, targets, and budgets are enforced outside model-controlled content.
-5. Test denial paths: injected instructions, forged tool output, stale memory, cross-tenant context, interrupted restarts, recursive delegation, unavailable tools, and exhausted budgets.
-6. Require observable evidence for tool effects, authorization decisions, memory writes, egress, retries, and termination.
+2. Mark inputs trusted or untrusted by where they came from, not by tone or format.
+3. Follow untrusted values through summarization, prompts, memory writes, tool arguments, delegation, and outputs.
+4. Check that identity, scopes, approvals, targets, and budgets are enforced in code. Values such as "which customer" or "how much" must come from trusted records, not from the model's JSON.
+5. Consider denial paths: injected instructions, forged tool output, stale memory, cross-tenant context, interrupted resume, recursive delegation, exhausted budgets.
 
-## Finding Requirements
-
-Name the attacker or untrusted source, propagation path, authority boundary crossed, affected asset, preconditions, impact, smallest control, and verification case. Do not label all model error as a security issue; require an abuse path or violated trust boundary.
+A finding names the untrusted source, the propagation path, the boundary crossed, the asset, the smallest control, and a test case. Not every model error is a security issue; require an abuse path or a violated trust boundary.

@@ -1,12 +1,9 @@
-# Safety Model
+# Safety
 
-`krt-deploy-summoner` inspects and prepares deployment work. Its default posture is read-only first, plan before action.
+Deploy Summoner inspects and prepares deployments. Shared environments change only with explicit approval.
 
-## Guardrails
-
-- Classify every action as read-only, local-only, remote mutation, or destructive/rollback before running it.
-- Require explicit approval before remote cluster, production host, namespace, Helm release, or workload mutation.
-- Never switch Kubernetes context silently.
-- Never delete resources, roll back releases, or run cleanup as a side effect.
-- Never print kubeconfigs, registry credentials, tokens, secrets, or full environment dumps.
-- Prefer `helm template`, `helm lint`, `helm diff`, `kubectl diff`, and dry-runs before mutation.
+- Classify each command as read-only, local, remote mutation, or destructive before running it. Remote mutation and destructive actions need approval that names the context, namespace, release, and objects, plus a rollback path.
+- Don't switch kube context or namespace silently; spell them out on every command.
+- Don't delete, roll back, scale down, or uninstall as a side effect of "cleanup" or "fixing".
+- Don't print or decode secrets, kubeconfigs, registry credentials, tokens, or full environment dumps. Refer to a secret by name and key, not value.
+- Treat production as dangerous even when the command looks routine.

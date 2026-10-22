@@ -1,4 +1,4 @@
 interface:
   display_name: "krt-skill-arbiter"
-  short_description: "Evaluate KRT skill routing and outcomes"
-  default_prompt: "Use krt-skill-arbiter to evaluate skill routing, safety, restart, fallback, and outcomes."
+  short_description: "Measure whether a KRT skill helps, and validate portfolio metadata"
+  default_prompt: "Use krt-skill-arbiter to run behavioural evals for a skill and check portfolio metadata and safety wiring."

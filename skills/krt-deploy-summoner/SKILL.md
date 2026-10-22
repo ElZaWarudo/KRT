@@ -1,110 +1,48 @@
 ---
 name: krt-deploy-summoner
-description: Prepare, inspect, and diagnose deployments across Docker, Docker Compose, Helm, and Kubernetes. Use when a user asks to review deployment manifests, Helm charts or values, Dockerfiles, compose files, Kubernetes resources, rollouts, pods, logs, probes, resources, namespaces, image tags, deployment readiness, rollback plans, smoke tests, CrashLoopBackOff, ImagePullBackOff, failed Helm upgrades, or safe kubectl/helm/docker diagnostic commands. Runtime aliases may expose this as krt:deploy-summoner.
+description: Review, diagnose, and plan deployments across Docker, Docker Compose, Helm, and Kubernetes without mutating shared environments unasked. Use when asked whether a chart, values file, manifest, Dockerfile, or compose file is ready for prod; to diagnose CrashLoopBackOff, ImagePullBackOff, pending or unready pods, stalled rollouts, or failed Helm upgrades from manifests, logs, or describe output; to roll out, roll back, restart, or clean up workloads; or to write safe kubectl, helm, or docker commands. Runtime aliases may expose this as krt:deploy-summoner.
 ---
 
-# Deploy Summoner
+# KRT Deploy Summoner
 
-Deploy Summoner helps invoke and inspect the runtime stack without turning every diagnosis into a risky cluster mutation.
+Get a workload to a known-good state in its target environment, and make every change to a shared environment something the user sees and approves first. Diagnosis and review are read-only; mutations are proposed as exact commands with a way back.
 
-Default posture: **read-only first, plan before action**. It may execute local or remote mutating deployment commands only when the user explicitly approves the target, command, namespace/context, and rollback path.
+Read `references/safety.md` before running anything against a cluster, registry, or host.
 
-## Load References
+## Classify before acting
 
-- Load `references/safety.md` before beginning the workflow.
-- Load `references/deployment-rubric.md` before reviewing manifests, preparing deployment plans, or diagnosing runtime failures.
-- Load `references/source-literature.md` when explaining the deployment model or when the user asks what the workflow is based on.
+Every command is one of: **read-only** (`get`, `describe`, `logs`, `helm status/history/get values`, `helm template`, `helm lint`, `kubectl diff`, `docker compose config`), **local** (build an image, start a local compose stack), **remote mutation** (`kubectl apply`, `helm upgrade`, `rollout restart`, `scale`, image promotion), or **destructive** (`delete`, `helm uninstall`, `helm rollback`, `rollout undo`, migrations). Read-only and local work proceeds. Remote and destructive commands go into a plan the user approves, naming the context, namespace, release, and exact objects. Editing manifests in the repo is fine; applying them is the approval point.
 
-## Workflow
+Never switch kube context or namespace implicitly. Put `--context` and `-n` (or `--kube-context`) on every proposed command so the plan is unambiguous when pasted.
 
-### Step 1 - Establish Target And Safety Boundary
+## Readiness review
 
-Identify:
+When asked whether something is ready to ship, check the things that turn a routine rollout into an incident:
 
-- platform: Docker, Docker Compose, Helm, Kubernetes, or mixed;
-- target: local, staging, production, cluster/context, namespace, release, workload, service, image/tag;
-- task: inspect, plan, deploy, rollback, diagnose, smoke test, or write commands;
-- mutation level: read-only, local-only, remote mutation, destructive/rollback.
+- **Image**: mutable tags (`latest`, branch names) with `IfNotPresent` mean nodes run different builds and rollback has nothing to roll back to. Ask for an immutable tag or digest.
+- **Probes**: readiness gates traffic; liveness restarts. A liveness probe with no startup allowance kills slow-starting apps in a loop. Slow starts belong in a `startupProbe`, not in a weakened liveness probe.
+- **Resources**: missing requests break scheduling and HPA; missing memory limits let one pod starve a node. One replica in prod means every rollout or node drain is an outage.
+- **Secrets**: plaintext credentials in values or env. Point to the file and key without repeating the value, since review text gets pasted into PRs and chats. Recommend a Secret or external secret store, and rotation, since the value is already in git.
+- **Rollout**: strategy, `maxUnavailable`, progress deadline, hooks and migrations that can't be reversed.
+- **Environment drift**: values that differ between environments without a reason.
 
-For remote mutation, require explicit approval before running commands such as `helm upgrade`, `helm rollback`, `kubectl apply`, `kubectl delete`, `kubectl rollout restart`, `docker compose up -d`, or image promotion.
+Report a verdict (`ready`, `risky`, `blocked`), findings with file evidence, and the plan below.
 
-### Step 2 - Inspect Configuration
+## Diagnosis
 
-Use repo-local sources first:
+Work from the first actionable failure, not the last log line: termination reason and exit code, events in order, previous-container logs, then probes, config, and resources. Check the changelog or diff for what changed in this release. Classify the cause (image, config/secret, probe, resources, scheduling, network, migration, chart/template, rollout) before proposing a fix.
 
-- Dockerfiles, compose files, `.env.example`, build scripts, image tags, healthchecks.
-- Helm `Chart.yaml`, `values.yaml`, environment values, templates, hooks, CRDs, helpers.
-- Kubernetes manifests for Deployments, StatefulSets, DaemonSets, Jobs, Services, Ingress, ConfigMaps, Secrets references, ServiceAccounts, RBAC, HPA, NetworkPolicy.
-- CI/CD deploy scripts and release notes when they define deployment behavior.
+## The plan
 
-Check for common readiness risks:
+A deploy, fix, or cleanup plan always has four parts:
 
-- unpinned or surprising image tags;
-- missing readiness/liveness/startup probes;
-- missing resource requests/limits where project policy expects them;
-- secret/env/config references without corresponding documented source;
-- namespace/context ambiguity;
-- unsafe rollout settings, hooks, or migrations;
-- values drift between environments;
-- missing rollback and smoke-test commands.
+1. **Pre-checks**: `helm lint`, `helm template` or `helm diff upgrade`, `kubectl diff`, or `--dry-run=server`.
+2. **The mutation**: exact commands with context and namespace, marked as awaiting approval.
+3. **Verification**: `rollout status`, restart counts, events, and a smoke request against the service.
+4. **Rollback**: the specific command (`helm rollback <release> <revision>`, `kubectl rollout undo deployment/<name>`, or the previous image tag), plus any data caveat such as a migration that can't be undone.
 
-### Step 3 - Diagnose Runtime Evidence
+For cleanup, find out what owns each object before deleting it: a pod owned by a ReplicaSet comes back, a hand-made ReplicaSet with matching labels is probably still serving traffic, and StatefulSet pods carry data. List exact names; never `--all` or label-wide deletes in a shared namespace.
 
-For live issues, gather read-only evidence before proposing fixes:
+## Executing approved actions
 
-- `kubectl get/describe`, events, pod status, previous logs, init containers, rollout status/history;
-- Helm release status/history/values/manifests;
-- Docker/Compose ps, logs, config, health status, image IDs;
-- service endpoints, ingress status, config/secret references, resource pressure signals.
-
-Prefer the first actionable failure over the last noisy line. Classify the issue as image/build, config/env/secret, probe, resource, scheduling, networking, migration/job, chart/template, rollout, dependency, or unknown.
-
-### Step 4 - Plan Deploy Or Rollback
-
-Return a plan before mutation:
-
-```text
-Deployment status: ready | risky | blocked | diagnosing
-
-Target:
-- Platform/context/namespace/release:
-
-Findings:
-- [severity] [area] issue
-  Evidence:
-  Impact:
-  Action:
-
-Plan:
-1. Read-only verification:
-2. Mutating command(s), if approved:
-3. Smoke checks:
-4. Rollback:
-
-Approval needed:
-- <exact commands and target>
-```
-
-Use Helm dry-runs/templates and Kubernetes diff/server-side validation when available before mutating. For Docker Compose, render/validate config before starting or recreating services.
-
-### Step 5 - Execute Only Approved Actions
-
-When approved:
-
-- restate the exact target and command;
-- run one coherent action batch;
-- capture rollout/status/log evidence;
-- run smoke checks;
-- record rollback command or confirm rollback is not applicable.
-
-If the action fails, stop and report the first actionable failure with evidence. Do not keep applying speculative fixes.
-
-## Guardrails
-
-- Never mutate a remote cluster, production host, namespace, Helm release, or Docker runtime without explicit approval.
-- Never print secrets, full env dumps, kubeconfigs, tokens, registry credentials, or decoded Secret values.
-- Never switch Kubernetes context silently.
-- Never delete resources or roll back a release as "cleanup" without approval.
-- Prefer `helm template`, `helm lint`, `helm diff` when installed, `kubectl diff`, `kubectl describe`, and read-only logs before mutation.
-- Treat production as dangerous even when the command looks routine.
-- Make rollback and smoke checks part of the plan, not an afterthought.
+Restate the target and commands, run one coherent batch, capture rollout and smoke evidence, and stop at the first failure with its evidence rather than layering speculative fixes.
