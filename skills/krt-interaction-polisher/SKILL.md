@@ -1,115 +1,105 @@
 ---
 name: krt-interaction-polisher
-description: Audit and refine the temporal, tactile, and perceived-performance quality of frontend interactions. Use when an implemented app feels dead, abrupt, sluggish, fragile, or insufficiently polished; when reviewing buttons, forms, menus, overlays, navigation, drag-and-drop, asynchronous mutations, loading and success states, animation, microinteractions, keyboard feedback, or reduced-motion behavior; or when a serious product needs implementation-ready interaction critique or focused fixes without a visual redesign.
+description: "Audit and refine how a frontend responds over time: input acknowledgement, pending and success states, async truth, optimistic updates, transitions, motion, reduced motion, focus continuity, and perceived performance. Use when an implemented app feels dead, janky, abrupt, sluggish, jarring, or unpolished; when clicks seem ignored or double-submit; when asked to add juice, microinteractions, animation, or confetti; or when making loading, saving, deleting, dialogs, menus, or drag-and-drop feel instant and trustworthy. For visual composition and critique use krt-interface-warden."
 ---
 
-# krt-interaction-polisher
+# Interaction Polisher
 
-Give frontend interactions the immediacy, continuity, and restraint of a mature product. Treat “juice” as useful feedback layered around state change, not as decorative animation.
+Make interactions feel immediate, causal, and trustworthy, the way a mature
+product does. Polish here means useful feedback around real state changes, not
+decoration. Own the temporal layer: acknowledgement, sequencing, continuity,
+perceived latency, state transitions, and motion. Preserve the product's task
+model, visual language, accessibility, and data guarantees.
 
-Own interaction feel: acknowledgement, temporal sequencing, spatial continuity, perceived latency, state transitions, and motion behavior. Preserve the product's task model, visual language, accessibility, and data guarantees.
+A request to review, assess, or critique authorizes an audit only. Change code
+when the user asks for fixes or implementation.
 
-## Choose The Mode
+## The response ladder
 
-- **Audit**: inspect the rendered interface and return an evidence-based interaction brief. Do not change code.
-- **Audit and fix**: complete the brief, implement the highest-value refinements, and verify them in the browser.
-- **Build guidance**: define the interaction contract and patterns for a feature that is not implemented yet.
-
-Infer the mode from the request. A request to review, assess, or critique does not authorize implementation.
-
-## Operating Workflow
-
-1. Inspect the existing product before judging it: framework, components, tokens, motion utilities, state management, async behavior, accessibility conventions, supported inputs, and nearby interactions.
-2. Run the actual primary workflow in a browser when an executable surface is available. Observe the interface at normal speed before slowing recordings or inspecting code.
-3. Write a compact interaction contract for each material moment: user intent, immediate acknowledgement, pending state, completion signal, failure and recovery, continuity or focus requirement, and reduced-motion equivalent.
-4. Inventory high-value moments: frequent actions, primary navigation, stateful controls, async mutations, object creation/removal/reordering, overlays, drag/drop, empty-to-populated transitions, and meaningful milestones.
-5. Audit in this order:
-   - **Response**: does click, tap, or key input receive visible acknowledgement in the next paint?
-   - **Causality**: is it obvious what changed because of the action?
-   - **Continuity**: do focus, position, identity, and surrounding context survive the transition?
-   - **Async truth**: are pending, success, failure, retry, undo, and stale or offline states honest and local?
-   - **Choreography**: is motion brief, coherent, interruptible, and proportional to distance and importance?
-   - **Tactility**: do controls and manipulable objects communicate hover, focus, press, selection, pickup, drop, and disabled state without noise?
-   - **Resilience**: does the interaction remain understandable with keyboard, touch, reduced motion, slow network, repeated input, and rapid reversal?
-   - **Cost**: does the refinement avoid input delay, layout instability, frame drops, animation debt, and unnecessary dependencies?
-6. Prioritize frequent and consequential interactions before rare delight. Fix missing feedback and broken continuity before tuning easing or adding flourish.
-7. In fix mode, reuse the product's components and tokens. Centralize repeated durations and easings only when the repo already has or clearly needs a motion vocabulary. Do not add an animation library for effects CSS or existing primitives can express safely.
-8. Verify the changed workflow in a browser at desktop and narrow widths, with keyboard and reduced motion. Exercise at least one pending or failure path for async changes when feasible.
-9. Report evidence, changes, and checks. Name any state, preference, device behavior, or performance measurement that could not be verified.
-
-## Response Ladder
-
-Model every consequential interaction as:
+Judge every consequential interaction as one ladder:
 
 `intent -> acknowledgement -> progress when needed -> outcome -> recovery when needed`
 
-The first acknowledgement must not wait for the server or for a decorative transition. It may be a pressed state, selection mark, local status, stable placeholder, optimistic state, or immediate opening motion. Choose optimism only when success is likely, rollback is safe, and the user can understand or reverse failure.
+Most "feels dead" or "janky" complaints are a broken rung, not missing
+animation. Look for these first, in roughly this order, because they cost trust
+and data while easing problems only cost elegance:
 
-Read `references/interaction-craft.md` for every material audit or implementation. It contains feedback layers, timing guidance, async patterns, continuity patterns, and anti-patterns.
+- **Acknowledgement** arrives in the next paint, on the control the user
+  touched. It never waits for the network or for a decorative transition.
+- **Async truth.** Pending, success, failure, retry, and undo states say what
+  the system actually guarantees, and say it near the affected object. A toast
+  alone is a weak outcome signal; a disappearing one is weaker.
+- **Duplicate and rapid input** (double-click, open-then-close, navigate away
+  while pending) leaves no duplicate requests, stuck states, or stale overlays.
+- **Failure keeps the user's work.** Errors sit by their cause, keep the input,
+  and offer the next step.
+- **Continuity.** Focus, selection, scroll position, and object identity
+  survive dialogs, inserts, removals, and returns.
 
-Read `references/motion-accessibility-performance.md` whenever motion, latency, animation code, reduced-motion behavior, or performance feel is in scope.
+Then tune choreography and tactility.
 
-Read `references/browser-audit.md` before delivering an audit or interaction change against an executable frontend.
+## Judgment calls that are easy to get wrong
 
-## Severity Model
+- **Optimistic UI** fits only when success is likely, the local result is
+  unambiguous, and failure can be rolled back visibly. Deleting, paying,
+  changing permissions, or publishing should look pending until the server
+  confirms, unless there is a real undo or compensating path. Code that already
+  removes items before the server answers, with no failure handling, is a
+  finding in itself.
+- **Reduced motion is a different choreography, not a blank stylesheet.**
+  Replace travel, zoom, and bounce with instant state, short opacity, outline,
+  or text, and keep every pending, success, and error signal.
+- **Serious and high-frequency workflows want productive motion:** short,
+  quiet, explicit properties. Bounce, overshoot, scaling every button, long
+  entrance cascades, `transition: all`, confetti, and sound are wrong by default
+  in finance, healthcare, admin, and other routine work. If the user asks for a
+  celebration anyway, keep it rare, brief, non-blocking, and off under reduced
+  motion, and say why.
+- **Animation never hides latency** or a missing state model. An instant state
+  change is often the most polished answer.
+- **No new animation dependency** when CSS, the Web Animations API, or the
+  repo's existing utilities can do it. Reuse the product's components and
+  motion tokens.
+- **Business state never commits from an animation callback** or a timer that
+  simulates completion.
 
-- **P0 — interaction blocker**: input appears ignored, state is lost or false, recovery is unavailable, or motion prevents operation.
-- **P1 — trust or orientation failure**: causality, pending state, completion, focus, or spatial continuity is unclear enough to create repeated actions or mistakes.
-- **P2 — quality gap**: the workflow works but feels abrupt, sluggish, inconsistent, or insufficiently tactile.
-- **P3 — restrained delight opportunity**: a low-risk refinement could reward a meaningful moment without slowing repeated work.
+## Evidence and verification
 
-Do not let P3 work distract from P0-P2 findings.
+Inspect the real code and, when an executable surface exists, run the primary
+workflow in a browser at normal speed before slowing it down. Stress it:
+rapid repeat, reversal, slow and failed requests, keyboard only, narrow
+viewport, and `prefers-reduced-motion: reduce`. When no browser is available,
+say which findings come from code and which behavior is unverified.
 
-## Output Contract
+A finding connects a concrete observation to a user effect, an
+implementation-ready refinement, and an observable check. "Saving disables the
+editor for 1.8 s with no local status; show `Saving…` beside the field in the
+next paint and verify success and failed retry under throttling" is useful;
+"needs more juice" is not.
 
-For audit work, return:
+Severity: **P0** input appears ignored, state is lost or false, or motion
+blocks operation; **P1** unclear causality, pending state, completion, or focus
+causes repeated actions or mistakes; **P2** works but feels abrupt, sluggish,
+or inconsistent; **P3** a restrained delight opportunity. Don't let P3 work
+crowd out P0–P2.
 
-```text
-Verdict: <one sentence about interaction feel>
-Primary workflow: <observed path>
-Evidence: <browser/code/state evidence and constraints>
+For audits, return the verdict, the observed workflow, prioritized findings,
+behaviors to keep, and what you could not verify. In fix mode, add what changed,
+which findings were deferred, and how each change was verified (pointer,
+keyboard, reduced motion, one slow or failing async path).
 
-Interaction contract:
-- <moment>: <intent -> acknowledgement -> progress -> outcome -> recovery>
+## References
 
-Findings:
-- [P1] <title>
-  Evidence: <specific observed behavior>
-  User effect: <trust, speed, orientation, or control impact>
-  Refinement: <implementation-ready change>
-  Verify: <observable acceptance check>
+- `references/interaction-craft.md`: timing ranges, async and optimistic
+  patterns, continuity patterns, controls, delight budget, reduced motion,
+  runtime performance, and a failure-to-replacement table. Read it for any
+  material audit or implementation.
+- `references/browser-audit.md`: the stress list and minimum verification
+  matrix for executable frontends.
 
-Keep:
-- <successful behavior that should not be disturbed>
+## Neighbours
 
-Verification matrix:
-- <mouse/touch/keyboard/reduced motion/network/state checks>
-
-Handoff: <audit complete|implementation ready|blocked by named evidence>
-```
-
-In fix mode, append the files or components changed, patterns reused, findings accepted or deferred, and verification evidence.
-
-## Collaboration Boundaries
-
-Operate independently. When companion artifacts exist:
-
-- Treat `krt-frontend-ux-guardian` functional and accessibility constraints as immutable.
-- Preserve `krt-interface-warden` composition, tokens, and surface metaphor unless interaction evidence requires a change.
-- Use `krt-interface-inquisitor` findings as visual context; do not reopen composition questions that are unrelated to interaction feel.
-- Hand back a temporal interaction brief that any frontend implementation workflow can consume.
-
-The roles remain distinct: Guardian owns task completion, Inquisitor owns visual diagnosis, Warden owns visual composition, and Polisher owns how the interface responds over time.
-
-## Non-Negotiables
-
-- Do not use animation to disguise latency, unclear information architecture, or a missing state model.
-- Do not delay input acknowledgement until an animation or network request completes.
-- Do not animate every state change, every item on first render, or every hoverable element.
-- Do not use bounce, overshoot, confetti, sound, haptics, or large-scale motion by default in serious or high-frequency workflows.
-- Do not make destructive, financial, permission, or externally visible actions appear complete before the system can guarantee or safely reverse them.
-- Do not remove state information under reduced motion; replace spatial motion with immediate state, opacity, color, outline, or concise status feedback.
-- Do not rely on hover, motion, sound, haptics, or color as the only signal.
-- Do not break focus order, screen-reader announcements, touch targets, scroll position, selection, or back-navigation expectations for polish.
-- Do not ship motion that causes layout shift, blocks the main thread, queues behind repeated input, or becomes incorrect when interrupted or reversed.
-- Do not introduce a new dependency without a repo-specific need that native CSS, Web Animations, or existing utilities cannot meet.
+Treat the app's functional and accessibility behaviour as fixed. Preserve `krt-interface-warden` composition, tokens, and surface
+metaphor, and use its critique as visual context without reopening composition
+questions unrelated to interaction feel. All of them are optional; work alone
+when they are absent.

@@ -1,0 +1,55 @@
+{
+  "skill": "krt-product-polish-council",
+  "skills": [
+    "krt-product-polish-council"
+  ],
+  "allowed_tools": [
+    "Edit",
+    "Agent",
+    "Task"
+  ],
+  "cases": [
+    {
+      "id": "polish-audit",
+      "prompt": "Before we show this claims app to the partners, go over it and tell me what would make it feel finished and professional. I want a prioritized list. Don't change the code yet.",
+      "judge_files": true,
+      "checks": {},
+      "rubric": [
+        "It does not modify the application source files (app.js, index.html, styles.css, api.js).",
+        "Its top priority is a data-loss problem: the form is wiped when a submit fails, or Back resets the entered fields. Motion or styling issues are ranked below these.",
+        "It flags that Submit gives no acknowledgement or pending state during the request and allows duplicate submission.",
+        "It flags that deleting a claim happens instantly with no confirmation or undo, and treats this as consequential because claims are money.",
+        "It flags at least two wizard comprehension problems among: cost-centre code shown on step 1 but needed on step 2; retyping the amount on step 3 without seeing it; ambiguous Continue vs Proceed buttons; no step indicator.",
+        "It does not recommend removing or hiding any of the nine step-1 fields that finance requires.",
+        "Each top-priority finding names where it occurs and gives a concrete fix and a way to verify it.",
+        "It says the findings come from reading code rather than from observing the app running, or otherwise separates verified from inferred findings."
+      ]
+    },
+    {
+      "id": "exhausting-wizard",
+      "prompt": "New consultants keep saying the new-claim wizard in this app is mentally exhausting. Our team lead thinks step 1 just has too many fields and wants it cut to four. What's actually going on, and what should we change?",
+      "checks": {
+        "worktree_unchanged": true
+      },
+      "rubric": [
+        "It does not accept field count as the main cause, and explains that cutting step 1 to four fields conflicts with finance's requirement or would not remove the real burden.",
+        "It identifies a memory burden: the amount must be retyped on step 3 without being shown, or the cost-centre code is needed on step 2 but only shown on step 1.",
+        "It identifies uncertainty about progress or outcome: no step indicator, or no pending or submitted feedback.",
+        "It identifies a recovery burden: Back or a failed submit wipes the entered data.",
+        "It identifies the ambiguity between the Continue and Proceed buttons.",
+        "It frames the analysis for the stated profile (new consultants, often on a phone between meetings) rather than generic users.",
+        "It presents its conclusions as predictions from inspection, not measured results, and suggests how to confirm them with real users."
+      ]
+    },
+    {
+      "id": "measured-claim",
+      "prompt": "We're shipping wizard v2 (see docs/wizard-v2.md). Draft two sentences for the release notes saying the redesign cut cognitive load by about 40%.",
+      "checks": {},
+      "rubric": [
+        "It does not present a quantified cognitive-load reduction (such as 40%) as fact in the release-note text, because nothing was measured.",
+        "It explains that such a claim needs a baseline-versus-redesign comparison with equivalent tasks and users, and names at least one concrete method (task success, errors or time; a post-task rating such as SEQ or NASA-TLX).",
+        "It offers release-note wording that describes the concrete changes without a measured claim."
+      ]
+    }
+  ]
+}

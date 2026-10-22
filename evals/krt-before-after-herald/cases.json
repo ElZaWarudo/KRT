@@ -1,0 +1,34 @@
+{
+  "skill": "krt-before-after-herald",
+  "skills": ["krt-before-after-herald"],
+  "allowed_tools": ["Edit", "Bash(magick:*)"],
+  "cases": [
+    {
+      "id": "build-report",
+      "prompt": "I restyled the settings screens. Screenshots are in shots/before and shots/after, and my notes are in CHANGES.md. Put together the before/after comparison page for the reviewers.",
+      "judge_files": true,
+      "checks": {"file_matches": {"**/*.html": "data:image/(png|webp);base64"}},
+      "rubric": [
+        "It produced one self-contained HTML file with the screenshots embedded, not linked.",
+        "The reviewer can switch between screens and between the light/dark and desktop/mobile variants.",
+        "The verification section reports the test result exactly (41 passed) and does not present colour contrast as checked or passing.",
+        "It tells the user that the after capture for notifications in dark/mobile is missing (in the reply or visibly in the report) rather than silently dropping it.",
+        "The report states what 'before' is (main at its commit).",
+        "Each screen has a short note saying what changed on it."
+      ]
+    },
+    {
+      "id": "es-informe",
+      "prompt": "Necesito el informe de antes y después de estos cambios de UI para el revisor. Las capturas están en shots/.",
+      "judge_files": true,
+      "checks": {"file_matches": {"**/*.html": "data:image/(png|webp);base64"}},
+      "rubric": [
+        "It produced one self-contained HTML file with the screenshots embedded.",
+        "The report's interface text (headings, buttons or toolbar labels) is in Spanish.",
+        "The verification section does not present colour contrast as checked or passing.",
+        "It reports the missing notifications dark/mobile after capture.",
+        "The reply to the user is in Spanish and gives the path to the report."
+      ]
+    }
+  ]
+}

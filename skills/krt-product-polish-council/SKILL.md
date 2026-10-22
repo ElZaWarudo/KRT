@@ -1,131 +1,112 @@
 ---
 name: krt-product-polish-council
-description: Orchestrates a comprehensive, evidence-based polish audit of web, mobile, and desktop applications through a versioned atlas, a cartographer, and twelve evaluators, with a required cognitive-load overlay on every finding. Use when asked to polish an application, assess its product maturity, walk end-to-end flows, find rough seams or amateur behavior, produce a prioritized improvement backlog, or verify that a round of changes raised perceived quality.
+description: Evidence-based product polish and cognitive-load audits of web, mobile, and desktop apps. Walks real end-to-end flows through twelve polish lenses (focus, consistency, feedback, non-ideal states, protection, hierarchy, copy, perceived performance, platform, accessibility, continuity, seams) and six workload factors (memory, search, integration, decision, uncertainty, recovery), then returns a prioritized, verifiable backlog. Use when asked to polish an app, make it feel finished or professional, assess product maturity, find rough edges, review a flow that users find confusing, exhausting, or mentally taxing, audit cognitive load or mental effort, check a workload or "reduced cognitive load" claim, or verify that a round of changes raised quality. For interaction feel and motion use krt-interaction-polisher; for visual composition use krt-interface-warden.
 ---
 
-# krt-product-polish-council
+# Product Polish Council
 
-Evaluate the application as a system of behavior, not a collection of screens. Treat perceived quality as a nearly multiplicative relationship among consistency, reliability, clarity, responsiveness, and care: one very weak dimension limits the whole even when the average is high.
+Judge the application as a system of behaviour, not a set of screens.
+Perceived quality is close to multiplicative across consistency, reliability,
+clarity, responsiveness, and care: one very weak dimension limits the whole, so
+the job is to find the weakest links and rank them honestly, not to produce a
+long list of nits.
 
-## Operating Principles
+A review request authorizes an audit, not code changes. Implement only when
+asked, and never exercise destructive, financial, public, or production actions
+without authority and safe data.
 
-- Use `docs/product/application-atlas.md` as shared, versioned context unless the repository already has an equivalent convention.
-- Separate declared intent, observed behavior, and inference. Do not turn an inference into a requirement or defect.
-- Audit real end-to-end flows. Use screenshots as partial evidence, never as an automatic substitute for behavior.
-- Have all twelve evaluators work read-only from the same evidence packet.
-- Require every evaluator to apply the Memory, Search, Integration, Decision, Uncertainty, and Recovery overlay to every finding.
-- Reserve synthesis, deduplication, prioritization, and coverage decisions for the lead agent.
-- Treat a review request as authorization to audit, not to change code. Implement only when the user asks.
+## How to run it
 
-## Choose the Mode
+One strong pass with the checklists below is the default. Read the code, run
+the app when you can, and walk the important flows end to end: entry,
+input, pending, outcome, failure and recovery, and real conditions (slow
+network, long content, interruptions, phone). Subagents are worth their cost
+only for a large app where flows or platforms can be explored in parallel;
+split them by flow or surface, not by lens, and keep synthesis yourself.
 
-- **Atlas**: create, update, or validate only the versioned atlas.
-- **Audit**: build or validate the atlas, run the council, and deliver a diagnosis and backlog. This is the default.
-- **Audit and remediation**: complete the audit first, then implement authorized changes and verify them.
-- **Polish regression**: compare a new version with an earlier atlas and audit, update the evidence, and reopen only affected findings.
+Use `references/lenses.md` as the checklist of twelve polish lenses and
+`references/cognitive-load.md` whenever workload, mental effort, a confusing
+multi-step flow, or a "reduced cognitive load" claim is in scope. A finding gets
+one primary lens and, where it applies, one primary workload factor; mention
+others as cross-references rather than duplicating the finding.
 
-## Load References
+## Intent before judgment
 
-- Read `references/application-atlas.md` before checking, creating, or updating the atlas.
-- Read `references/evaluator-catalog.md` before dispatching or running any of the twelve roles.
-- Read `references/evidence-and-report-protocol.md` before rating findings or synthesizing the report.
+Read the README, briefs, and product docs first. Judge against declared intent:
+who the user is, the primary job, the success signal, deliberate constraints,
+and unacceptable outcomes. If the docs answer the material questions, proceed.
+If a point is genuinely unknown and would change the ranking, state an explicit
+assumption, finish the audit, and list the open questions at the end. Stop to
+ask first only when you can't identify the user or the primary job at all.
+Don't rank a mismatch against unconfirmed intent as a top-priority defect.
 
-## Workflow
+Respect declared constraints. Fields, steps, or friction that policy requires
+stay; reduce the work around them instead.
 
-### 1. Check Atlas Freshness
+## Evidence
 
-Make this the first step of every invocation:
+Label every finding by how you know it: `observed` (reproduced at runtime),
+`code` (seen in code or tests, not reproduced), `declared` (authoritative
+intent), `inferred`, or `unverified`. Code shows that something exists, not
+that it is reachable or understandable; screenshots don't prove time, state, or
+recovery. An inference alone never supports P0 or P1. Areas you couldn't
+reach are gaps, not failures.
 
-1. Resolve the repository root, current `HEAD`, and atlas path.
-2. If the atlas does not exist, mark it `missing` and continue to the intent interview.
-3. If it exists, run this skill's `scripts/check_atlas_freshness.py` against `docs/product/application-atlas.md`.
-4. Consider the atlas `fresh` only when the fingerprint of covered files matches the current commit tree and no relevant uncommitted changes exist.
-5. If the result is `stale`, update the atlas before launching evaluators. Do not mistake an outdated atlas for a product defect.
+For workload claims, also give the claim basis (heuristic, observed behaviour,
+behavioural measure, self-report, instrumented). An inspection predicts risk;
+it never shows that load was measured, "overloaded", or reduced by some
+percentage. When someone wants to claim a reduction, say what comparison would
+support it and offer wording that describes the concrete changes instead.
 
-Use the SHA for provenance and the covered-file fingerprint as the authority on freshness. Exclude the atlas itself from the fingerprint to avoid self-reference.
+## Prioritize causes, not symptoms
 
-### 2. Resolve Product Intent
+- **P0** primary flow impossible, work lost or corrupted, misleading state with
+  serious consequences, or an irreversible action without protection.
+- **P1** high likelihood of error, repetition, disorientation, or inability to
+  recover in an important flow.
+- **P2** systemic friction: inconsistency, slowness, ambiguity.
+- **P3** a real but limited seam or refinement.
 
-Read briefs, requirements, decisions, available analytics, and product documentation first. If they do not answer the intent questions in `references/application-atlas.md`, ask the product owner one compact round of questions and wait for the response.
+Operability, lost work, trust, and recovery come before ornament. Merge
+findings by shared cause and fix, not by matching words; one broken convention
+across three surfaces matters more than three cosmetic tickets. Within a
+severity, sort by frequency, flow centrality, roles affected, and
+reversibility; don't lower severity because the fix is expensive. Prefer a
+clarity, feedback, or recovery fix over a new feature. Never average ratings or
+sum workload factors into a score.
 
-Do not ask about facts discoverable in the repository or application. Ask about purpose, user, expected outcome, risks, and deliberate boundaries. If the user insists on continuing without answering, record assumptions and lower confidence; do not penalize a discrepancy against unconfirmed intent as a failure.
+Every accepted finding has evidence with a location, the user effect, the
+smallest concrete correction, and an observable way to verify it.
 
-### 3. Build or Update the Atlas
+## Report
 
-Assign the **Cartographer** to explore the application factually. Inventory platforms, actors, roles, surfaces, navigation, flows, states, data, permissions, integrations, destructive actions, real-world conditions, and evidence gaps.
+Lead with a short verdict naming the weakest link and its consequence. Then
+scope and evidence (what was run versus read, platforms, gaps), the prioritized
+findings grouped Now (P0/P1 and systemic causes) / Next / Later, a short Keep
+list of behaviour fixes must not break, and verification gaps with the next
+probe. Add a lens rating profile or a workload table only when it helps the
+reader. For a workload-focused question, frame it by task, profile, and
+context, and separate necessary complexity from avoidable burden.
 
-Keep IDs such as `ROLE-01`, `SURF-03`, `FLOW-07`, and `STATE-12` stable. Update by diff; do not reorder or regenerate the whole file without need. Do not put quality judgments or recommendations in the atlas.
+## Atlas and regression rounds
 
-Do not convene the council until the coverage gate in the reference passes or the gaps are explicitly accepted.
+For products audited repeatedly, keep a factual application atlas
+(`docs/product/application-atlas.md` by default) and check its freshness with
+`scripts/check_atlas_freshness.py` before trusting it; see
+`references/application-atlas.md`. Create or update one when the user wants
+durable coverage or a regression round, not for every audit.
 
-### 4. Prepare the Shared Evidence Packet
+After remediation, reproduce each finding's verification, re-check the lenses
+and factors it touched, take a quick pass over the modified flow for
+cross-cutting regressions, and mark each finding resolved, partially resolved,
+not reproduced, or open with new evidence. Don't upgrade a rating or claim
+basis from a change that wasn't behaviourally verified when runtime
+verification is available.
 
-Give every evaluator the same snapshot:
+## Handoffs
 
-- atlas path and fingerprint;
-- commit, environment, platform, viewport, and input methods examined;
-- in-scope and out-of-scope flows and roles;
-- permitted credentials or test data, without copying secrets;
-- available screenshots, recordings, traces, files, and observations;
-- restrictions on network access, mutations, destructive actions, and external services;
-- gaps and unobserved areas.
-
-Do not give an evaluator another evaluator's findings before their pass is complete; avoid anchoring and artificial consensus.
-
-### 5. Run the Twelve-Evaluator Council
-
-Use one independent agent per dimension when the runtime supports subagents. Run them in waves if fewer than twelve slots are available. Keep them read-only and without mutable shared files. If subagents are unavailable, run all twelve contracts sequentially in the main thread without omitting any.
-
-Each evaluator must:
-
-1. Walk the atlas flows through its exclusive lens.
-2. Compare the happy path, transition, failure, and real-world condition when relevant.
-3. Cite exact evidence and label it `observed`, `code`, `declared`, `inferred`, or `unverified`.
-4. Return a rating, confidence, findings, behaviors to preserve, and gaps.
-5. Propose a bounded correction and an observable check for each finding.
-6. Attach the complete cognitive-load overlay from the shared protocol to every finding, including an explicit empty factor list when no material factor applies.
-
-### 6. Apply the Cognitive-Load Overlay and Referral Gate
-
-Normalize all twelve evaluator results into the bundle defined by `references/evidence-and-report-protocol.md`, then run this skill's `scripts/check_cognitive_overlay.py`. Do not proceed to final synthesis unless it returns `status: valid` and `evaluator_count: 12`.
-
-If validation fails, request one contract-only repair from each implicated evaluator and rerun the checker once. If it still fails, reject the invalid findings and record their flows as coverage gaps. Preserve valid empty factor lists; they show that the lens was applied without inventing a cognitive effect.
-
-Use the checker's `court_required` result and trigger tuples as the deterministic referral gate. It convenes `krt-cognitive-load-court` before final synthesis when the user explicitly requests it, a cognitive P0/P1 exists, two independent evaluators flag the same `FLOW x profile x factor`, expertise reversal is plausible, or a measured comparison is required.
-
-Give the Court only the triggering tuples and factual evidence packet, not Council conclusions or proposed corrections. If the Court is unavailable, keep the Council overlay as heuristic evidence and record the triggered tuples as a verification gap; do not block the broader audit.
-
-### 7. Synthesize Without Diluting Weaknesses
-
-Apply the shared protocol. Assign each problem one primary Council dimension and, when applicable, one primary Court factor. Cross-reference the others. Merge duplicates by cause and flow, not by matching words.
-
-Do not average the twelve ratings or sum cognitive factors to declare success. Identify the weakest link, systemic failures, and the highest-frequency or highest-consequence flows. Prioritize operability, loss of work, trust, and recovery before ornament. When the Court ran, preserve its claim basis and merge accepted `CL-*` and `POL-*` causes into one backlog.
-
-Deliver one coherent report with the cognitive-load overlay and referral status, not twelve juxtaposed mini-reports or a separate unmerged Court appendix.
-
-### 8. Remediate and Reverify When Authorized
-
-Turn the accepted backlog into small units with files, acceptance criteria, and tests. Reuse the application's conventions and components. For optional deeper work, use `krt-frontend-ux-guardian` for functional UX, `krt-interface-inquisitor` for visual composition, or `krt-interaction-polisher` for temporal response when available; their absence must not block the flow.
-
-After changing routes, roles, navigation, states, or flows, update the atlas and its fingerprint. Rerun affected evaluators and make a short pass across all twelve dimensions to catch cross-cutting regressions. When the backlog contains `CL-*` cross-references, also reproduce their verification criteria through the Court.
-
-## Agent Topology
-
-- **Lead**: sets scope, protects constraints, accepts the coverage gate, and synthesizes.
-- **Cartographer**: interviews for intent when needed and maintains the factual atlas.
-- **Evaluators 01-12**: independently apply their primary contracts and the six-factor cognitive-load overlay in `references/evaluator-catalog.md`.
-- **Verifier**: in remediation mode, reproduces acceptance criteria without reopening product decisions.
-
-The Lead must not delegate final synthesis or allow an evaluator to implement during a diagnostic pass. The Lead owns overlay validation and the referral gate; individual evaluators may nominate but cannot convene the Court.
-
-## Non-Negotiables
-
-- Do not invent routes, states, roles, permissions, data, or behavior that was not observed or declared.
-- Do not rate an inaccessible area as a failure; mark it `unverified` and explain what is missing.
-- Do not test destructive, financial, external, or production actions without authorization and safe data.
-- Do not hide the weakest link behind an average, an aesthetic score, or a long list of minor improvements.
-- Do not recommend new features when a clarity, consistency, feedback, or recovery fix solves the problem.
-- Do not accept a finding without evidence, user effect, a concrete correction, and observable verification.
-- Do not accept a finding without a complete cognitive-load overlay, even when the correct factor list is empty.
-- Do not turn Council factor tags into a cognitive score, overload verdict, or measured claim.
-- Do not declare the application polished when the atlas is absent, stale, or materially incomplete.
+When implementing accepted findings, reuse the app's components and
+conventions. For deeper work, `krt-interface-warden` covers visual composition
+and critique, and
+`krt-interaction-polisher` temporal feedback and motion. They are optional; do
+the work inline when they are absent.

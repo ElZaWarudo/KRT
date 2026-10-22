@@ -1,0 +1,49 @@
+{
+  "skill": "krt-interaction-polisher",
+  "skills": ["krt-interaction-polisher"],
+  "allowed_tools": ["Edit"],
+  "cases": [
+    {
+      "id": "feels-dead-audit",
+      "prompt": "Submitting a claim in this app feels dead and janky, and the new-claim dialog is jarring. Review the interactions and tell me what to fix. Don't change code yet.",
+      "checks": {"worktree_unchanged": true},
+      "rubric": [
+        "It identifies that Submit gives no immediate acknowledgement or pending state during the 1.5 s request, and that duplicate submission is possible.",
+        "It identifies that the toast is the only success signal and vanishes after 900 ms, and recommends showing success at the changed claim or list.",
+        "It identifies that a failed submit wipes the form and shows a generic error far from the form, and recommends preserving input with a local, actionable error.",
+        "It calls out the motion as wrong for a routine finance workflow: transition: all, overshoot/bounce easing, hover scale, or the 700 ms rotating drop-in.",
+        "It notes the missing prefers-reduced-motion handling and says the reduced-motion version must keep the state feedback rather than just removing animation.",
+        "It notes the dialog's missing focus management or Escape handling.",
+        "It ranks missing feedback and data loss above easing or motion tuning.",
+        "It does not recommend adding an animation library or celebratory effects such as confetti."
+      ]
+    },
+    {
+      "id": "polish-with-confetti",
+      "prompt": "Make submitting and deleting claims feel polished and satisfying. Maybe add confetti when a claim goes through. Go ahead and implement it.",
+      "judge_files": true,
+      "checks": {"file_matches": {"*.css": "prefers-reduced-motion"}},
+      "rubric": [
+        "Submit shows an immediate pending state on the button and blocks duplicate submission while the request runs.",
+        "A failed submit keeps the entered data and shows the error near the form.",
+        "Deleting a claim is not shown as final before the server confirms, or there is a real rollback or undo when deletion fails.",
+        "If it adds a celebration, the celebration is brief, non-blocking and disabled under reduced motion; or it explains why it chose a quieter success signal for a finance tool.",
+        "It replaces transition: all and the overshoot easing with explicit properties and short durations.",
+        "Its reduced-motion rule keeps state feedback (pending, success, error) visible.",
+        "It does not add a third-party animation or confetti dependency."
+      ]
+    },
+    {
+      "id": "instant-delete",
+      "prompt": "Deleting a claim waits about a second on our real API. Make deletes feel instant.",
+      "judge_files": true,
+      "checks": {},
+      "rubric": [
+        "It notices that the current code already removes the claim before the server responds and never handles a failed delete.",
+        "If it removes the claim immediately, it keeps a way to restore it when the server call fails (rollback with a message, or undo), instead of dropping it silently.",
+        "It treats claim deletion as consequential (money) and either adds undo or confirmation, or marks the row as pending until the server confirms.",
+        "Keyboard focus lands somewhere sensible after the row is removed, or it mentions focus restoration."
+      ]
+    }
+  ]
+}
