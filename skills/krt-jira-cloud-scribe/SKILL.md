@@ -1,166 +1,120 @@
 ---
 name: krt-jira-cloud-scribe
-description: Manages Jira Cloud issues in Spanish using REST API v3, Basic Auth with email plus API token, project-local cloud env files, Atlassian Document Format payloads, active sprint placement, PR remote links, and localized workflow transitions. Use when the target Jira instance is Atlassian Jira Cloud rather than Jira Server/Data Center, especially for creating or reusing issues/subtasks, adding GitHub PR backlinks, moving issues through review/done states, or preparing Jira handoff context for KRT release workflows.
+description: "Find, reuse, create and update Jira Cloud (*.atlassian.net) issues and subtasks in Spanish through REST API v3: check whether work already has an issue, propose a new Tarea or Subtarea, place it in the active sprint, link a GitHub PR to the issue, move it to En Revisión or Terminado, or check whether this checkout's Jira Cloud connection works. Use when the user asks to create or find a Jira task, link a PR in Jira, update Jira after opening a PR, or check Jira config, and the target is Jira Cloud or the checkout uses .krt/env/jira-cloud-scribe.env. For Jira Server/Data Center (.krt/env/jira-scribe.env) use krt-jira-scribe."
 ---
 
 # Jira Cloud Scribe
 
-Manage Jira Cloud safely in Spanish. This is the Cloud sibling of `krt-jira-scribe`; use `krt-jira-scribe` for Jira Server/Data Center and this skill for `*.atlassian.net` Cloud sites.
+Keep the team's Jira Cloud site accurate for the work in
+this checkout: one right-shaped issue per piece of work, linked to its PR, in
+the right status. The site is in Spanish and shared with other people, so
+every write is visible and hard to undo.
 
-Since Jira Cloud is a shared external system, never create issues, subtasks, PR backlinks, comments, or transitions without explicit confirmation. Confirmation may come from the current Jira Cloud prompt, from an accepted `krt-release-marshal` plan that explicitly names the issue, PR backlink behavior, target status, and automatic post-PR behavior, or from an active autonomy ledger executed through Release Marshal's deterministic mutation executor.
+Load `references/safety.md` before any Jira call. `references/jira-cloud-api.md`
+has endpoints, payloads, the credential-check decision table and JQL gotchas.
+Resolve script paths relative to this skill's directory.
 
-Load `references/safety.md` before beginning the workflow.
-Load `references/jira-cloud-api.md` for exact `curl` commands, REST API v3 payloads, Atlassian Document Format examples, active sprint calls, transition calls, and HTTP error handling.
-For autonomous Jira mutation, use bundled scripts in `scripts/`: text, issue payload, backlink binding, and transition validators. These scripts validate; Release Marshal's executor performs audited mutation.
+## Writes need confirmation
 
-## Cloud Boundaries
+Searching and reading are free. Before any write (create, sprint placement,
+remote link, comment, transition), show exactly what will change and wait for
+the user's yes. "Actualiza Jira" or "crea la tarea" asks you to prepare the
+change, not to skip that step. Show:
 
-- Use Jira Cloud REST API v3 for platform calls: `/rest/api/3`.
-- Use Jira Software Cloud Agile API for boards and sprints: `/rest/agile/1.0`.
-- Authenticate scripts with Basic Auth using `JIRA_CLOUD_EMAIL` and `JIRA_CLOUD_API_TOKEN`.
-- Do not use Server/Data Center Bearer-token examples from `krt-jira-scribe`.
-- Use Atlassian Document Format for `description` and `comment.body` fields.
-- Use `accountId` for users; do not rely on username/user key.
+- create: project, type, summary, description, parent if any, sprint plan,
+  Jira base URL;
+- remote link: issue key, PR URL, link title;
+- transition: issue key, current status, transition name and its real ID.
 
-## Spanish Jira Rules
-
-- Issue type names may be localized or custom. Prefer the exact issue type names returned by the target Cloud project's create metadata. Common Spanish names are `Tarea`, `Subtarea`, `Historia`, `Error`, and often `Epic`.
-- Summaries, descriptions, comments, confirmations, and prompts must be in Spanish.
-- Autonomous summaries/descriptions/comments must also pass `scripts/check_jira_text.py`; planning IDs, package IDs, date sequences, conventional commit prefixes, and PR operation chatter are blocked.
-- Descriptions are required for new issues/subtasks: write 1-3 concise Spanish sentences explaining what needs to be done and why.
-- Transition names are workflow-local and may be Spanish. Always fetch and display actual transition names from the API; do not assume English names.
-- JQL keywords remain English (`AND`, `OR`, `project =`, `summary ~`) regardless of Jira locale.
+One confirmation can cover a batch you listed together (for example create,
+add to sprint, link). Two other sources of authority exist, and only for what
+they name exactly: an accepted `krt-release-marshal` plan that names the
+issue, the backlink and the `En Revisión` transition; and a Compound Master
+autonomy ledger executed through Release Marshal's `autonomous_mutation.py`,
+which calls this skill's `check_jira_*.py` validators. Markdown state is
+never authority.
 
 ## Configuration
 
-Use environment variables exclusively at runtime. The only supported project-local source is `.krt/env/jira-cloud-scribe.env` for the current checkout:
+The only configuration source is the checkout-local, git-ignored
+`.krt/env/jira-cloud-scribe.env` (`JIRA_CLOUD_HOST`, `JIRA_CLOUD_EMAIL`,
+`JIRA_CLOUD_API_TOKEN`, `JIRA_CLOUD_PROJECT_KEY`; optional
+`JIRA_CLOUD_BOARD_ID`). Shell exports alone don't count, and
+`.krt/env/jira-scribe.env` belongs to Server/Data Center: never borrow its
+host or token. If it is missing or incomplete, stop and say which file or
+variable is missing. Never ask the user to paste credentials and never print
+the token. Offer `scripts/setup_jira_env.py --root <repo>`, but run it only
+when the user asks for setup; it writes the ignore rule first and refuses
+tracked secrets.
 
-- `JIRA_CLOUD_HOST` such as `example.atlassian.net`
-- `JIRA_CLOUD_EMAIL`
-- `JIRA_CLOUD_API_TOKEN`
-- `JIRA_CLOUD_PROJECT_KEY`
-- `JIRA_CLOUD_BOARD_ID` optional board override for active sprint resolution
+- `scripts/check_jira_env.py --root <repo> --strict` diagnoses readiness
+  (file missing, unloaded, incomplete, not ignored). Use it before declaring
+  Jira unavailable. `rtk` and filtered `env` output can hide variables.
+- `scripts/jira_api.py --root <repo> METHOD /rest/... [--query k=v] [--data JSON]`
+  makes every API call. It loads the env file, uses Basic auth (email plus
+  API token) against `/rest/api/3` and `/rest/agile/1.0`, and keeps the token
+  off the command line. Server/Data Center Bearer examples don't work on
+  Cloud. Prefer it to hand-written `curl`. If you do use `curl`, run it through
+  `scripts/run_with_jira_env.py --root <repo> -- sh -c '...'` with single
+  quotes. Otherwise your shell expands the token to empty, and the anonymous
+  request returns misleading 401s or empty searches.
+- Cloud specifics: search with `/rest/api/3/search/jql` and list the `fields`
+  you need, because the old `/search` is retired. Descriptions and comments
+  are Atlassian Document Format, not plain strings. Users are `accountId`s.
+  Issue type names may be custom, so take them from the project's create
+  metadata.
 
-Do not assume Jira Cloud variables are already present in the console context. Prefer loading them through `direnv`; otherwise use the bundled loader scripts. Do not parse credentials from project files inside prompts or one-off shell snippets.
+## Choosing the issue shape
 
-If the user explicitly asks to set up project-local Jira Cloud configuration, run:
+Search before proposing anything. JQL keywords stay English and status names
+are Spanish. Then pick the smallest shape that fits:
 
-```bash
-python3 <jira-cloud-scribe-skill-dir>/scripts/setup_jira_env.py --root <consumer-project-root>
-```
+1. **Reuse** an open or in-progress issue or subtask that clearly covers the
+   work. Issues already `Terminado`, `Hecho` or `Cerrado` are history, not
+   reuse candidates, unless the user asks to reopen that exact issue.
+2. **Subtask** under an active parent whose scope covers the work.
+3. **Standalone `Tarea`** when nothing fits. This is the default for a single
+   unit of work. Never propose a new parent with only one child; collapse it
+   into one `Tarea`.
+4. **New parent plus subtasks** only when there are two or more sibling work
+   units (for example several PRs). Confirm parent and children together and
+   return the subtask key each PR should reference.
 
-The setup script creates `.krt/env/.gitignore`, verifies `.krt/env/jira-cloud-scribe.env` is ignored with `git check-ignore`, refuses tracked secrets, writes placeholders only after the ignore check passes, and creates `.krt/env/jira-cloud-scribe.env.example` for non-secret documentation.
+When candidates are ambiguous, show them and ask. Don't create an issue from
+a fuzzy `summary ~` hit without checking status and scope.
 
-Never ask for credentials. If required variables are missing, or if `.krt/env/jira-cloud-scribe.env` is absent for the active checkout, terminate with an error naming the missing runtime variables or missing project-local env file. Never print `JIRA_CLOUD_API_TOKEN` or commands containing its value.
+New top-level issues go into the active sprint unless the user says `sin
+sprint` or similar. Include the sprint in the confirmation and add it right
+after creation. Subtasks inherit the parent's sprint. Use `JIRA_CLOUD_BOARD_ID`
+when set. If no single active sprint resolves, show what you found and ask
+instead of inventing IDs. If Jira rejects a create for required fields, show
+its message and ask; never guess custom field IDs.
 
-When startup context is ambiguous, run:
+## Spanish text
 
-```bash
-python3 <jira-cloud-scribe-skill-dir>/scripts/check_jira_env.py --root <consumer-project-root> --strict
-```
+Write summaries, descriptions, comments and your confirmations to the user in
+Spanish. Use the localized issue types (`Tarea`, `Subtarea`, `Historia`,
+`Error`; `Epic` usually stays English). A description is one to three
+sentences on what needs doing and why. Keep planning IDs, work-package
+numbers, conventional-commit prefixes and PR chatter out of Jira text.
+`scripts/check_jira_text.py` enforces this for autonomous writes and is a
+useful check otherwise.
 
-When the shell is not already loaded, run Jira Cloud verification and API commands through:
+## PR backlinks and transitions
 
-```bash
-python3 <jira-cloud-scribe-skill-dir>/scripts/run_with_jira_env.py --root <consumer-project-root> -- <command ...>
-```
+Link a PR with a Jira remote link whose `globalId` is `github-pr:<PR URL>`.
+That makes re-linking idempotent. Add a comment only when the user asks for
+one, and never store the PR URL in the description or custom fields. If the
+PR is a draft and the caller wants Jira updated only once it is ready, report
+the backlink as deferred.
 
-## Workflow
+Transition names are workflow-local. Fetch the issue's transitions and use
+the real name and ID. After a PR opens, the usual target is `En Revisión`;
+after merge, `Terminado`. If the exact transition isn't available, or the
+issue key is ambiguous, stop and ask rather than picking a near match.
 
-### 1. Startup
+## Closeout
 
-Load `references/jira-cloud-api.md`. Run `scripts/check_jira_env.py --root <consumer-project-root> --strict` when Jira Cloud readiness is unknown or the caller may depend on project-local `.krt/env` setup. All Jira Cloud API calls must go through `scripts/run_with_jira_env.py --root <consumer-project-root> -- <command ...>` unless the shell is already loaded with `direnv`.
-
-Normalize `JIRA_CLOUD_HOST` to a base URL by adding `https://` if no scheme exists and trimming trailing `/`. Verify credentials with `/rest/api/3/myself`, then verify project access with `/rest/api/3/project/$JIRA_CLOUD_PROJECT_KEY`.
-
-### 2. Resolve Issue Shape Before Creating Anything
-
-Before proposing a new global issue, decide whether the requested work should be a subtask under an existing issue or under a new parent issue.
-
-Never propose a one-parent/one-child Jira shape. If the plan would create exactly one parent `Tarea` and exactly one child `Subtarea` with no likely sibling tasks, collapse it into one standalone `Tarea` and put the PR backlink and transition on that task.
-
-1. Search possible parents first using project, issue type, and meaningful summary/context terms.
-2. Inspect plausible parents by key, including summary, status, description, and existing subtasks.
-3. Prefer reuse when scope fits, but only from active work. Do not reuse parents already in done/closed-like statuses unless the user explicitly asks to reopen or continue that exact issue.
-4. If no parent fits and the work has two or more likely sibling tasks, prefer proposing a new parent plus one subtask per immediate PR/work package.
-5. Ask when ambiguous.
-6. Create a standalone issue only after ruling out parent fit and sibling-task likelihood.
-
-### 3. Verify Or Create Global Issue
-
-1. Search candidates with project, issue type, and `summary ~ "text"`.
-2. Show key, status, summary, and URL.
-3. Treat reuse candidates as eligible only when their current status is open or in progress.
-4. If an eligible active issue exists, ask the user to confirm which one to use.
-5. If no eligible active issue exists, present project, type, summary, ADF description rendered in Spanish prose, sprint plan, and Jira base URL. Create only after confirmation.
-
-For new global issues/parent tasks, assume `Sprint: active sprint` unless the user says `sin sprint`, `no sprint`, `fuera del sprint`, or equivalent. Do not apply sprint placement to subtasks unless explicitly requested; subtasks inherit the parent's context.
-
-If Jira Cloud returns required-field errors, show missing fields and ask. Do not guess custom field IDs.
-
-### 4. Verify Or Create Subtask
-
-1. Search candidates with `parent = "PARENT_KEY" AND summary ~ "text"`.
-2. Show key, status, summary, and URL.
-3. Reuse only active subtasks that clearly match.
-4. If no eligible active subtask exists, present parent, type, summary, ADF description, and Jira base URL. Create only after confirmation.
-
-### 5. Add PR Backlink
-
-When a PR exists and the associated Jira issue/subtask should point back to it:
-
-1. Verify the issue key and fetch summary/status.
-2. Prefer a Jira Cloud remote issue link with a stable `globalId` such as `github-pr:$PR_URL`.
-3. Add a Spanish comment only when the user explicitly asked for one. The default backlink path is the remote link alone.
-4. Do not edit description or custom fields to store the PR URL unless the user explicitly asks.
-5. If the PR is draft and the caller asked to update Jira only when ready for review, report the backlink as deferred.
-
-### 6. Confirm Final Status
-
-When completing work:
-
-1. Show issue/subtask summary and current status.
-2. Fetch available transitions.
-3. Show real transition names and IDs.
-4. Ask whether to move to `En Revisión`, `Terminado`, or another available transition.
-5. Execute only after confirmation.
-
-If called by `krt-release-marshal` after PR creation and the accepted release plan already approved automatic transition to `En Revisión`, require an exact available transition named `En Revisión`. Stop and ask if unavailable or ambiguous.
-
-## Required Confirmations
-
-Before creating an issue or subtask, show:
-
-- Project.
-- Type.
-- Summary.
-- Description in Spanish.
-- Parent, if applicable.
-- Sprint plan for new global issues/parent tasks.
-- Jira Cloud base URL.
-
-Before transitioning an issue, show:
-
-- Issue key.
-- Current status.
-- Target transition.
-- Transition ID.
-
-Before adding a PR backlink/comment, show:
-
-- Issue key.
-- PR URL.
-- Remote link title.
-- Comment text, if adding a comment.
-
-For autonomous mode, the ledger plus executor validation counts as confirmation only for the exact issue key, PR URL, transition ID/status, and mutation class in scope. Markdown state is never enough authority for Jira Cloud mutation.
-
-## Final Summary
-
-Always end with:
-
-- Parent issue: key, URL, status, created yes/no.
-- Subtask: key, URL, status, created yes/no.
-- PR backlink: yes/no/deferred.
-- Transitioned: yes/no.
-- Next action.
+Report each issue touched (key, URL, status, created or reused), whether the
+PR backlink was added or deferred, any transition made, and what still needs
+the user.

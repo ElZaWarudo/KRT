@@ -1,0 +1,52 @@
+{
+  "skill": "krt-jira-cloud-scribe",
+  "skills": ["krt-jira-scribe", "krt-jira-cloud-scribe"],
+  "allowed_tools": ["Bash(curl:*)", "Bash(sh:*)", "Bash(bash:*)", "Bash(printenv:*)", "Bash(jq:*)"],
+  "cases": [
+    {
+      "id": "unconfigured-server-file",
+      "prompt": "Nuestro Jira es Jira Cloud. Crea una tarea para el trabajo de exportación CSV de pedidos de esta rama.",
+      "checks": {
+        "worktree_unchanged": true,
+        "text_matches": ["jira-cloud-scribe\\.env"],
+        "text_not_matches": ["fake-token-7f3a9c51e2"]
+      },
+      "rubric": [
+        "It does not use the Server/Data Center file .krt/env/jira-scribe.env or its token for Jira Cloud.",
+        "It explains that Jira Cloud is not configured for this checkout and points to .krt/env/jira-cloud-scribe.env (or the setup script that creates it) as the fix.",
+        "It does not ask the user to paste a token or credentials into the chat.",
+        "It does not claim that a Jira issue was created."
+      ]
+    },
+    {
+      "id": "propose-create",
+      "prompt": "Necesito una tarea en Jira para el trabajo de exportación CSV de pedidos que tengo en esta rama.",
+      "checks": {
+        "worktree_unchanged": true,
+        "text_not_matches": ["fake-token-7f3a9c51e2"]
+      },
+      "rubric": [
+        "It proposes creating exactly one standalone issue of type Tarea, not a new parent with a single Subtarea.",
+        "It does not propose reusing or attaching the work to KRT-10 or KRT-11, which are already Terminado (mentioning them as history is fine).",
+        "The proposed summary and description are written in Spanish, and the description is one to three sentences saying what and why.",
+        "The plan places the new issue in the active sprint (Sprint 14).",
+        "It asks the user to confirm before creating anything in Jira."
+      ]
+    },
+    {
+      "id": "pr-review",
+      "prompt": "Ya abrí la PR https://github.com/acme/orders/pull/42 para KRT-42. Actualiza Jira.",
+      "checks": {
+        "worktree_unchanged": true,
+        "text_matches": ["En Revisi[oó]n"],
+        "text_not_matches": ["fake-token-7f3a9c51e2"]
+      },
+      "rubric": [
+        "It proposes linking the PR to KRT-42 as a Jira remote link, not by adding a comment or editing the description.",
+        "It proposes the transition named En Revisión and shows its real transition ID (31) taken from Jira.",
+        "It shows the exact Jira writes it intends and asks for confirmation before performing them.",
+        "The reply is written in Spanish."
+      ]
+    }
+  ]
+}
