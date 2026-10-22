@@ -1,0 +1,105 @@
+#!/usr/bin/env python3
+"""Fake gh for skill evals: answers reads from a state file, logs every call.
+
+GH_FAKE_STATE points at the scenario JSON; GH_FAKE_LOG receives one JSON line
+per invocation. Mutating subcommands print a plausible success so a run that
+mutates is recorded rather than stalled.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+MUTATIONS = {
+    ("pr", "create"), ("pr", "merge"), ("pr", "edit"), ("pr", "comment"),
+    ("pr", "review"), ("pr", "close"), ("pr", "ready"), ("issue", "create"),
+}
+
+
+def flag(args: list[str], name: str) -> str | None:
+    for i, arg in enumerate(args):
+        if arg == name and i + 1 < len(args):
+            return args[i + 1]
+        if arg.startswith(name + "="):
+            return arg.split("=", 1)[1]
+    return None
+
+
+def api_mutates(args: list[str]) -> bool:
+    """gh api defaults to POST when fields are given; graphql mutates only via `mutation`."""
+    if "graphql" in args:
+        return any("mutation" in a for a in args)
+    method = flag(args, "-X") or flag(args, "--method")
+    if method:
+        return method.upper() != "GET"
+    return any(a in ("-f", "-F", "--field", "--raw-field", "--input") or a.startswith(("--field=", "--raw-field="))
+               for a in args)
+
+
+def emit(payload: object, args: list[str]) -> int:
+    text = json.dumps(payload)
+    query = flag(args, "--jq") or flag(args, "-q")
+    if query and shutil.which("jq"):
+        return subprocess.run(["jq", "-r", query], input=text, text=True).returncode
+    print(text)
+    return 0
+
+
+def main() -> int:
+    args = sys.argv[1:]
+    state = json.loads(Path(os.environ["GH_FAKE_STATE"]).read_text())
+    mutating = tuple(args[:2]) in MUTATIONS or (args[:1] == ["api"] and api_mutates(args))
+    with open(os.environ["GH_FAKE_LOG"], "a") as log:
+        log.write(json.dumps({"args": args, "mutating": mutating}) + "\n")
+
+    if mutating:
+        print(f"https://github.com/{state['repo']}/pull/999")
+        return 0
+    head = args[:2]
+    if head == ["auth", "status"]:
+        print("Logged in to github.com account eval-bot")
+        return 0
+    if head == ["repo", "view"]:
+        return emit({"nameWithOwner": state["repo"], "defaultBranchRef": {"name": state.get("default_branch", "main")}}, args)
+    if head == ["pr", "list"]:
+        prs = state.get("prs", [])
+        if h := flag(args, "--head"):
+            prs = [p for p in prs if p["headRefName"] == h]
+        st = (flag(args, "--state") or "open").upper()
+        if st != "ALL":
+            prs = [p for p in prs if p["state"] == st]
+        return emit(prs, args)
+    if head == ["pr", "view"]:
+        number = next((a for a in args[2:] if a.lstrip("#").isdigit()), None)
+        prs = state.get("prs", [])
+        pr = next((p for p in prs if str(p["number"]) == (number or "").lstrip("#")), None)
+        if pr is None and number is None and prs:
+            pr = prs[0]
+        if pr is None:
+            print("no pull requests found", file=sys.stderr)
+            return 1
+        return emit(pr, args)
+    if head == ["pr", "checks"]:
+        number = next((a for a in args[2:] if a.lstrip("#").isdigit()), None)
+        pr = next((p for p in state.get("prs", []) if str(p["number"]) == (number or "").lstrip("#")), {})
+        for check in pr.get("statusCheckRollup", []):
+            print(f"{check['name']}\t{check['conclusion'].lower()}")
+        return 0
+    if args[:1] == ["api"]:
+        path = next((a for a in args[1:] if not a.startswith("-")), "")
+        for key, value in state.get("api", {}).items():
+            if key in path:
+                return emit(value, args)
+        print(json.dumps({"message": "Not Found"}), file=sys.stderr)
+        return 1
+    print(f"gh (eval fake): unsupported command: {' '.join(args)}", file=sys.stderr)
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
