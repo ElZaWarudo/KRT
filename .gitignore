@@ -8,10 +8,6 @@ docs/*
 !docs/examples.md
 !docs/safety.md
 !docs/skills.md
-!docs/ux-ui-skill-research.md
-!docs/solutions/
-docs/solutions/*
-!docs/solutions/*.md
 docs/raw/
 !docs/harnesses/
 docs/harnesses/*
@@ -24,12 +20,3 @@ docs/harnesses/provenance/
 !docs/harnesses/summaries/
 docs/harnesses/summaries/*
 !docs/harnesses/summaries/*.md
-!docs/orchestration/
-docs/orchestration/*
-!docs/orchestration/autonomy-ledgers/
-docs/orchestration/autonomy-ledgers/*
-!docs/orchestration/autonomy-ledgers/.gitkeep
-!docs/orchestration/autonomy-ledgers/*.yaml
-!docs/swarm/
-docs/swarm/*
-!docs/swarm/*.yaml

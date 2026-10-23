@@ -1,6 +1,6 @@
 {
   "skill": "krt-compound-master",
-  "skills": ["krt-compound-master", "krt-release-marshal", "krt-gitflow-knight", "krt-rebase-smith", "krt-security-sentinel", "krt-ci-questor"],
+  "skills": ["krt-compound-master", "krt-release-marshal", "krt-gitflow-knight", "krt-rebase-smith", "krt-security-sentinel"],
   "allowed_tools": ["Edit", "Agent", "Bash(mkdir:*)", "Bash(cd:*)", "Bash(python:*)"],
   "cases": [
     {
