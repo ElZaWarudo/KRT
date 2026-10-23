@@ -75,7 +75,7 @@ Full descriptions, aliases, and dependencies: [`docs/skills.md`](docs/skills.md)
 
 ### Seneschal Workers
 
-Seneschal keeps a clear single task with the root agent. When several ready units benefit from separate workers, it routes them by risk:
+Seneschal keeps a single clear task with the root agent. When several ready units benefit from separate workers, it routes them by risk:
 
 | Unit | Worker |
 |---|---|
@@ -83,18 +83,9 @@ Seneschal keeps a clear single task with the root agent. When several ready unit
 | Standard work | GPT-6 Luna (`luna_worker`) |
 | Deep, ambiguous, or high-risk work | `luna_xhigh_discovery_worker` read-only first, then `luna_xhigh_worker` |
 
-Seneschal still inspects each diff, merges the units into one candidate, runs the full suite there, and hands release to `krt-release-marshal`. Muse must be installed in the environment that runs the worker (WSL in the current setup).
+Seneschal still inspects each diff, merges the units into one candidate, runs the full suite there, and hands release to `krt-release-marshal`.
 
 ## Install
-
-Install one skill globally:
-
-```bash
-npx -y skills add ElZaWarudo/krt --skill krt-<skill-name> -g
-```
-
-For Muse-backed Seneschal units, install both `krt-swarm-seneschal` and
-`krt-muse-artificer` in the runtime that launches Muse.
 
 Install everything:
 
@@ -102,39 +93,22 @@ Install everything:
 npx -y skills add ElZaWarudo/krt --all -g
 ```
 
-### Install Seneschal Worker Profiles
-
-Codex discovers custom agents only from `.codex/agents/` in a project or
-`agents/` under the active Codex home. Copy the profiles from the installed
-skill's `assets/codex-workers/` into one of those, after reviewing any existing
-profile with the same name. This repo already carries them in `.codex/agents/`.
-
-Install the Compound Master pipeline:
+Install one skill:
 
 ```bash
-npx -y skills add ElZaWarudo/krt \
-  --skill krt-requirements-weaver \
-  --skill krt-delivery-navigator \
-  --skill krt-compound-master \
-  --skill krt-release-marshal \
-  --skill krt-gitflow-knight \
-  --skill krt-rebase-smith \
-  --skill krt-jira-scribe \
-  -g
+npx -y skills add ElZaWarudo/krt --skill krt-<skill-name> -g
 ```
 
-Install the product polish suite:
+Install a bundle by repeating `--skill`. Pick `krt-jira-scribe` (Server/Data Center) or `krt-jira-cloud-scribe` (Cloud) to match your Jira.
 
-```bash
-npx -y skills add ElZaWarudo/krt \
-  --skill krt-product-polish-council \
-  --skill krt-interface-warden \
-  --skill krt-interaction-polisher \
-  --skill krt-bicentennial-writer \
-  -g
-```
+| Bundle | Skills |
+|---|---|
+| Release flow | `krt-release-marshal`, `krt-gitflow-knight`, `krt-rebase-smith`, a Jira scribe |
+| Compound Master pipeline | the release flow plus `krt-requirements-weaver`, `krt-delivery-navigator`, `krt-compound-master` |
+| Product polish | `krt-product-polish-council`, `krt-interface-warden`, `krt-interaction-polisher`, `krt-bicentennial-writer` |
+| Swarm with Muse | `krt-swarm-seneschal`, `krt-muse-artificer`, in the runtime that launches Muse |
 
-Install the release flow:
+For example, the release flow:
 
 ```bash
 npx -y skills add ElZaWarudo/krt \
@@ -157,6 +131,10 @@ If `npx` gets dramatic:
 npm exec --yes --package skills -- skills update
 ```
 
+### Seneschal Worker Profiles
+
+Codex discovers custom agents only from `.codex/agents/` in a project or `agents/` under the active Codex home. Copy the profiles from the installed `krt-swarm-seneschal` skill's `assets/codex-workers/` into one of those, after reviewing any existing profile with the same name. This repo already carries them in `.codex/agents/`.
+
 ## Safety
 
 KRT is deliberately fussy about mutation:
@@ -171,31 +149,11 @@ Per-skill safety notes live in [`docs/safety.md`](docs/safety.md). They are shor
 
 ## Develop
 
-Edit skills in `skills/<name>/`. Keep reusable detail in `references/` or `assets/` so `SKILL.md` stays readable.
-
-Measure a changed skill against `main` and against no skill (see [`evals/README.md`](evals/README.md)):
+Edit skills in `skills/<name>/` and keep reusable detail in `references/` or `assets/` so `SKILL.md` stays readable. A changed skill should beat both `main` and no skill on its behavioral eval (see [`evals/README.md`](evals/README.md)):
 
 ```bash
 python3 evals/run_skill_eval.py evals/<skill-name> \
   --variant none=none --variant old=main --variant new=worktree --reps 2
 ```
 
-Validate a changed skill:
-
-```bash
-rtk python3 /home/teb/.codex/skills/.system/skill-creator/scripts/quick_validate.py skills/<skill-name>
-```
-
-Before committing docs or skill changes:
-
-```bash
-rtk git diff --check
-```
-
-Sync edited skills into the local runtime:
-
-```bash
-rtk rsync -a skills/ /home/teb/.agents/skills/
-```
-
-Contributor details: [`docs/development.md`](docs/development.md).
+Validation, layout, metadata rules, and local sync: [`docs/development.md`](docs/development.md).
